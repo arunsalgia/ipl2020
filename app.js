@@ -10,7 +10,7 @@ cron = require('node-cron');
 nodemailer = require('nodemailer');
 app = express();
 
-PORT = process.env.PORT || 4000;
+PORT = process.env.PORT || 80;
 http = require('http');
 httpServer = http.createServer(app);
 io = require('socket.io')(httpServer, {
