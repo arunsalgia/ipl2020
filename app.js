@@ -659,7 +659,9 @@ checkTournamentOver = async function (tournamentName) {
   // await update brief of this tournament
   await updatePendingBrief(tournamentName);
   // check if any uncomplete match  
+  //console.log(tournamentName);
   let matchesNotOver = await CricapiMatch.find({tournament: tournamentName, matchEnded: false});
+  //console.log(matchesNotOver);
   // if no uncomplete match then declare tournament as over
   if (matchesNotOver.length === 0) {
     // set tournamet as over

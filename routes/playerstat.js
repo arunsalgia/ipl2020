@@ -17,7 +17,7 @@ const doMaxWicket = 2;
 // ]; 
 
 // use for testing
-// const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
+const keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
 
 // const keylist = [
 // "O9vYC5AxilYm7V0EkYkvRP5jF9B2","mggoPlJzYFdVbnF9FYio5GTLVD13","AdHGF0Yf9GTVJcofkoRTt2YHK3k1",
@@ -29,13 +29,13 @@ const doMaxWicket = 2;
 // ]
 
 // list provided by ANKIT
-const keylist = [
-  "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
-  "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
-  "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
-  "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
-  "8LweszMN9vMnjb4W9UjjeQzTgEx1"
-]
+// const keylist = [
+//   "AE75dwPUs5RAw6ZVHvGfveFj0n63","zB5FK5Ww8UPau4KVTAHSD3qcZNz1","UN4rwRREijNQKKcy8DPYRYRdLA42",
+//   "fmGPySXZIPbtA1Y5Rcj08XhtjFF3","GhRdKp2UaiPFHOHPHWSvODKfpJR2","cSL8p8DghkRHx2rMHtvAOCN4J2w1",
+//   "z3Pw3sUAgcZtPLlsP7Mtmcpxdcw1","E4OCcOrhlaPr0tJHHJfcBocJC0f2","z1hiMw3yqEUsKPY7O7yKx4op6iI2",
+//   "qegGL046YXT4GYH65MlaJb9KCSi2","HQdd1WU2jocSF8enWZR0gHsLMtG2","CkC4tzLl0aM9D5Bm9DDNpmejGVJ3",
+//   "8LweszMN9vMnjb4W9UjjeQzTgEx1"
+// ]
 
 // to get Matches
 const cricapiMatchInfo_prekey = "https://cricapi.com/api/matches?apikey=";
@@ -1344,7 +1344,7 @@ async function update_cricapi_data_r1(logToResponse)
       const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
       if (cricData != null)
       if (cricData.data != null) {
-        var manofthematchPID = updateMatchStats_r1(mmm, cricData.data);
+        var manofthematchPID = await updateMatchStats_r1(mmm, cricData.data);
         // match over if man of the match declared 
         // OR
         // current time > matchEndTime
@@ -1355,7 +1355,7 @@ async function update_cricapi_data_r1(logToResponse)
           thisMatchOver = true;
         }
         // if pasrt end time. Then set matchended as true
-        console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
+        console.log(`Match Id: ${mmm.mid}  End: ${mmm.matchEndTime} Over sts: ${thisMatchOver} MOM: ${manofthematchPID}`);
         if (thisMatchOver) {
           mmm.matchEnded = true;
           mmm.save();
@@ -1565,7 +1565,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       if (allplayerstats[myindex].pid === manOfTheMatchPid) {
         allplayerstats[myindex].manOfTheMatch = true;
         allbriefstats[briefIndex].manOfTheMatch = 1;
-        console.log(`Man of the match is ${allplayerstats[myindex].pid}`);
+        //console.log(`Man of the match is ${allplayerstats[myindex].pid}`);
       }
 
       var myscore = calculateScore(allplayerstats[myindex]);
