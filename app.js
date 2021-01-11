@@ -9,8 +9,13 @@ _ = require("lodash");
 cron = require('node-cron');
 nodemailer = require('nodemailer');
 app = express();
+PRODUCTION=true;
 
-PORT = process.env.PORT || 80;
+if (PRODUCTION)
+  PORT = process.env.PORT || 80;
+else
+  PORT = process.env.PORT || 4000;
+
 http = require('http');
 httpServer = http.createServer(app);
 io = require('socket.io')(httpServer, {
