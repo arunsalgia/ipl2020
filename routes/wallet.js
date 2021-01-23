@@ -11,6 +11,29 @@ router.use('/', function(req, res, next) {
 });
 
 
+router.get('/details/:userid', async function (req, res, next) {
+  WalletRes = res;
+  setHeader();
+    let { userid } = req.params;
+    
+    let userTrans=[];
+    let myTrans = await Wallet.find({uid: userid})
+    myTrans.forEach(tRec => {
+      if (tRec.amount != 0) {
+        let tDate = new Date(tRec.transNumber);
+        userTrans.push({
+          date: cricDate(tDate), 
+          amount: tRec.amount,
+          type: tRec.transType,
+        });
+      }
+    });
+  
+  // console.log(tmp);  
+  sendok(userTrans);
+}); 
+
+
 
 router.get('/accountopen/:userid', async function (req, res, next) {
   WalletRes = res;

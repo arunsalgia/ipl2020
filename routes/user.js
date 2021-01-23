@@ -109,6 +109,27 @@ router.get('/login/:uName/:uPassword', async function (req, res, next) {
   else         senderr(602, "Invalid User name or password");
 });
 
+
+router.get('/profile/:userId', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var { userId } = req.params;
+
+  let userRec = await User.findOne({uid: userId});
+  if (userRec) {
+    let groupRec = await IPLGroup.findOne({gid: userRec.defaultGroup})
+    sendok({
+      loginName: userRec.userName,
+      userName: userRec.displayName,
+      defaultGroup: groupRec.name,
+      email: userRec.email,
+      password: userRec.password,
+    });
+  } else
+    senderr(601, `Invalid user id ${userId}`);
+});
+
+
 //=============== forgot passord. email pwd to user
 router.get('/xxxxxemailpassword/:mailid', async function (req, res, next) {
   CricRes = res;
