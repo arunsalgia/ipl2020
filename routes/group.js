@@ -1,5 +1,4 @@
-const { ConnectionBase } = require("mongoose");
-
+// const { ConnectionBase } = require("mongoose");
 var router = express.Router();
 var GroupRes;
 /* GET users listing. */
@@ -454,6 +453,51 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
 
   // now save and say okay to user
   sendok(myRec);
+
+}); // end of get
+
+
+router.get('/updategroup/:groupId/:ownerId/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  let { groupId, ownerId, maxbid, mytournament, membercount, memberfee} = req.params;
+
+  let groupRec = await IPLGroup.find({gid: groupId});
+  if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
+  if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
+  let groupMemberRecs = await GroupMember.find({gid: groupId});
+  if (membercount < groupMemberRecs.length) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  // if new fee is higher than cehck if balance with owner
+
+  let feeDiff = memberFee - groupRec.memberFee;
+  for (i=0; i<groupMemberRecs.length; ++i) {
+    let mybal = WalletBalance(groupMemberRecs[i].uid);
+    if (mybal < feeDiff) {
+      senderr(604, `Insufficient Balance for Member ${grgroupMemberRecs[i].uidoupId}`); 
+      return;
+    }
+  }
+
+  groupRec.maxBidAmount = maxbid;
+  groupRec.tournament = mytournament.toUpperCase();
+  //myRec.auctionStatus = "PENDING";
+  //myRec.auctionPlayer = 0;
+  //myRec.auctionBid = 0;
+  //myRec.currentBidUid = 0;
+  //myRec.currentBidUser = "";
+  //myRec.enable = true;
+  // new fields set default prize count as 1
+  groupRec.memberCount = membercount;
+  groupRec.memberFee = memberfee;
+  // myRec.prizeCount = 1;
+  groupRec.save();
+
+  for (i=0; i<groupMemberRecs.length; ++i) {
+      await WalletFeeChange(groupMemberRecs[i].uid, groupId, feeDiff);
+  }
+
+  sendok(groupRec);
 
 }); // end of get
 

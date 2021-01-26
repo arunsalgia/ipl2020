@@ -1,5 +1,5 @@
-const { sortedIndexOf } = require("lodash");
-const { route, use } = require(".");
+// const { sortedIndexOf } = require("lodash");
+// const { route, use } = require(".");
 router = express.Router();
 
 // const allUSER = 99999999;
@@ -9,7 +9,7 @@ const WITH_CVC  = 1;
 const WITHOUT_CVC = 2;
 let CricRes;
 var _group;
-var _tournament;
+// var _tournament;
 
 
 /* GET all users listing. */
@@ -132,6 +132,30 @@ router.get('/profile/:userId', async function (req, res, next) {
     });
   } else
     senderr(601, `Invalid user id ${userId}`);
+});
+
+
+router.get('/updateprofile/:userId/:displayName/:emailId', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var { userId, displayName, emailId} = req.params;
+
+  // first get the user record using uid
+  let userRec = await User.findOne({uid: userId});
+  if (!userRec) {senderr(601, `Invalid user id ${userId}`); return; }
+
+  // now check if email id is unique
+  emailId = emailId.toLowerCase();
+  if (userRec.email !== emailId) {
+    let tmp = await User.findOne({email: emailId});
+    if (tmp) {senderr(602, `Email id ${emailId} already in use.`); return; }
+  }
+
+  // update display name and email id
+  userRec.email = emailId;
+  userRec.displayName = displayName;
+  userRec.save();
+  sendok(`Update profile of user ${userRec.uid}`);    
 });
 
 

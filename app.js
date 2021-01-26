@@ -416,7 +416,8 @@ WalletTransType = {
   bonus: "bonus",
   prize: "prize",
   groupJoin: "groupJoin",
-  groupCancel: "groupCancel"
+  groupCancel: "groupCancel",
+  feeChange: "feeChange",
 };
 
 // match id for record which has bonus score for  Maximum Run and Maximum Wicket
@@ -1014,6 +1015,17 @@ WalletAccountOpen = async function (userid, openamount) {
   return myTrans;
 }
 
+WalletFeeChange = async function (userid, groupid, amount) {
+  // console.log(`Account open for user ${userid} for amount ${openamount}`)
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.feeChange;
+  myTrans.uid = userid;
+  myTrans.gid = groupid;
+  myTrans.amount = amount;
+  await myTrans.save();
+  // console.log(myTrans);
+  return myTrans;
+}
 
 WalletAccountOffer = async function (userid, offeramount) {
   let myTrans = createWalletTransaction();
