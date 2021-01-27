@@ -8,6 +8,7 @@ fetch = require('node-fetch');
 _ = require("lodash");
 cron = require('node-cron');
 nodemailer = require('nodemailer');
+crypto = require('crypto');
 app = express();
 PRODUCTION=true;
 
@@ -554,19 +555,6 @@ cricTeamName = function (t)  {
   return tmp.join(' ');
 }
 
-getLoginName = function (name) {
-  return name.toLowerCase().replace(/\s/g, "");
-}
-
-getDisplayName = function (name) {
-  var xxx = name.split(" ");
-  xxx.forEach( x => { 
-    x = x.trim()
-    x = x.substr(0,1).toUpperCase() +
-      (x.length > 1) ? x.substr(1, x.length-1).toLowerCase() : "";
-  });
-  return xxx.join(" ");
-}
 
 masterRec = null;
 joinOffer=500;
@@ -1100,19 +1088,5 @@ getPrizeTable = async function (count, amount) {
   return prizeTable;
 }
 
-GroupMemberCount = async function (groupid) {
-  // let allRec = await GroupMember.find({gid: groupid});
-  // return allRec.length;
-//   > db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : 1}}}])
-// { "_id" : "tutorials point", "num_tutorial" : 2 }
-// { "_id" : "Neo4j", "num_tutorial" : 1 }
-  let memberCount = 0;
-  let xxx = await GroupMember.aggregate([
-    {$match: {gid: parseInt(groupid)}},
-    {$group : {_id : "$gid", num_members : {$sum : 1}}}
-  ]);
-  if (xxx.length === 1) memberCount = xxx[0].num_members;
-  return(memberCount);
-}
 // module.exports = app;
 

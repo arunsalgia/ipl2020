@@ -1,3 +1,4 @@
+const { GroupMemberCount, } = require('./cricspecial'); 
 //var express = require('express');
 var router = express.Router();
 let WalletRes;
@@ -66,7 +67,7 @@ router.get('/membercount/:groupid', async function (req, res, next) {
   var { groupid } = req.params;
   var tmp = await GroupMemberCount(groupid);
   // console.log(tmp);  
-  sendok({balance: tmp});
+  sendok({memberCount: tmp});
 }); 
 
 router.get('/balance/:userid', async function (req, res, next) {

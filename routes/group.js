@@ -1,3 +1,4 @@
+const { GroupMemberCount, } = require('./cricspecial'); 
 // const { ConnectionBase } = require("mongoose");
 var router = express.Router();
 var GroupRes;
@@ -171,9 +172,6 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
       //   aucDataRec.player = playerList[0];
       //   aucDataRec.balance = balanceDetails;
       // }
-      // console.log("Hello1=============== Start")
-      // console.log(auctioData);
-      // console.log("Hello1--------------End")
       // clientUpdateCount = CLIENTUPDATEINTERVAL+1;
       aplayer = playerList[0].pid;
       break;
@@ -377,17 +375,22 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
   var { groupName, ownerid, maxbid, mytournament, membercount, memberfee} = req.params;
   var tmp = await IPLGroup.find({});
   var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
-  if (tmp.length > 0) { senderr(629, `Duplicate Group name ${groupName}`); return; }
+  if (tmp.length > 0) { senderr(601, `Duplicate Group name ${groupName}`); return; }
 
-  if (isNaN(maxbid)) { senderr(627, `Invalid max bid amount ${maxbid}`); return; }
+  if (isNaN(maxbid)) { senderr(602, `Invalid max bid amount ${maxbid}`); return; }
   let imaxbid = parseInt(maxbid);
 
   var ownerRec = await User.findOne({uid: ownerid});
-  if (!ownerRec) { senderr(622, `Invalid owner ${ownerid}`); return; }
+  if (!ownerRec) { senderr(603, `Invalid owner ${ownerid}`); return; }
 
-  var tournamentRec = await Tournament.findOne({ name: mytournament.toUpperCase() })
-  if (!tournamentRec) { senderr(628, `Invalid tournament ${mytournament}`); return; }
+  mytournament = mytournament.toUpperCase()
+  var tournamentRec = await Tournament.findOne({ name: mytournament })
+  if (!tournamentRec) { senderr(604, `Invalid tournament ${mytournament}`); return; }
 
+  let myBal = await WalletBalance(ownerid);
+  if (myBal < memberfee) { senderr(605, `Insufficient Balance`); return; }
+
+  // ALl seems to be create. Assign gid for this group
   //Goods.find({}).sort({ price: 1 }).limit(1).then(goods => goods[0].price);
   var maxGid = await IPLGroup.find({}).sort({ gid: -1 }).limit(1);
 
@@ -457,7 +460,44 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
 }); // end of get
 
 
-router.get('/updategroup/:groupId/:ownerId/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
+router.get('/updategroup/:groupId/:ownerId/:maxbid/:mytournament/:membercount', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  let { groupId, ownerId, maxbid, mytournament, membercount} = req.params;
+
+  let groupRec = await IPLGroup.find({gid: groupId});
+  if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
+  if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
+  // let groupMemberRecs = await GroupMember.find({gid: groupId});
+  // if (membercount < groupMemberRecs.length) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  let currentCount = await GroupMemberCount(groupRec.gid);
+  if (membercount < currentCount) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  // if new fee is higher than check if balance with owner
+  // use 604 for insufficient balance
+  // under what criteria groupedit is permitted
+  // 1) AUction should not have been started i.e. it is pending
+  if (groupRec.auctionStatus !== "PENDING") { senderr(605, `Cannot update. Auction has already started`);  return;}
+  
+  groupRec.maxBidAmount = maxbid;
+  groupRec.tournament = mytournament.toUpperCase();
+  //myRec.auctionStatus = "PENDING";
+  //myRec.auctionPlayer = 0;
+  //myRec.auctionBid = 0;
+  //myRec.currentBidUid = 0;
+  //myRec.currentBidUser = "";
+  //myRec.enable = true;
+  // new fields set default prize count as 1
+  groupRec.memberCount = membercount;
+  groupRec.memberFee = memberfee;
+  // myRec.prizeCount = 1;
+  groupRec.save();
+
+  sendok(groupRec);
+
+}); // end of get
+
+router.get('/updategroupwithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
   GroupRes = res;
   setHeader();
 
@@ -466,15 +506,21 @@ router.get('/updategroup/:groupId/:ownerId/:maxbid/:mytournament/:membercount/:m
   let groupRec = await IPLGroup.find({gid: groupId});
   if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
   if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
-  let groupMemberRecs = await GroupMember.find({gid: groupId});
-  if (membercount < groupMemberRecs.length) {senderr(603, `Member count invalid  ${groupId}`); return;}
-  // if new fee is higher than cehck if balance with owner
+  let currentCount = await GroupMemberCount(groupRec.gid);
+  if (membercount < currentCount) {senderr(603, `Member count invalid  ${groupId}`); return;}
 
+  // if (membercount < groupMemberRecs.length) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  // under what criteria groupedit is permitted
+  // 1) AUction should not have been started i.e. it is pending
+  if (groupRec.auctionStatus !== "PENDING") { senderr(605, `Cannot update. Auction has already started`);  return;}
+
+  // if new fee is higher then check if balance available with owner
+  let groupMemberRecs = await GroupMember.find({gid: groupId});
   let feeDiff = memberFee - groupRec.memberFee;
   for (i=0; i<groupMemberRecs.length; ++i) {
     let mybal = WalletBalance(groupMemberRecs[i].uid);
     if (mybal < feeDiff) {
-      senderr(604, `Insufficient Balance for Member ${grgroupMemberRecs[i].uidoupId}`); 
+      senderr(604, `Insufficient Balance for Member ${groupMemberRecs[i].uid}`); 
       return;
     }
   }

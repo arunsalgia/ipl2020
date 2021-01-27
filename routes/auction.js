@@ -1,19 +1,12 @@
-const { multiply } = require("lodash");
-
+// const { multiply } = require("lodash");
 var router = express.Router();
 let AuctionRes;
-/* GET users listing. */
+
 router.use('/', function(req, res, next) {
   AuctionRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
-
   next('route');
-
-  // if (req.url == "/")
-  //   publish_auctions({gid: _group});
-  // else
-  //   next();
 });
 
 const SAMEPLAYER=true;

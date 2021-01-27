@@ -1,5 +1,4 @@
-// const { sortedIndexOf } = require("lodash");
-// const { route, use } = require(".");
+const { encrypt, decrypt, dbencrypt, dbdecrypt, getLoginName, getDisplayName, } = require('./cricspecial'); 
 router = express.Router();
 
 // const allUSER = 99999999;
@@ -23,6 +22,18 @@ router.get('/', function (req, res, next) {
     next('route');
 });
 
+router.get('/xxxxalluser', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+
+  let allUserRecs = await User.find({});
+  allUserRecs.forEach( uRec => {
+    uRec.email = dbencrypt(uRec.email);
+    uRec.password = dbencrypt(uRec.password);
+    uRec.save();
+  })
+  sendok("Done");
+});
 
 // get users belonging to group "mygroup"
 router.get('/group/:mygroup', async function (req, res, next) {
@@ -34,17 +45,38 @@ router.get('/group/:mygroup', async function (req, res, next) {
   showGroupMembers(parseInt(mygroup));
 });
 
+router.get('/encrypt/:text', function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  let { text } = req.params;
+  const hash = encrypt(text);
+  console.log(hash);
+  sendok(hash);
+
+});
+
+router.get('/decrypt/:text', function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  let { text } = req.params;
+  const hash = decrypt(text);
+  console.log(hash);
+  sendok(hash);
+
+});
+
 
 //=============== SIGNUP
-router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) {
+router.get('/cricsignup/:uName/:uPassword/:uEmail', async function (req, res, next) {
   CricRes = res;
   setHeader();
   var {uName, uPassword, uEmail } = req.params;
-  var isValid = false;
+  //var isValid = false;
   // if user name already used up
   var lname = getLoginName(uName);
   var dname = getDisplayName(uName);
-  uEmail = uEmail.toLowerCase();
+  uEmail = dbencrypt(decrypt(uEmail));
+  uPassword = dbencrypt(decrypt(uPassword));
 
   let uuu = await User.findOne({userName: lname });
   if (uuu) {senderr(602, "User name already used."); return; }
@@ -79,6 +111,50 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
   sendok("OK"); 
 })
 
+
+router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var {uName, uPassword, uEmail } = req.params;
+  var isValid = false;
+  // if user name already used up
+  var lname = getLoginName(uName);
+  var dname = getDisplayName(uName);
+  uEmail = dbencrypt(uEmail.toLowerCase());
+
+  let uuu = await User.findOne({userName: lname });
+  if (uuu) {senderr(602, "User name already used."); return; }
+  uuu = await User.findOne({ email: uEmail });
+  if (uuu) {senderr(603, "Email already used."); return; }
+  
+  // uid: Number,
+  // userName: String,
+  // displayName: String,
+  // password: String,
+  // status: Boolean,
+  // defaultGroup: Number,
+  // email: String,
+  // userPlan: Number  
+  uRec = await User.find().limit(1).sort({ "uid": -1 });
+  var user1 = new User({
+      uid: uRec[0].uid + 1,
+      userName: lname,
+      displayName: dname,
+      password: dbencrypt(uPassword),
+      status: true,
+      defaultGroup: 0,
+      email: uEmail,
+      userPlan: USERTYPE.TRIAL,
+    });
+  user1.save();
+  console.log(`user user record for ${lname}`);
+  // open user wallet with 0 balance
+  await WalletAccountOpen(user1.uid, joinOffer);
+
+  // console.log(user1);
+  sendok("OK"); 
+})
+
 //=============== RESET
 router.get('/reset/:userId/:oldPwd/:newPwd', async function (req, res, next) {
   CricRes = res;
@@ -87,8 +163,8 @@ router.get('/reset/:userId/:oldPwd/:newPwd', async function (req, res, next) {
 
   var uDoc = await User.findOne({uid: userId});
   if (uDoc) { 
-    if (uDoc.password === oldPwd) {
-      uDoc.password = newPwd;
+    if (uDoc.password === dbencrypt(oldPwd)) {
+      uDoc.password = dbencrypt(newPwd);
       uDoc.save();
       sendok("OK");
       return;
@@ -103,11 +179,13 @@ router.get('/login/:uName/:uPassword', async function (req, res, next) {
   setHeader();
   var {uName, uPassword } = req.params;
   var isValid = false;
-  let lName = getLoginName(uName);
-  let uRec = await User.findOne({ userName:  lName});
-  // console.log(uRec)
+  //let lName = dbencrypt(getLoginName(uName));
+  let uRec = await User.findOne({ userName:  getLoginName(uName)});
+  console.log(uRec)
+  // let tmp = dbencrypt(uPassword);
+  // console.log(tmp);
   if (await userAlive(uRec)) 
-    isValid = (uPassword === uRec.password);
+    isValid = (dbencrypt(uPassword) === uRec.password);
 
   if (isValid) sendok(uRec.uid.toString());
   else         senderr(602, "Invalid User name or password");
@@ -126,8 +204,8 @@ router.get('/profile/:userId', async function (req, res, next) {
     sendok({
       loginName: userRec.userName,
       userName: userRec.displayName,
-      email: userRec.email,
-      password: userRec.password,
+      email: dbdecrypt(userRec.email),
+      password: dbdecrypt(userRec.password),
       defaultGroup: myGroup,
     });
   } else
@@ -145,10 +223,10 @@ router.get('/updateprofile/:userId/:displayName/:emailId', async function (req, 
   if (!userRec) {senderr(601, `Invalid user id ${userId}`); return; }
 
   // now check if email id is unique
-  emailId = emailId.toLowerCase();
+  emailId = dbencrypt(emailId.toLowerCase());
   if (userRec.email !== emailId) {
     let tmp = await User.findOne({email: emailId});
-    if (tmp) {senderr(602, `Email id ${emailId} already in use.`); return; }
+    if (tmp) {senderr(602, `Email id already in use.`); return; }
   }
 
   // update display name and email id
@@ -196,8 +274,8 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
   setHeader();
   var {mailid} = req.params;
   var isValid = false;
-  mailid = mailid.toLowerCase();
-  let uRec = await User.findOne({ email: mailid });
+  //mailid = mailid.toLowerCase();
+  let uRec = await User.findOne({ email: dbencrypt(mailid.toLowerCase()) });
   if (!uRec) {senderr(602, "Invalid email id"); return  }
   
 
@@ -217,7 +295,7 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
   };
 
   
-  mailOptions.to = uRec.email;
+  mailOptions.to = mailid;
   mailOptions.text = `Dear User,
   
     Greeting from CricDeam.
@@ -226,7 +304,7 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
 
     Login Name: ${uRec.userName} 
     User Name : ${uRec.displayName}
-    Password  : ${uRec.password}
+    Password  : ${dbdecrypt(uRec.password)}
 
     Regards,
     for Cricdream.`
@@ -248,9 +326,9 @@ router.get('/emailwelcome/:mailid', async function (req, res, next) {
   setHeader();
   var {mailid} = req.params;
   var isValid = false;
-  mailid = mailid.toLowerCase();
+  //mailid = mailid.toLowerCase();
 
-  let uRec = await User.findOne({ email: mailid });
+  let uRec = await User.findOne({ email: dbencrypt(mailid.toLowerCase()) });
   console.log(uRec)
   if (!uRec) {senderr(602, "Invalid email id"); return  }
 
@@ -269,7 +347,7 @@ router.get('/emailwelcome/:mailid', async function (req, res, next) {
     text: 'That was easy!'
   };
 
-  mailOptions.to = uRec.email;
+  mailOptions.to = mailid;
   mailOptions.text = `Dear ${uRec.displayName},
   
     Welcome to the family of CricDeam.
@@ -284,7 +362,7 @@ router.get('/emailwelcome/:mailid', async function (req, res, next) {
     
     Login Name: ${uRec.userName} 
     User Name : ${uRec.displayName}
-    Password  : ${uRec.password}
+    Password  : ${dbdecrypt(uRec.password)}
 
     Regards,
     for Cricdream.`
