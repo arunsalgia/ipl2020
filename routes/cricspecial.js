@@ -1,5 +1,5 @@
 const algorithm = 'aes-256-ctr';
-const akshusecretKey = 'TihomHahs@UhskaHahs#1994$1995Bon';
+const akshusecretKey = 'TihomHahs@UhskaHahs#19941995Bona';
 const ankitsecretKey = 'Tikna@Itark#1989#1993Bonaventure';
 
 const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16);
@@ -9,6 +9,7 @@ const encrypt = (text) => {
 
     console.log(`Text is ${text}`);
     const cipher = crypto.createCipheriv(algorithm, akshusecretKey, Buffer.from(iv, 'hex'));
+	
     const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
     //myIv = iv.toString('hex');
 
@@ -57,7 +58,70 @@ const getDisplayName = (name) => {
     return xxx.join(" ");
   }
 
-  async function GroupMemberCount(groupid) {
+const svrToDbText = (text) => {
+	// first decrypt text sent by server
+    let xxx = decrypt(text);
+	// now encrypt this for database
+	xxx = dbencrypt(xxx);
+    return xxx;
+  }
+
+const dbToSvrText = (text) => {
+	// first decrypt text of database
+    let xxx = dbdecryptdecrypt(text);
+	// now encrypt this for server
+	xxx = encrypt(xxx);
+    return xxx;
+  }
+
+async function sendCricMail (dest, mailSubject, mailText) {
+
+  //console.log(`Destination is ${dest}`);
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: CRICDREAMEMAILID,
+      pass: 'Anob@1989#93'
+    }
+  });
+
+  var mailOptions = {
+    from: CRICDREAMEMAILID,
+    to: '',
+    subject: '',
+    text: ''
+  };
+
+  mailOptions.to = dest;
+  mailOptions.subject = mailSubject;
+  mailOptions.text = mailText;
+
+  //console.log(mailOptions.to);
+  //console.log(mailOptions.subject);
+  //console.log(`About to send email`);
+  let response = await transporter.sendMail(mailOptions);
+  console.log(response);
+  // how to handle error. don't know may be use try/catch 
+  return ({status: true, error: 'Email Successfully sent'});
+  /***
+  transporter.sendMail(mailOptions, function(error, info){
+	console.log('insertBefore');
+    if (error) {
+      console.log(error);
+	  return ({status: false, error: error});
+      //senderr(603, error);
+    } else {
+      console.log('Email sent: ' + info.response);
+	  return ({status: true, error: info.response});
+      //sendok('Email sent: ' + info.response);
+    }
+  });
+  console.log('udi baba');
+  ***/
+} 
+
+  
+async function GroupMemberCount(groupid) {
     let memberCount = 0;
     let xxx = await GroupMember.aggregate([
       {$match: {gid: parseInt(groupid)}},
@@ -71,5 +135,7 @@ const getDisplayName = (name) => {
 module.exports = {
     getLoginName, getDisplayName,
     encrypt, decrypt, dbencrypt, dbdecrypt,
+	dbToSvrText, svrToDbText,
     GroupMemberCount,
+	sendCricMail,
 };
