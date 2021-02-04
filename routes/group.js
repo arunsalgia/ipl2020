@@ -37,6 +37,25 @@ router.use('/', function (req, res, next) {
     next('route');
 });
 
+router.get('/info/:groupid', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  var { groupid } = req.params;
+
+  gdoc = await IPLGroup.findOne({ gid: groupid, enable: true });
+  if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+
+  if (gdoc) { 
+	let count = await GroupMemberCount(groupid);
+	let tRec = await Tournament.findOne({name: gdoc.tournament});
+    sendok({info: gdoc, currentCount: count, tournamentStarted: tRec.started});
+  } else {
+    senderr(601,`Invalid Group`);
+  }
+});
+
+
 router.get('/close/:groupid/:ownerid', async function (req, res, next) {
   GroupRes = res;
   setHeader();

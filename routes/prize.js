@@ -11,6 +11,13 @@ router.use('/', function(req, res, next) {
 });
 
 
+router.get('/data', async function (req, res, next) {
+  PrizeRes = res;
+  setHeader();
+
+	let myPrize = await Prize.find({})
+	sendok(myPrize);
+}); 
 
 
 router.get('/all/:amount', async function (req, res, next) {
@@ -71,7 +78,7 @@ router.get('/addprize', async function (req, res, next) {
     prize4: 0,
     prize5: 0,
     prize6: 0,
-    prize7: 0,
+    prize7: 0,	
     prize8: 0,
     prize9: 0,
     prize10: 0,
