@@ -215,8 +215,8 @@ router.get('/criclogin/:uName/:uPassword', async function (req, res, next) {
   uPassword = decrypt(uPassword);
   if (await userAlive(uRec)) 
     isValid = (dbencrypt(uPassword) === uRec.password);
-
-  if (isValid) sendok(uRec.uid.toString());
+	
+  if (isValid) sendok(uRec);
   else         senderr(602, "Invalid User name or password");
 });
 

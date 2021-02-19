@@ -1,40 +1,159 @@
-//const { template } = require("lodash");
-
 router = express.Router();
 var PlayerRes;
-// var _group = 1;
-// var _tournament = ""; //defaultTournament;
 
 /* GET users listing. */
 router.use('/', async function(req, res, next) {
   PlayerRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return};
-
-  //console.log("In player router");
-  // if (req.url == "/") {
-  //   var myGroup = await IPLGroup.findOne({gid: _group});
-  //   publish_players({tournament: myGroup.tournament});
-  // } else
-  //   next('route');
+  next('route');
 });
 
+router.get('/list', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  await publish_players({}); 
+});
+const oldName = ["CSK", "KKR", "RCB", "SRH", "MI", "RR", "DC", "KXIP"]
+const NewName = ["CHENNAI SUPER KINGS", "KOLKATA KNIGHT RIDERS", 
+				"ROYAL CHALLENGERS BANGALORE", "SUNRISERS HYDERABAD", 
+				"MUMBAI INDIANS", "RAJASTHAN ROYALS", 
+				"DELHI CAPITALS", "KINGS XI PUNJAB"]
+//const oldName = ["KXIP"]
+let numList = [0, 0, 0, 0, 0, 0, 0, 0];
+router.get('/namechange', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  let num = 0;
+  let tot = 0;
+  console.log(numList.length);
+  for(var i=0; i<8; ++i) {
+	  numList[i] = 0;
+  }
+  let plist = await Player.find({});
+  plist.forEach(p => {
+	 let idx = oldName.indexOf(p.Team);
+	 if (idx >= 0) {
+		 ++numList[idx]
+		 ++tot;
+		 p.Team = NewName[idx];
+		 p.save();
+	 } else {
+		if (p.tournament === "IPL2020") {
+			console.log(p);
+		}
+	}
+  });
+  console.log(tot);
+  sendok(numList);
+});
 
 // get list of all players as per group
 router.get('/group/:groupid', async function(req, res, next) {
   PlayerRes = res;
   setHeader();
   var {groupid}=req.params;
-  if (isNan(groupid)) { senderr(682, `Invalid Group ${groupid}`); return; }
-  var igroup = parseInt(groupid);
-  var myGroup = await IPLGroup.findOne({gid: igroup});
-  if (!myGroup) { senderr(682, `Invalid Group ${groupid}`); return; }
+  console.log(groupid);
+  var myGroup = await IPLGroup.findOne({gid: groupid});
+  if (myGroup) {
+	  await publish_players({ tournament: myGroup.tournament } );
+  } else { 
+	senderr(682, `Invalid Group ${groupid}`); 
+}
+ 
+});
 
-  publish_players({ tournament: myGroup.tournament } );
+router.get('/tournament/:tournamentName', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  var {tournamentName}=req.params;
+  await publish_players({ tournament: tournamentName } );
+});
+
+router.get('/tteam/:tournamentName/:teamName', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  var {tournamentName, teamName}=req.params;
+  await publish_players({ tournament: tournamentName, Team: teamName } );
+});
+
+router.get('/teamfilter/:tournamentName/:teamName/:partPlayerName', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  let {tournamentName, teamName, partPlayerName}=req.params;
+  partPlayerName = partPlayerName.toUpperCase();
+  let plist = await Player.find({ tournament: tournamentName, Team: teamName } );
+  //console.log(plist);
+  plist = plist.filter(x => x.name.toUpperCase().includes(partPlayerName));
+  plist = _.sortBy(plist, 'name');
+  //console.log(plist);
+  sendok(plist)
+});
+
+router.get('/allfilter/:partPlayerName', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  let {partPlayerName}=req.params;
+  partPlayerName = partPlayerName.toUpperCase();
+  let plist = await Player.find({} );
+  //console.log(plist);
+  plist = plist.filter(x => x.name.toUpperCase().includes(partPlayerName));
+  plist = _.uniqBy(plist, 'pid');
+  plist = _.sortBy(plist, 'name');
+  //console.log(plist);
+  sendok(plist)
 });
 
 
-// get list of purchased players
+// delete all the players of the team (of given tournamenet)
+router.get('/add/:pid/:name/:tournamentName/:teamName/:role/:batStyle/:bowlStyle', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  var {pid, name, tournamentName, teamName, 
+      role, batStyle, bowlStyle
+    }=req.params;
+  console.log(name);
+  console.log(tournamentName);
+  console.log(teamName);
+  console.log(role);
+  console.log(batStyle);
+  console.log(bowlStyle);
+  tournamentName = tournamentName.toUpperCase();
+  teamName = teamName.toUpperCase();
+  let pRec = await Player.findOne({pid: pid, tournament: tournamentName, Team: teamName});
+  if (!pRec) {
+    console.log("New Player");
+    pRec = new Player();
+    pRec.pid = pid;
+    pRec.tournament = tournamentName;
+    pRec.Team = teamName;
+  }
+  console.log(pRec);
+  pRec.name = name;
+  pRec.fullName = name;
+  pRec.role = role;
+  pRec.battingStyle = batStyle;
+  pRec.bowlingStyle = bowlStyle;
+  pRec.save();
+  sendok("OK");
+});
+
+// delete all the players of the team (of given tournamenet)
+router.get('/teamdelete/:tournamentName/:teamName', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  var {tournamentName, teamName}=req.params;
+  tournamentName = tournamentName.toUpperCase();
+  teamName = teamName.toUpperCase();
+  
+  await Player.deleteMany({tournament: tournamentName, Team: teamName});
+  //let plist = await Player.find({tournament: tournamentName, Team: teamName} );
+  //console.log(plist);
+  sendok("delete players done");
+});
+
+
+// get list of purchased		 players
 router.get('/sold', async function(req, res, next) {
   PlayerRes = res;
   setHeader();
@@ -105,9 +224,11 @@ router.get('/available/:playerid', async function(req, res, next) {
 
 async function publish_players(filter_players)
 {
+	//console.log("About to publish");
   //console.log(filter_players);
   var plist = await Player.find(filter_players);
-  console.log(plist.length);
+  //console.log(plist.length);
+  plist = _.sortBy(plist, 'name');
   sendok(plist);
 }
 
@@ -116,7 +237,5 @@ function senderr(errocode, errmsg) { PlayerRes.status(errocode).send(errmsg); }
 function setHeader() {
   PlayerRes.header("Access-Control-Allow-Origin", "*");
   PlayerRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  // _group = 1;
-  // _tournament = defaultTournament;
 }
 module.exports = router;

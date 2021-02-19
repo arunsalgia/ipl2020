@@ -1,5 +1,3 @@
-// const { all } = require(".");
-
 var router = express.Router();
 let TournamentRes;
 
@@ -13,6 +11,16 @@ router.use('/', function(req, res, next) {
     publishTournament({});
   else
     next('route');
+});
+
+router.use('/info/:tournamentName', function(req, res, next) {
+  TournamentRes = res;
+  setHeader();
+  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
+
+  var {tournamentName} = req.params;
+  tournamentName = tournamentName.toUpperCase();
+  publishTournament({name: tournamentName});
 });
 
 router.get(`/list/running`, function(req, res, next) {
@@ -106,11 +114,40 @@ router.get('/add/:tournamentName/:tournamentDesc/:tournamentType', async functio
         myrec.name = tournamentName;
         myrec.desc = tournamentDesc;
         myrec.type = tournamentType;
+		myrec.started = false;
         myrec.over = false;
+		myrec.enabled = true;
         myrec.save();
         sendok(`Successfully created tournament ${tournamentName}`);
     } else
         senderr(742,`Tournament ${tournamentName} already exists`);
+});
+
+
+router.get('/update/:tournamentName/:tournamentDesc/:tournamentType', async function(req, res, next) {
+    TournamentRes = res;
+    setHeader();
+    if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
+
+    var {tournamentName, tournamentDesc, tournamentType} = req.params;
+    tournamentType = tournamentType.toUpperCase();
+    if (!["TEST", "ODI", "T20"].includes(tournamentType)) {
+      senderr(743, `Invalid tournament type ${tournamentType}. Has be be either TEST, ODI or T20`);
+      return;
+    }
+    tournamentName = tournamentName.toUpperCase();
+    var myrec = await Tournament.findOne({name: tournamentName});
+    if (!myrec) {
+        myrec = new Tournament();
+        myrec.name = tournamentName;
+		myrec.started = false;
+        myrec.over = false;
+		myrec.enabled = true;
+    } 
+	myrec.desc = tournamentDesc;
+	myrec.type = tournamentType;
+	myrec.save();
+	sendok(`Successfully updated tournament ${tournamentName}`);
 });
 
 

@@ -10,7 +10,7 @@ cron = require('node-cron');
 nodemailer = require('nodemailer');
 crypto = require('crypto');
 app = express();
-PRODUCTION=true;
+PRODUCTION=false;
 
 if (PRODUCTION)
   PORT = process.env.PORT || 80;
