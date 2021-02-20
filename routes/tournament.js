@@ -250,6 +250,7 @@ async function publishTournament(filter_tournament)
 {
   var tlist = await Tournament.find(filter_tournament);
   // tlist = _.map(tlist, o => _.pick(o, ['name', 'desc', 'type', 'over']));
+  tlist = _.sortBy(tlist, 'name');
   sendok(tlist);
 }
 
