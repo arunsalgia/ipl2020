@@ -160,7 +160,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
     return 
   }
 
-  let memberCount = GroupMemberCount(groupid);
+  let memberCount = await GroupMemberCount(groupid);
   if (memberCount !== gdoc.memberCount) {
     senderr(622, "Insufficient member count"); 
     return; 
@@ -266,14 +266,9 @@ router.get('/setauctionplayer/:groupid/:playerId', function (req, res, next) {
   IPLGroup.findOne({ gid: 1 }, async (err, gdoc) => {
     if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
     else {
-
       if (gdoc.auctionStatus != "RUNNING") {
         senderr(626, "Cannot update auction Player. Auction is not running");
       } else {
-
-       
-
-
         gdoc.auctionPlayer = iplayer;
         gdoc.save();
         sendok(gdoc.auctionPlayer.toString());
@@ -513,6 +508,42 @@ router.get('/updatewithoutfee/:groupId/:ownerId/:membercount', async function (r
   sendok(groupRec);
 
 }); // end of get
+
+router.get('/updateprizecount/:groupId/:ownerId/:prizeCount', async function (req, res, next) {
+  GroupRes = res;
+  setHeader();
+
+  let { groupId, ownerId, prizeCount } = req.params;
+
+  let groupRec = await IPLGroup.find({gid: groupId});
+  if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
+  if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
+  //let currentCount = await GroupMemberCount(groupRec.gid);
+  //if (membercount < currentCount) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  // if new fee is higher than check if balance with owner
+  // use 604 for insufficient balance
+  // under what criteria groupedit is permitted
+  // 1) AUction should not have been started i.e. it is pending
+  if (groupRec.auctionStatus !== "PENDING") { senderr(604, `Cannot update. Auction has already started`);  return;}
+  
+  //groupRec.maxBidAmount = maxbid;
+  //groupRec.tournament = mytournament.toUpperCase();
+  //myRec.auctionStatus = "PENDING";
+  //myRec.auctionPlayer = 0;
+  //myRec.auctionBid = 0;
+  //myRec.currentBidUid = 0;
+  //myRec.currentBidUser = "";
+  //myRec.enable = true;
+  // new fields set default prize count as 1
+  //groupRec.memberCount = membercount;
+  //groupRec.memberFee = memberfee;
+  groupRec.prizeCount = prizeCount;
+  groupRec.save();
+
+  sendok(groupRec);
+
+}); // end of get
+
 
 router.get('/updatewithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
   GroupRes = res;
