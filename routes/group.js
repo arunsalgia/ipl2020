@@ -479,27 +479,25 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
 }); // end of get
 
 
-router.get('/updategroup/:groupId/:ownerId/:maxbid/:mytournament/:membercount', async function (req, res, next) {
+router.get('/updatewithoutfee/:groupId/:ownerId/:membercount', async function (req, res, next) {
   GroupRes = res;
   setHeader();
 
-  let { groupId, ownerId, maxbid, mytournament, membercount} = req.params;
+  let { groupId, ownerId, membercount } = req.params;
 
   let groupRec = await IPLGroup.find({gid: groupId});
   if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
   if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
-  // let groupMemberRecs = await GroupMember.find({gid: groupId});
-  // if (membercount < groupMemberRecs.length) {senderr(603, `Member count invalid  ${groupId}`); return;}
   let currentCount = await GroupMemberCount(groupRec.gid);
   if (membercount < currentCount) {senderr(603, `Member count invalid  ${groupId}`); return;}
   // if new fee is higher than check if balance with owner
   // use 604 for insufficient balance
   // under what criteria groupedit is permitted
   // 1) AUction should not have been started i.e. it is pending
-  if (groupRec.auctionStatus !== "PENDING") { senderr(605, `Cannot update. Auction has already started`);  return;}
+  if (groupRec.auctionStatus !== "PENDING") { senderr(604, `Cannot update. Auction has already started`);  return;}
   
-  groupRec.maxBidAmount = maxbid;
-  groupRec.tournament = mytournament.toUpperCase();
+  //groupRec.maxBidAmount = maxbid;
+  //groupRec.tournament = mytournament.toUpperCase();
   //myRec.auctionStatus = "PENDING";
   //myRec.auctionPlayer = 0;
   //myRec.auctionBid = 0;
@@ -508,7 +506,7 @@ router.get('/updategroup/:groupId/:ownerId/:maxbid/:mytournament/:membercount', 
   //myRec.enable = true;
   // new fields set default prize count as 1
   groupRec.memberCount = membercount;
-  groupRec.memberFee = memberfee;
+  //groupRec.memberFee = memberfee;
   // myRec.prizeCount = 1;
   groupRec.save();
 
@@ -516,7 +514,7 @@ router.get('/updategroup/:groupId/:ownerId/:maxbid/:mytournament/:membercount', 
 
 }); // end of get
 
-router.get('/updategroupwithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
+router.get('/updatewithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
   GroupRes = res;
   setHeader();
 
@@ -684,7 +682,7 @@ router.get('/setfranchisename/:myUser/:myGroup/:myDisplayName', async function (
   var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
   if (gmRec) {
     gmRec.displayName = myDisplayName
-    console.log(gmRec);
+    //console.log(gmRec);
     gmRec.save();
     sendok("OK");
   } else { 
@@ -695,7 +693,7 @@ router.get('/setfranchisename/:myUser/:myGroup/:myDisplayName', async function (
 router.get('/getfranchisename/:myUser/:myGroup', async function (req, res, next) {
   GroupRes = res;
   setHeader();
-  var {myUser, myGroup, myDisplayName}=req.params;
+  var {myUser, myGroup}=req.params;
 
   var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
   if (gmRec) {
