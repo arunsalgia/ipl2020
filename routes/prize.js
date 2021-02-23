@@ -9,8 +9,8 @@ router.use('/', function(req, res, next) {
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
   next('route');
 });
-
-
+ 
+ 
 router.get('/data', async function (req, res, next) {
   PrizeRes = res;
   setHeader();

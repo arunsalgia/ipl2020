@@ -9,7 +9,7 @@ router.get('/', function (req, res, next) {
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
   next('route');
-});
+}); 
 
 /* GET all users listing. */
 router.get('/list', async function (req, res, next) {

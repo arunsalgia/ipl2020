@@ -11,7 +11,7 @@ router.use('/', function(req, res, next) {
     publishTournament({});
   else
     next('route');
-});
+}); 
 
 router.use('/info/:tournamentName', function(req, res, next) {
   TournamentRes = res;

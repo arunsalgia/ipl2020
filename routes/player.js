@@ -103,7 +103,7 @@ router.get('/allfilter/:partPlayerName', async function(req, res, next) {
   //console.log(plist);
   sendok(plist)
 });
-
+ 
 
 // delete all the players of the team (of given tournamenet)
 router.get('/add/:pid/:name/:tournamentName/:teamName/:role/:batStyle/:bowlStyle', async function(req, res, next) {

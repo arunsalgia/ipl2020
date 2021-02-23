@@ -62,14 +62,14 @@ router.get('/offer/:userid/:myAmount', async function (req, res, next) {
 
 router.get('/membercount/:groupid', async function (req, res, next) {
   WalletRes = res;
-  setHeader();
+  setHeader(); 
 
   var { groupid } = req.params;
   var tmp = await GroupMemberCount(groupid);
   // console.log(tmp);  
   sendok({memberCount: tmp});
 }); 
-
+ 
 router.get('/balance/:userid', async function (req, res, next) {
   WalletRes = res;
   setHeader();

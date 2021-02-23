@@ -184,7 +184,7 @@ async function publish_matches_r0(myfilter)
     
     sendok(matchlist);
 }
-
+ 
 function sendok(usrmsg) { MatchRes.send(usrmsg); }
 function senderr(errcode, errmsg) { MatchRes.status(errcode).send(errmsg); }
 function setHeader() {
@@ -192,6 +192,6 @@ function setHeader() {
   MatchRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   _group = defaultGroup;
   // _tournament = defaultTournament;
-}
+} 
 
 module.exports = router;

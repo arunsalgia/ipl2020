@@ -9,7 +9,7 @@ const WITHOUT_CVC = 2;
 let CricRes;
 var _group;
 // var _tournament;
-
+ 
 
 /* GET all users listing. */
 router.get('/', function (req, res, next) {

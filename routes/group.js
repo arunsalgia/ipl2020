@@ -1,5 +1,4 @@
 const { GroupMemberCount, } = require('./cricspecial'); 
-// const { ConnectionBase } = require("mongoose");
 var router = express.Router();
 var GroupRes;
 /* GET users listing. */
@@ -480,10 +479,13 @@ router.get('/updatewithoutfee/:groupId/:ownerId/:membercount', async function (r
 
   let { groupId, ownerId, membercount } = req.params;
 
-  let groupRec = await IPLGroup.find({gid: groupId});
-  if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
+  //console.log(memberCount);
+  //if (memberCount <= 1) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  let groupRec = await IPLGroup.findOne({gid: groupId});
+  if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }  
   if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
   let currentCount = await GroupMemberCount(groupRec.gid);
+  console.log(currentCount);
   if (membercount < currentCount) {senderr(603, `Member count invalid  ${groupId}`); return;}
   // if new fee is higher than check if balance with owner
   // use 604 for insufficient balance
@@ -515,7 +517,7 @@ router.get('/updateprizecount/:groupId/:ownerId/:prizeCount', async function (re
 
   let { groupId, ownerId, prizeCount } = req.params;
 
-  let groupRec = await IPLGroup.find({gid: groupId});
+  let groupRec = await IPLGroup.findOne({gid: groupId});
   if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
   if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
   //let currentCount = await GroupMemberCount(groupRec.gid);
