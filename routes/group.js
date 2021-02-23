@@ -118,13 +118,20 @@ router.get('/gettournamentmax/:groupid', async function (req, res, next) {
 
 
 function sendDataToClient(groupid, player, balance) {
-  var myList = _.filter(connectionArray, x => x.gid == groupid && x.page === "AUCT");
-  console.log(myList);
+  let myList = _.filter(connectionArray, x => x.gid == groupid && x.page === "AUCT");
+  //console.log(myList);
   myList.forEach(x => {
     io.to(x.socketId).emit('playerChange', player, balance);
   });
 }
 
+function sendStatusToClient(groupid, newStatus) {
+  let myList = _.filter(connectionArray, x => x.gid == groupid && x.page === "AUCT");
+  //console.log(myList);
+  myList.forEach(x => {
+    io.to(x.socketId).emit('auctionStatus', newStatus);
+  });
+}
 
 
 router.get('/getauctionstatus/:groupid', async function (req, res, next) {
@@ -174,7 +181,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
         return;
       }
       newstate = "RUNNING";
-
+      sendStatusToClient(gdoc.gid, newstate);
       const playerList = await Player.find({tournament: gdoc.tournament});
       const balanceDetails = await fetchBalance(groupid);
       // const socket = app.get("socket");
@@ -199,6 +206,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
         return;
       }
       newstate = "OVER";
+      sendStatusToClient(gdoc.gid, newstate);
       break;
     case "OVER":
       if (stateReq != "OVE") {

@@ -163,7 +163,7 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
   var soldPlayerId = _.map(auctionSoldPlayers, 'pid');
   soldPlayerId.push(auctionCurrentPlayerId);
   sendok(soldPlayerId);
-  return;
+  return; 
 
   // identify players who are still not sold and thus are available for purchase
   allPlayers = _.filter(allPlayers, x => 
