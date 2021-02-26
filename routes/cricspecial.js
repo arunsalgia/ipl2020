@@ -7,9 +7,8 @@ const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16
 
 const encrypt = (text) => {
 
-    console.log(`Text is ${text}`);
-    const cipher = crypto.createCipheriv(algorithm, akshusecretKey, Buffer.from(iv, 'hex'));
-	
+    //console.log(`Text is ${text}`);
+    const cipher = crypto.createCipheriv(algorithm, akshusecretKey, Buffer.from(iv, 'hex'));	
     const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
     //myIv = iv.toString('hex');
 
@@ -19,15 +18,13 @@ const encrypt = (text) => {
 const decrypt = (hash) => {
 
     const decipher = crypto.createDecipheriv(algorithm, akshusecretKey, Buffer.from(iv, 'hex'));
-
     const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash, 'hex')), decipher.final()]);
-
     return decrpyted.toString();
 };
 
 const dbencrypt = (text) => {
 
-    console.log(`Text is ${text}`);
+    //console.log(`Text is ${text}`);
     const cipher = crypto.createCipheriv(algorithm, ankitsecretKey, Buffer.from(iv, 'hex'));
     const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
     //myIv = iv.toString('hex');
@@ -38,9 +35,7 @@ const dbencrypt = (text) => {
 const dbdecrypt = (hash) => {
 
     const decipher = crypto.createDecipheriv(algorithm, ankitsecretKey, Buffer.from(iv, 'hex'));
-
     const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash, 'hex')), decipher.final()]);
-
     return decrpyted.toString();
 };
 

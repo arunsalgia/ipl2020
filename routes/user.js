@@ -120,7 +120,7 @@ router.get('/cricsignup/:uName/:uPassword/:uEmail', async function (req, res, ne
   // if user name already used up
   var lname = getLoginName(uName);
   var dname = getDisplayName(uName);
-  uEmail = svrToDbText(uEmail.toLowerCase());
+  uEmail = svrToDbText(uEmail);
   uPassword = svrToDbText(uPassword);
   
   let uuu = await User.findOne({userName: lname });
@@ -296,7 +296,7 @@ router.get('/cricupdateprofile/:userId/:displayName/:emailId', async function (r
   if (!userRec) {senderr(601, `Invalid user id ${userId}`); return; }
   
   // now check if email id is unique
-  emailId = dbencrypt(decrypt(emailId.toLowerCase()));
+  emailId = dbencrypt(decrypt(emailId));
   if (userRec.email !== emailId) {
     let tmp = await User.findOne({email: emailId});
     if (tmp) {senderr(602, `Email id already in use.`); return; }
@@ -348,7 +348,6 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
   setHeader();
   var {mailid} = req.params;
   var isValid = false;
-  //mailid = mailid.toLowerCase();
   let uRec = await User.findOne({ email: dbencrypt(mailid.toLowerCase()) });
   if (!uRec) {senderr(602, "Invalid email id"); return  }
   
@@ -402,7 +401,7 @@ router.get('/cricemailpassword/:mailid', async function (req, res, next) {
   var {mailid} = req.params;
   var isValid = false;
   //mailid = mailid.toLowerCase();
-  let uRec = await User.findOne({ email: svrToDbText(mailid.toLowerCase()) });
+  let uRec = await User.findOne({ email: svrToDbText(mailid) });
   if (!uRec) {senderr(602, "Invalid email id"); return  }
   
   let text = `Dear User,
@@ -418,6 +417,8 @@ router.get('/cricemailpassword/:mailid', async function (req, res, next) {
     Regards,
     for Cricdream.`
 
+   let xxx = decrypt(mailid);
+   console.log(xxx)
   let resp = await sendCricMail(decrypt(mailid), 'User info from CricDream', text);
   //console.log(resp);
   if (resp.status) {
@@ -493,8 +494,8 @@ router.get('/cricemailwelcome/:mailid', async function (req, res, next) {
   var isValid = false;
   //mailid = mailid.toLowerCase();
 
-  let uRec = await User.findOne({ email: svrToDbText(mailid.toLowerCase()) });
-  console.log(uRec)
+  let uRec = await User.findOne({ email: svrToDbText(mailid) });
+  //console.log(uRec)
   if (!uRec) {senderr(602, "Invalid email id"); return  }
 
   let text = `Dear ${uRec.displayName},
@@ -516,8 +517,8 @@ router.get('/cricemailwelcome/:mailid', async function (req, res, next) {
     Regards,
     for Cricdream.`
 
-  let resp = await sendCricMail(decrypt(uRec.email), 'Welcome to CricDream', text);
-  //console.log(resp);
+  let resp = await sendCricMail(dbdecrypt(uRec.email), 'Welcome to CricDream', text);
+  console.log(resp);
   if (resp.status) {
 	console.log('Email sent: ' + resp.error);
 	sendok(`Email sent to ${resp.error}`);

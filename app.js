@@ -11,6 +11,7 @@ nodemailer = require('nodemailer');
 crypto = require('crypto');
 app = express();
 PRODUCTION=true;
+PRIZEPORTION=1.0
 
 //
 if (PRODUCTION)
@@ -1077,7 +1078,7 @@ getPrizeTable = async function (count, amount) {
   let myPrize = await Prize.findOne({prizeCount: count})
   // we will keep 5% of amount
   // rest (i.e. 95%) will be distributed among users
-  let totPrize = Math.floor(amount*0.95)
+  let totPrize = Math.floor(amount*PRIZEPORTION);
   let allotPrize = 0;
   let prizeTable=[]
   for(i=1; i<count; ++i) {
