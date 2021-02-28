@@ -959,19 +959,21 @@ sendEmailToUser = async function(userEmailId, userSubject, userText) {
   //mailOptions.text = 
   
   var status = true;
-  transporter.sendMail(mailOptions, function(error, info){
-    if (error) {
-      console.log(`Unable to send email to ${transporter.auth.user} and ${transporter.auth.pass}`);
-      console.log(error);
-      EMAILERROR=error;
-      //senderr(603, error);
-      status=false;
-    } else {
-      //console.log('Email sent: ' + info.response);
-      //sendok('Email sent: ' + info.response);
-    }
-    return(status);
-  });
+  try {
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        console.log(`Unable to send email to ${transporter.auth.user} and ${transporter.auth.pass}`);
+        console.log(error);
+        EMAILERROR=error;
+        //senderr(603, error);
+        status=false;
+      } 
+    });
+  } catch (e) {
+    console.log("in CATCH");
+    console.log(e);
+  }
+  return(status);
 }
 
 //------------- wallet function
