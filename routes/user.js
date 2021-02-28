@@ -399,7 +399,7 @@ router.get('/cricemailpassword/:mailid', async function (req, res, next) {
   CricRes = res;
   setHeader();
   var {mailid} = req.params;
-  var isValid = false;
+  // var isValid = false;
   //mailid = mailid.toLowerCase();
   let uRec = await User.findOne({ email: svrToDbText(mailid) });
   if (!uRec) {senderr(602, "Invalid email id"); return  }
@@ -418,15 +418,15 @@ router.get('/cricemailpassword/:mailid', async function (req, res, next) {
     for Cricdream.`
 
    let xxx = decrypt(mailid);
-   console.log(xxx)
-  let resp = await sendCricMail(decrypt(mailid), 'User info from CricDream', text);
-  //console.log(resp);
+   console.log(`Send message to ${xxx}`);
+  let resp = await sendCricMail(xxx, 'User info from CricDream', text);
   if (resp.status) {
-	console.log('Email sent: ' + resp.error);
-	sendok(`Email sent to ${resp.error}`);
+    console.log('Email sent: ' + resp.error);
+    sendok(`Email sent to ${resp.error}`);
   } else {
-	console.log(resp.error);
-	senderr(603, resp.error);
+    console.log(`errror sending email to ${xxx}`);
+    console.log(resp.error);
+    senderr(603, resp.error);
   }
 }); 
 
