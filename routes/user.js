@@ -35,6 +35,14 @@ router.get('/xxxxalluser', async function (req, res, next) {
   sendok("Done");
 });
 
+router.get('/suencrypt/:text', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var { text } = req.params;
+
+  sendok(encrypt(text));
+});
+
 // get users belonging to group "mygroup"
 router.get('/group/:mygroup', async function (req, res, next) {
   CricRes = res;

@@ -924,22 +924,7 @@ updatePendingBrief = async function (mytournament) {
 
 EMAILERROR="";
 CRICDREAMEMAILID='cricketpwd@gmail.com';
-sendEmailToUser = async function(userEmailId, userSubject, userText) {
-  // USERSUBJECT='User info from CricDream';
-  // USEREMAILID='salgia.ankit@gmail.com';
-  // USERTEXT=`Dear User,
-    
-      // Greeting from CricDeam.
-  
-      // As requested by you here is login details.
-  
-      // Login Name: ${uRec.userName} 
-      // User Name : ${uRec.displayName}
-      // Password  : ${uRec.password}
-  
-      // Regards,
-      // for Cricdream.`
-    
+discarded_sendEmailToUser = async function(userEmailId, userSubject, userText) {
   var transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {

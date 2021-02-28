@@ -87,17 +87,25 @@ async function sendCricMail (dest, mailSubject, mailText) {
     text: ''
   };
 
+  console.log("About to start");
   mailOptions.to = dest;
   mailOptions.subject = mailSubject;
   mailOptions.text = mailText;
 
-  //console.log(mailOptions.to);
-  //console.log(mailOptions.subject);
-  //console.log(`About to send email`);
-  let response = await transporter.sendMail(mailOptions);
-  console.log(response);
+  console.log(mailOptions.to);
+  console.log(mailOptions.subject);
+  console.log(mailOptions.text.length);
+  console.log(`About to send email`);
+  try {
+    let response = await transporter.sendMail(mailOptions);
+    //console.log(response);
+    return ({status: true, error: 'Email Successfully sent'});
+  } catch (e) {
+    console.log("error sending email");
+    console.log(e);
+    return ({status: false, error: 'error sending Email'});
+  }
   // how to handle error. don't know may be use try/catch 
-  return ({status: true, error: 'Email Successfully sent'});
   /***
   transporter.sendMail(mailOptions, function(error, info){
 	console.log('insertBefore');
