@@ -961,6 +961,7 @@ sendEmailToUser = async function(userEmailId, userSubject, userText) {
   var status = true;
   transporter.sendMail(mailOptions, function(error, info){
     if (error) {
+      console.log(`Unable to send email to ${transporter.auth.user} and ${transporter.auth.pass}`);
       console.log(error);
       EMAILERROR=error;
       //senderr(603, error);
