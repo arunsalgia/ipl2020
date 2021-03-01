@@ -398,7 +398,7 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
   var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
   if (tmp.length > 0) { senderr(601, `Duplicate Group name ${groupName}`); return; }
 
-  if (isNaN(maxbid)) { senderr(602, `Invalid max bid amount ${maxbid}`); return; }
+  //if (isNaN(maxbid)) { senderr(602, `Invalid max bid amount ${maxbid}`); return; }
   let imaxbid = parseInt(maxbid);
 
   var ownerRec = await User.findOne({uid: ownerid});

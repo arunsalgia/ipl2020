@@ -47,6 +47,7 @@ matchRouter = require('./routes/match');
 tournamentRouter = require('./routes/tournament');
 walletRouter = require('./routes/wallet');
 prizeRouter = require('./routes/prize');
+aplRouter = require('./routes/apl');
 
 // maintaing list of all active client connection
 connectionArray  = [];
@@ -129,6 +130,7 @@ app.use('/match', matchRouter);
 app.use('/tournament', tournamentRouter);
 app.use('/wallet', walletRouter);
 app.use('/prize', prizeRouter);
+app.use('/apl', aplRouter);
 
 // ---- start of globals
 // connection string for database
@@ -240,6 +242,16 @@ WalletSchema = mongoose.Schema({
   transLink: Number,
   amount: Number,
   transStatus: Boolean,
+})
+
+AplSchema = mongoose.Schema({
+  aplCode: Number,
+  date: String,
+  uid: Number,
+  transType: String,
+  message: String,
+  email: String,
+  status: String,
 })
 
 PrizeSchema = mongoose.Schema({
@@ -371,6 +383,7 @@ SkippedPlayer = mongoose.model("skippedplayers", SkippedPlayerSchema)
 CricapiMatch = mongoose.model("cricApiMatch", CricapiMatchSchema)
 Wallet = mongoose.model('wallet', WalletSchema);
 Prize = mongoose.model('prize', PrizeSchema);
+Apl = mongoose.model('aplinfo', AplSchema);
 
 nextMatchFetchTime = new Date();
 router = express.Router();

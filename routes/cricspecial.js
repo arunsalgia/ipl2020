@@ -75,13 +75,13 @@ async function sendCricMail (dest, mailSubject, mailText) {
   var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: CRICDREAMEMAILID,
+      user: APLEMAILID,
       pass: 'Anob@1989#93'
     }
   });
 
   var mailOptions = {
-    from: CRICDREAMEMAILID,
+    from: APLEMAILID,
     to: '',
     subject: '',
     text: ''
