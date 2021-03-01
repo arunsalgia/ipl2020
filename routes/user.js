@@ -330,10 +330,10 @@ router.get('/xxxxxemailpassword/:mailid', async function (req, res, next) {
   
 
   // mailOptions.to = uRec.email;
-  let mySubject = 'User info from CricDream';
+  let mySubject = 'User info from Auction Premier League';
   let myText = `Dear User,
   
-    Greeting from CricDeam.
+    Greeting from Auction Permier League.
 
     As request by you here is your password.
 
@@ -342,7 +342,7 @@ router.get('/xxxxxemailpassword/:mailid', async function (req, res, next) {
     Password  : ${uRec.password}
 
     Regards,
-    for Cricdream.`
+    for Auction Permier League.`
 
     if (sendEmailToUser(urec.email, mySubject, myText))
       sendok("OK")
@@ -363,15 +363,15 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
   var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: CRICDREAMEMAILID,
+      user: APLEMAILID,
       pass: 'Anob@1989#93'
     }
   });
 
   var mailOptions = {
-    from: CRICDREAMEMAILID,
+    from: APLEMAILID,
     to: 'arunsalgia@gmail.com',
-    subject: 'User info from CricDream',
+    subject: 'User info from Auction Permier League',
     text: 'That was easy!'
   };
 
@@ -379,7 +379,7 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
   mailOptions.to = mailid;
   mailOptions.text = `Dear User,
   
-    Greeting from CricDeam.
+    Greeting from Auction Permier League.
 
     As request by you here is your password.
 
@@ -388,7 +388,7 @@ router.get('/emailpassword/:mailid', async function (req, res, next) {
     Password  : ${dbdecrypt(uRec.password)}
 
     Regards,
-    for Cricdream.`
+    for Auction Permier League`
 
 
   transporter.sendMail(mailOptions, function(error, info){
@@ -414,7 +414,7 @@ router.get('/cricemailpassword/:mailid', async function (req, res, next) {
   
   let text = `Dear User,
   
-    Greeting from CricDeam.
+    Greeting from Auction Permier League.
 
     As request by you here is your password.
 
@@ -423,11 +423,11 @@ router.get('/cricemailpassword/:mailid', async function (req, res, next) {
     Password  : ${dbdecrypt(uRec.password)}
 
     Regards,
-    for Cricdream.`
+    for Auction Permier League`
 
    let xxx = decrypt(mailid);
    console.log(`Send message to ${xxx}`);
-  let resp = await sendCricMail(xxx, 'User info from CricDream', text);
+  let resp = await sendCricMail(xxx, 'User info from Auction Permier League', text);
   if (resp.status) {
     console.log('Email sent: ' + resp.error);
     sendok(`Email sent to ${resp.error}`);
@@ -452,24 +452,24 @@ router.get('/emailwelcome/:mailid', async function (req, res, next) {
   var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: CRICDREAMEMAILID,
+      user: APLEMAILID,
       pass: 'Anob@1989#93'
     }
   });
 
   var mailOptions = {
-    from: CRICDREAMEMAILID,
+    from: APLEMAILID,
     to: 'arunsalgia@gmail.com',
-    subject: 'Welcome to CricDream',
+    subject: 'Welcome to Auction Permier League',
     text: 'That was easy!'
   };
 
   mailOptions.to = mailid;
   mailOptions.text = `Dear ${uRec.displayName},
   
-    Welcome to the family of CricDeam.
+    Welcome to the family of CriAuction Permier League,
 
-    Thanking you registering in CricDream.
+    Thanking you registering in Auction Permier League.
 
     You can now create Group, with family and friends and select the tournament,
     Auction players among group members
@@ -508,7 +508,7 @@ router.get('/cricemailwelcome/:mailid', async function (req, res, next) {
 
   let text = `Dear ${uRec.displayName},
   
-    Welcome to the family of CricDeam.
+    Welcome to the family of Auction Permier League.
 
     Thanking you registering in CricDream.
 
