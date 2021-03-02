@@ -23,6 +23,21 @@ router.use('/info/:tournamentName', function(req, res, next) {
   publishTournament({name: tournamentName});
 });
 
+router.get('/allfilter/:partTournamentName', async function(req, res, next) {
+  TournamentRes = res;
+  setHeader();
+  
+  let {partTournamentName}=req.params;
+  partTournamentName = partTournamentName.toUpperCase();
+  let plist = await Tournament.find({} );
+  //console.log(plist);
+  if (partTournamentName !== "ALL") {
+	plist = plist.filter(x => x.name.toUpperCase().includes(partTournamentName));
+  }
+  plist = _.sortBy(plist, 'name');
+  sendok(plist)
+});
+
 router.get(`/list/running`, function(req, res, next) {
   TournamentRes = res;
   setHeader();
