@@ -307,7 +307,8 @@ StatSchema = mongoose.Schema({
   bowled: Number,
   lbw: Number,
   catch: Number,
-
+  duck: Number,
+  economy: Number,
   // overall performance
   manOfTheMatch: Boolean
 });
@@ -354,6 +355,8 @@ BriefStatSchema = mongoose.Schema({
   bowled: Number,
   lbw: Number,
   catch: Number,
+  duck: Number,
+  economy: Number,
   // overall performance
   maxTouramentRun: Number,
   maxTouramentWicket: Number,
@@ -449,23 +452,36 @@ defaultMaxPlayerCount = 15;
 // Point scroring
 ViceCaptain_MultiplyingFactor = 1.5;
 Captain_MultiplyingFactor = 2;
-BonusRun = 1;
-Bonus4 = 1;
-Bonus6 = 2;
-Bonus50 = 20;
-Bonus100 = 50;
+BonusRun = {"TEST": 1, "ODI": 1, "T20": 1};  //1;
+Bonus4 = {"TEST": 1, "ODI": 1, "T20": 1};  //1;
+Bonus6 = {"TEST": 2, "ODI": 2, "T20": 2};  //2;
+Bonus50 = {"TEST": 10, "ODI": 20, "T20": 20};  //20;
+Bonus100 = {"TEST": 50, "ODI": 50, "T20": 50};  //50;
+Bonus200 = {"TEST": 100, "ODI": 100, "T20": 100};  //50;
 
-BonusWkt = 25;
-BonusWkt3 = 20;
-BonusWkt5 = 50;
-BonusMaiden = 20;
+BonusMaiden = {"TEST": 0, "ODI": 10, "T20": 20};  //20;
+BonusWkt = {"TEST": 25, "ODI": 25, "T20": 25};  //25;
+BonusWkt3 = {"TEST": 20, "ODI": 20, "T20": 20};  //20;
+//BonusWkt4 = {"TEST": 20, "ODI": 20, "T20": 20};  //20;
+BonusWkt5 = {"TEST": 50, "ODI": 50, "T20": 50};  //50;
+Wicket3 = {"TEST": 4, "ODI": 4, "T20": 3}
+Wicket5 = {"TEST": 5, "ODI": 5, "T20": 5}
 
-BonusDuck = -5;
-BonusNoWkt = 0;
-BonusMOM = 20;
+BonusDuck = {"TEST": -5, "ODI": -5, "T20": -5};  //-5;
+BonusNoWkt = {"TEST": 0, "ODI": 0, "T20": 0};  //0;
+BonusMOM = {"TEST": 20, "ODI": 20, "T20": 20};  //20;
 
-BonusMaxRun = 100;
-BonusMaxWicket = 100;
+BonusEconomy = {"TEST": 0, "ODI": 2, "T20": 2};  //2;
+EconomyGood = {"TEST": 6.0, "ODI": 4.0, "T20": 6.0};  //6.0;
+EconomyBad = {"TEST": 9.0, "ODI": 7.0, "T20": 9.0};  //9.0;
+MinOvers = {"TEST": 100000.0, "ODI": 2.0, "T20": 2.0};  //2.0;
+
+BonusCatch = {"TEST": 4, "ODI": 4, "T20": 4};  //4;
+BonusRunOut = {"TEST": 4, "ODI": 4, "T20": 4};  //4;
+BonusStumped = {"TEST": 6, "ODI": 6, "T20": 6};  //6;
+
+BonusMaxRun = {"TEST": 100, "ODI": 100, "T20": 100};  //100;
+BonusMaxWicket = {"TEST": 100, "ODI": 100, "T20": 100};  //100;
 
 // variables rreuiqred by timer
 sendDashboard = false;
@@ -713,6 +729,8 @@ getBlankStatRecord = function(tournamentStat) {
     bowled: 0,
     lbw: 0,
     catch: 0,
+    duck: 0,
+    economy: 0,
     // overall performance
     manOfTheMatch: false
   });
@@ -745,6 +763,8 @@ getBlankBriefRecord = function(tournamentStat) {
     bowled: 0,
     lbw: 0,
     catch: 0,
+    duck: 0,
+    economy: 0,
     // overall performance
     manOfTheMatch: 0,
     maxTouramentRun: 0,
@@ -814,7 +834,7 @@ updateTournamentMaxRunWicket = async function(tournamentName) {
   tmp = _.maxBy(sumList, x => x.totalRun);
   //console.log(tmp);
   let maxList = _.filter(sumList, x => x.totalRun == tmp.totalRun);
-  let bonusAmount  = BonusMaxRun / maxList.length;
+  let bonusAmount  = BonusMaxRun["TEST"] / maxList.length;
   maxList.forEach( mmm => {
     let myrec = getBlankStatRecord(tournamentStat);
     myrec.mid = MaxRunMid;
@@ -824,7 +844,7 @@ updateTournamentMaxRunWicket = async function(tournamentName) {
     myrec.maxTouramentRun = mmm.totalRun;  
     myrec.save(); 
 
-    let mybrief = getBlankBriefRecord(BriefStat);
+    let mybrief = getBlankBriefRecord7(BriefStat);
     mybrief.sid = MaxRunMid;
     mybrief.pid = mmm.pid;
     mybrief.playerName = mmm.playerName;
@@ -837,7 +857,7 @@ updateTournamentMaxRunWicket = async function(tournamentName) {
   tmp = _.maxBy(sumList, x => x.totalWicket);
   //console.log(tmp);
   maxList = _.filter(sumList, x => x.totalWicket == tmp.totalWicket);
-  bonusAmount  = BonusMaxWicket / maxList.length;
+  bonusAmount  = BonusMaxWicket["TEST"] / maxList.length;
   maxList.forEach( mmm => {
     let myrec = getBlankStatRecord(tournamentStat);
     myrec.mid = MaxWicketMid;
@@ -921,6 +941,8 @@ updatePendingBrief = async function (mytournament) {
       myMasterRec.bowled += myList[i].bowled;
       myMasterRec.lbw += myList[i].lbw;
       myMasterRec.catch += myList[i].catch;
+      myMasterRec.duck += myList[i].duck;
+      myMasterRec.economy += myList[i].economy;
       // overall performance
       myMasterRec.manOfTheMatch += myList[i].manOfTheMatch;
       myMasterRec.maxTouramentRun += myList[i].maxTouramentRun;

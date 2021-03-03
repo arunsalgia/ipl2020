@@ -39,8 +39,13 @@ keylist = [
   "8LweszMN9vMnjb4W9UjjeQzTgEx1"
 ];
 } else {
-keylist= [ "r4ZAGKxe9pdy9AuYzViW486eGI83" ];
+// keylist= [ "0400tFCqT1fdlNI5TVZqsnFawRZ2" ];
+keylist= [ 
+  "0400tFCqT1fdlNI5TVZqsnFawRZ2","bbdCNNOKBtPnL54mvGSgpToFUlA2",
+  "r4ZAGKxe9pdy9AuYzViW486eGI83", "ifc1xBF9BfQIYoCCEJatVUxqoVP2",
+  "iiyI0vNqKaS4Srie6thRQZe5hIi1", "Z7Vl1j4P7igV5oq2fWobEgjYNY42"];
 }
+
 // console.log(keylist);
 
 // to get Matches
@@ -1337,7 +1342,7 @@ async function update_cricapi_data_r1(logToResponse)
     //let myfilter = { matchEnded: false};
     var matchesFromDB = await CricapiMatch.find(myfilter);
     // console.log("My Matches");
-    // console.log(matchesFromDB);
+    //console.log(matchesFromDB);
     // console.log(`Matches started count ${matchesFromDB.length}`)
 
     // get stas of all these matches
@@ -1443,6 +1448,7 @@ async function updateMatchStats_r1(mmm, cricdata)
 
   var allplayerstats = await tournamentStat.find({mid: mmm.mid});
   var allbriefstats = await briefStat.find({sid: mmm.mid});
+  let myInning = 1;
   // console.log(allbriefstats);
   // console.log(allbriefstats.length);
   // update bowling details
@@ -1459,34 +1465,58 @@ async function updateMatchStats_r1(mmm, cricdata)
         return;
       }
       // console.log(`Bowling of ${bowler.pid}`)
-      myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(bowler.pid)});
+      myindex = _.findIndex(allplayerstats, {mid: currMatch, 
+        pid: parseInt(bowler.pid), 
+        innning: myInning});
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
         tmp.mid = currMatch;
         tmp.pid = bowler.pid;
         tmp.playerName = bowler.bowler;
+        tmp.inning = myInning;
         allplayerstats.push(tmp);
         myindex = allplayerstats.length - 1;
       }
-      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, pid: parseInt(bowler.pid)});
+      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, 
+        pid: parseInt(bowler.pid),
+        inning: myInning});
       if (briefIndex < 0) {
         var tmp = getBlankBriefRecord(briefStat);
         // console.log(tmp);
         tmp.sid = currMatch;
         tmp.pid = bowler.pid;
         tmp.playerName = bowler.bowler;
+        tmp.inning = myInning;
         // console.log(`length is ${allbriefstats.length}`);
         allbriefstats.push(tmp);
         briefIndex = allbriefstats.length - 1;
       }
 
+      // if minimum overs bowled then
+      // check for good or bad economy
+      let myEconomy = 0;
+      if ((fielder.Econ !== undefined) && (fielder.O !== undefined)) {
+        let myOvers = parseFloat(fielder.O);
+        if (myOvers >= MinOvers[type]) {
+          let xecon = parseFloat(fielder.Econ);
+          if (xecon <= EconomyGood[type]) {
+            myEconomy = 1;
+          } 
+          if (xecon >= EconomyBad[type]) {
+            myEconomy = -1;
+          }
+        }
+      }
+
       allplayerstats[myindex].wicket = (bowler.W === undefined) ? 0 : bowler.W;
-      allplayerstats[myindex].wicket5 = (bowler.W >= 5) ? 1 : 0;
-      allplayerstats[myindex].wicket3 = ((bowler.W >= 3) && (bowler.W < 5)) ? 1 : 0;
+      allplayerstats[myindex].wicket5 = (bowler.W >= Wicket5[mmm.type]) ? 1 : 0;
+      allplayerstats[myindex].wicket3 = ((bowler.W >= Wicket3[mmm.type]) && 
+      (bowler.W < Wicket5[mmm.type])) ? 1 : 0;
       allplayerstats[myindex].hattrick = 0;
       allplayerstats[myindex].maiden = (bowler.M === undefined) ? 0 : bowler.M
       allplayerstats[myindex].maxTouramentRun = 0;
       allplayerstats[myindex].maxTouramentWicket = 0;
+      allplayerstats[myindex].economy = myEconomy;
 
       allbriefstats[briefIndex].wicket = (bowler.W === undefined) ? 0 : bowler.W;
       allbriefstats[briefIndex].wicket5 = (bowler.W >= 5) ? 1 : 0;
@@ -1495,7 +1525,8 @@ async function updateMatchStats_r1(mmm, cricdata)
       allbriefstats[briefIndex].maiden = (bowler.M === undefined) ? 0 : bowler.M
       allbriefstats[briefIndex].maxTouramentRun = 0;
       allbriefstats[briefIndex].maxTouramentWicket = 0;
-      
+      allbriefstats[briefIndex].economy = myEconomy;
+
       // console.log(`Wicket by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].wicket}`)
       if (!(bowler.O === undefined)) {
         var i = parseInt(bowler.O);
@@ -1511,7 +1542,7 @@ async function updateMatchStats_r1(mmm, cricdata)
         allbriefstats[briefIndex].manOfTheMatch = 1;
       }
 
-      var myscore = calculateScore(allplayerstats[myindex]);
+      var myscore = calculateScore(allplayerstats[myindex], mmm.type);
       allplayerstats[myindex].score = myscore;
       allbriefstats[briefIndex].score = myscore;
     });
@@ -1523,24 +1554,46 @@ async function updateMatchStats_r1(mmm, cricdata)
   battingArray.forEach( x => {
     x.scores.forEach(batsman => {
       // console.log(`batting of ${batsman.pid}`)
-      myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(batsman.pid)});
+      myindex = _.findIndex(allplayerstats, {mid: currMatch, 
+        pid: parseInt(batsman.pid),
+        inning: myInning});
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
         tmp.mid = currMatch;
         tmp.pid = batsman.pid;
         tmp.playerName = batsman.batsman;
+        tmp.inning = myInning;
         allplayerstats.push(tmp);
         myindex = allplayerstats.length - 1;
       }
-      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, pid: parseInt(batsman.pid)});
+      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, 
+        pid: parseInt(batsman.pid),
+        inning: myInning
+      });
       if (briefIndex < 0) {
         var tmp = getBlankBriefRecord(briefStat);
         tmp.sid = currMatch;
         tmp.pid = batsman.pid;
         tmp.playerName = batsman.batsman;
+        tmp.inning = myInning;
         allbriefstats.push(tmp);
         briefIndex = allbriefstats.length - 1;
       }
+
+      // check if out on 0. i.e Duck (i.e. played at least 1 ball)
+      // Note player can be run out with out playing a single ball.
+      // This is not to be considered as DUCK
+      let isDuck = false;
+      if ((batsman.R !== undefined) && 
+      (batsman.B !== undefined) && 
+      (batsman.dismissal !== undefined)) {
+        if ((parseInt(batsman.R) === 0) && 
+        (parseInt(batsman.B) > 0) &&
+        (batsman.dismissal.replace(" ", "").toUpperCase() !== "NOTOUT")) {
+            isDuck = true;    // player is out on 0
+        }
+      }
+
       allplayerstats[myindex].run = (batsman.R === undefined) ? 0 : batsman.R;
       allplayerstats[myindex].fifty = ((batsman.R >= 50) && (batsman.R < 100)) ? 1 : 0;
       allplayerstats[myindex].hundred = (batsman.R >= 100) ? 1 : 0;
@@ -1548,6 +1601,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].six = (batsman["6s"] === undefined) ? 0 : batsman["6s"];
       allplayerstats[myindex].maxTouramentRun = 0;
       allplayerstats[myindex].maxTouramentWicket = 0;
+      allplayerstats[myindex].duck = (isDuck) ? 1 : 0;
 
       allbriefstats[briefIndex].run = (batsman.R === undefined) ? 0 : batsman.R;
       allbriefstats[briefIndex].fifty = ((batsman.R >= 50) && (batsman.R < 100)) ? 1 : 0;
@@ -1556,7 +1610,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allbriefstats[briefIndex].six = (batsman["6s"] === undefined) ? 0 : batsman["6s"];
       allbriefstats[briefIndex].maxTouramentRun = 0;
       allbriefstats[briefIndex].maxTouramentWicket = 0;
-
+      allbriefstats[briefIndex].duck = (isDuck) ? 1 : 0;
       // console.log(`Runs by ${allplayerstats[myindex].pid} : ${allplayerstats[myindex].run}`)
 
       if (!(batsman.B === undefined)) {
@@ -1574,7 +1628,7 @@ async function updateMatchStats_r1(mmm, cricdata)
         //console.log(`Man of the match is ${allplayerstats[myindex].pid}`);
       }
 
-      var myscore = calculateScore(allplayerstats[myindex]);
+      var myscore = calculateScore(allplayerstats[myindex], mmm.type);
       allplayerstats[myindex].score = myscore;
       allbriefstats[briefIndex].score = myscore;
       //console.log(`Score; ${myscore} `);
@@ -1584,21 +1638,29 @@ async function updateMatchStats_r1(mmm, cricdata)
   fieldingArray.forEach( x => {
     x.scores.forEach(fielder => {
       // console.log(`Fielding of ${fielder.pid}`)
-      myindex = _.findIndex(allplayerstats, {mid: currMatch, pid: parseInt(fielder.pid)});
+      myindex = _.findIndex(allplayerstats, {mid: currMatch, 
+        pid: parseInt(fielder.pid),
+        inning: myInning
+      });
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
         tmp.mid = currMatch;
         tmp.pid = fielder.pid;
         tmp.playerName = fielder.name;
+        tmp.inning = myInning;
         allplayerstats.push(tmp);
         myindex = allplayerstats.length - 1;
       }
-      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, pid: parseInt(fielder.pid)});
+      briefIndex = _.findIndex(allbriefstats, {sid: currMatch, 
+        pid: parseInt(fielder.pid),
+        inning: myInning
+      });
       if (briefIndex < 0) {
         var tmp = getBlankBriefRecord(briefStat);
         tmp.sid = currMatch;
         tmp.pid = fielder.pid;
         tmp.playerName = fielder.name;
+        tmp.inning = myInning;
         // console.log(`length is ${allbriefstats.length}`);
         allbriefstats.push(tmp);
         briefIndex = allbriefstats.length - 1;
@@ -1616,7 +1678,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allbriefstats[briefIndex].lbw = (fielder.lbw === undefined) ? 0 : fielder.lbw;
       allbriefstats[briefIndex].catch = (fielder.catch === undefined) ? 0 : fielder.catch;
 
-      var myscore = calculateScore(allplayerstats[myindex]);
+      var myscore = calculateScore(allplayerstats[myindex], mmm.type);
       allplayerstats[myindex].score = myscore;
       allbriefstats[briefIndex].score = myscore;
     });
@@ -1670,29 +1732,35 @@ function getMatchDetails(cricapiRec, mymatch, tournamentName) {
 
 
 
-function calculateScore(mystatrec) {
+function calculateScore(mystatrec, type) {
   //console.log(mystatrec);
   var mysum = 0;
   mysum += 
-    (mystatrec.run * BonusRun) +
-    (mystatrec.four * Bonus4) +
-    (mystatrec.six * Bonus6) +
-    (mystatrec.fifty * Bonus50) +
-    (mystatrec.hundred * Bonus100) +
-    (mystatrec.wicket * BonusWkt) +
-    (mystatrec.wicket3 * BonusWkt3) +
-    (mystatrec.wicket5 * BonusWkt5) +
-    (mystatrec.maiden * BonusMaiden) +
+    (mystatrec.run * BonusRun[type]) +
+    (mystatrec.four * Bonus4[type]) +
+    (mystatrec.six * Bonus6[type]) +
+    (mystatrec.fifty * Bonus50[type]) +
+    (mystatrec.hundred * Bonus100[type]) +
+    (mystatrec.wicket * BonusWkt[type]) +
+    (mystatrec.wicket3 * BonusWkt3[type]) +
+    (mystatrec.wicket5 * BonusWkt5[type]) +
+    (mystatrec.maiden * BonusMaiden[type]) +
     //((mystatrec.wicket == 0) ? BonusDuck : 0) +
-    ((mystatrec.manOfTheMatch) ? BonusMOM : 0) + 
-    ((mystatrec.maxTouramentRun > 0) ? BonusMaxRun : 0) +
-    ((mystatrec.maxTouramentWicket > 0) ?  BonusMaxWicket : 0);
+    ((mystatrec.manOfTheMatch) ? BonusMOM[type] : 0) + 
+    ((mystatrec.maxTouramentRun > 0) ? BonusMaxRun[type] : 0) +
+    ((mystatrec.maxTouramentWicket > 0) ?  BonusMaxWicket[type] : 0);
 
-    // if ((mystatrec.ballsPlayed > 0) && (mystatrec.run == 0))
-    //   mysum += BonusDuck;
+  // now add fiedling points
+  mysum += 
+    (mystatrec.catch * BonusCatch[type]) + 
+    (mystatrec.runout * BonusRunOut[type]) + 
+    (mystatrec.stumped * BonusStumped[type]);
 
-    // if ((mystatrec.oversBowled > 0) && mystatrec.wicket == 0)
-    //   mysum += BonusNoWkt;
+  // now add penalty for duck
+  mysum += (mystatrec.duck * BonusDuck[type]);
+
+  // now add for economy
+  mysum += (mystatrec.economy * BonusEconomy[type]);
 
   //console.log(`sum is ${mysum}`);
   return  mysum
