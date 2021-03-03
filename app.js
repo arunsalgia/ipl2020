@@ -10,7 +10,7 @@ cron = require('node-cron');
 nodemailer = require('nodemailer');
 crypto = require('crypto');
 app = express();
-PRODUCTION=true; 
+PRODUCTION=true;  
 PRIZEPORTION=1.0
 
 //

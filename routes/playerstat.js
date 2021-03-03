@@ -1843,14 +1843,9 @@ async function processConnection(i) {
       console.log(`Total calculation Time: ${duration}`)
     }
   }
-  // else
-  //   console.log("----- data already availanle");
-  // console.log(clientData);
-  // console.log(`Will send data of ${myData.tournament} to UID ${connectionArray[i].uid}  with GID ${connectionArray[i].gid}`);
-  // console.log(connectionArray[i].page);
   switch(connectionArray[i].page.substr(0, 4).toUpperCase()) {
     case "DASH":
-      if (myData) {
+      if (myData) { 
         io.to(connectionArray[i].socketId).emit('maxRun', myData.dbData.maxRun);
         io.to(connectionArray[i].socketId).emit('maxWicket', myData.dbData.maxWicket);
         io.to(connectionArray[i].socketId).emit('rank', myData.dbData.rank);
