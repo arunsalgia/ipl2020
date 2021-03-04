@@ -10,7 +10,7 @@ cron = require('node-cron');
 nodemailer = require('nodemailer');
 crypto = require('crypto');
 app = express();
-PRODUCTION=true;  
+PRODUCTION=false;  
 PRIZEPORTION=1.0
 
 //
@@ -474,7 +474,7 @@ BonusMOM = {"TEST": 20, "ODI": 20, "T20": 20};  //20;
 BonusEconomy = {"TEST": 0, "ODI": 2, "T20": 2};  //2;
 EconomyGood = {"TEST": 6.0, "ODI": 4.0, "T20": 6.0};  //6.0;
 EconomyBad = {"TEST": 9.0, "ODI": 7.0, "T20": 9.0};  //9.0;
-MinOvers = {"TEST": 100000.0, "ODI": 2.0, "T20": 2.0};  //2.0;
+MinOvers = {"TEST": 1000000.0, "ODI": 4.0, "T20": 2.0};  //2.0;
 
 BonusCatch = {"TEST": 4, "ODI": 4, "T20": 4};  //4;
 BonusRunOut = {"TEST": 4, "ODI": 4, "T20": 4};  //4;
