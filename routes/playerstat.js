@@ -1414,6 +1414,15 @@ async function updateMatchStats_r1(mmm, cricdata)
 {
   let briefIndex = -1;
   var currMatch = mmm.mid;
+  
+  let myType = mmm.type.toUpperCase();
+  if (myType.includes("ODI")) 
+    myType = "ODI";
+  else if (myType.includes("TEST"))
+    myType = "TEST";
+  else 
+  myType = "T20";
+
   var manOfTheMatchPid = 0;  
   console.log(`Match: ${currMatch} data update. Tournamen; ${mmm.tournament}`)  
   // from tournament name identify the name
@@ -1449,7 +1458,7 @@ async function updateMatchStats_r1(mmm, cricdata)
   var allplayerstats = await tournamentStat.find({mid: mmm.mid});
   var allbriefstats = await briefStat.find({sid: mmm.mid});
   let myInning = 1;
-  // console.log(allbriefstats);
+  // console.log(allplayerstats);
   // console.log(allbriefstats.length);
   // update bowling details
   //console.log("Bowlong Started");
@@ -1464,10 +1473,11 @@ async function updateMatchStats_r1(mmm, cricdata)
         //console.log(`Invalid Over ${bowler.O}. Skipping this recird`);
         return;
       }
-      // console.log(`Bowling of ${bowler.pid}`)
+      //console.log(`Bowling of ${bowler.pid}, ${myInning}`)
       myindex = _.findIndex(allplayerstats, {mid: currMatch, 
         pid: parseInt(bowler.pid), 
-        innning: myInning});
+        inning: myInning});
+      //console.log(myindex);
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
         tmp.mid = currMatch;
@@ -1495,18 +1505,21 @@ async function updateMatchStats_r1(mmm, cricdata)
       // if minimum overs bowled then
       // check for good or bad economy
       let myEconomy = 0;
-      if ((fielder.Econ !== undefined) && (fielder.O !== undefined)) {
-        let myOvers = parseFloat(fielder.O);
-        if (myOvers >= MinOvers[type]) {
-          let xecon = parseFloat(fielder.Econ);
-          if (xecon <= EconomyGood[type]) {
+      if ((bowler.Econ !== undefined) && (bowler.O !== undefined)) {
+        let myOvers = parseFloat(bowler.O);
+        //console.log(`Overs bowled ${myOvers}  ${MinOvers[myType]}`);
+        if (myOvers >= MinOvers[myType]) {
+          let xecon = parseFloat(bowler.Econ);
+          //console.log(`Econmoy bowled ${xecon}`);
+          if (xecon <= EconomyGood[myType]) {
             myEconomy = 1;
           } 
-          if (xecon >= EconomyBad[type]) {
+          if (xecon >= EconomyBad[myType]) {
             myEconomy = -1;
           }
         }
       }
+      //console.log(`Economyu valye ${myEconomy}`);
 
       allplayerstats[myindex].wicket = (bowler.W === undefined) ? 0 : bowler.W;
       allplayerstats[myindex].wicket5 = (bowler.W >= Wicket5[mmm.type]) ? 1 : 0;
@@ -1542,7 +1555,7 @@ async function updateMatchStats_r1(mmm, cricdata)
         allbriefstats[briefIndex].manOfTheMatch = 1;
       }
 
-      var myscore = calculateScore(allplayerstats[myindex], mmm.type);
+      var myscore = calculateScore(allplayerstats[myindex], myType);
       allplayerstats[myindex].score = myscore;
       allbriefstats[briefIndex].score = myscore;
     });
@@ -1557,6 +1570,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       myindex = _.findIndex(allplayerstats, {mid: currMatch, 
         pid: parseInt(batsman.pid),
         inning: myInning});
+      //console.log(`Batting index ${myindex}`);
       if (myindex < 0) {
         var tmp = getBlankStatRecord(tournamentStat);
         tmp.mid = currMatch;
@@ -1628,7 +1642,8 @@ async function updateMatchStats_r1(mmm, cricdata)
         //console.log(`Man of the match is ${allplayerstats[myindex].pid}`);
       }
 
-      var myscore = calculateScore(allplayerstats[myindex], mmm.type);
+      var myscore = calculateScore(allplayerstats[myindex], myType);
+      //console.log(`Arun score is ${myscore}`);
       allplayerstats[myindex].score = myscore;
       allbriefstats[briefIndex].score = myscore;
       //console.log(`Score; ${myscore} `);
@@ -1678,7 +1693,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allbriefstats[briefIndex].lbw = (fielder.lbw === undefined) ? 0 : fielder.lbw;
       allbriefstats[briefIndex].catch = (fielder.catch === undefined) ? 0 : fielder.catch;
 
-      var myscore = calculateScore(allplayerstats[myindex], mmm.type);
+      var myscore = calculateScore(allplayerstats[myindex], myType);
       allplayerstats[myindex].score = myscore;
       allbriefstats[briefIndex].score = myscore;
     });
@@ -1715,8 +1730,12 @@ function getMatchDetails(cricapiRec, mymatch, tournamentName) {
     // mymatch.team2Description = cricapiRec['team-2'];
     mymatch.matchStartTime = stime;
     mymatch.weekDay = myweekday;
-    mymatch.type = cricapiRec.type;
-    //toss_winner_team: "",   //x.toss_winner_team, 
+    if (cricapiRec.type.toUpperCase().includes("TEST"))
+      mymatch.type = "TEST";
+    else if (cricapiRec.type.toUpperCase().includes("ODI"))
+      mymatch.type = "ODI";
+    else
+    mymatch.type = "T20";
     mymatch.squad = cricapiRec.squad;
     mymatch.matchStarted = cricapiRec.matchStarted;
     mymatch.matchEndTime = etime;
@@ -1750,7 +1769,6 @@ function calculateScore(mystatrec, type) {
     ((mystatrec.maxTouramentRun > 0) ? BonusMaxRun[type] : 0) +
     ((mystatrec.maxTouramentWicket > 0) ?  BonusMaxWicket[type] : 0);
 
-  // now add fiedling points
   mysum += 
     (mystatrec.catch * BonusCatch[type]) + 
     (mystatrec.runout * BonusRunOut[type]) + 
@@ -1762,7 +1780,6 @@ function calculateScore(mystatrec, type) {
   // now add for economy
   mysum += (mystatrec.economy * BonusEconomy[type]);
 
-  //console.log(`sum is ${mysum}`);
   return  mysum
 }
 

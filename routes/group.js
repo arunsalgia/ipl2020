@@ -664,6 +664,10 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
   myGroupMemberRec.rank = 0;
   myGroupMemberRec.prize = 0;  
   myGroupMemberRec.save();
+  
+  userRec.defaultGroup = groupRec.gid;
+  userRec.save();
+  
   // now save okay to user
   sendok(groupRec);
 }); 
