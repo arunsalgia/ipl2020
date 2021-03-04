@@ -1272,12 +1272,24 @@ async function update_cricapi_data_r1(logToResponse)
         var mytype = x.type.toUpperCase();
 
         // special case for IPL
+        // if match type not specified, then
         if (mytype.length === 0) {
           let xxxtmp = _.find(IPLSPECIAL,  x => myTeam1.includes(x));
           if (xxxtmp) {
             xxxtmp = _.find(IPLSPECIAL,  x => myTeam2.includes(x));
             if (xxxtmp) { x.type = "T20";  mytype = "T20"; }
           }
+        } else {
+          if (mytype.includes("ODI")) {
+            mytype = "ODI";
+            x.type = mytype;
+          } else if (mytype.includes("TEST")) {
+            mytype = "TEST";
+            x.type = mytype;
+          } else if ((mytype.includes("20")) || (mytype.includes("TWENTY"))) {
+            myType = "TEST";
+            x.type = mytype;
+          } 
         }
         // console.log(`${myTeam1} ${myTeam2} Match type is ${mytype}`);
         // ipl special offer complete
@@ -1464,8 +1476,13 @@ async function updateMatchStats_r1(mmm, cricdata)
   //console.log("Bowlong Started");
   // console.log(bowlingArray);
   bowlingArray.forEach( x => {
-    x.scores.forEach(bowler => {
-      // ***********************  IMP IMP IMP ***********************
+    myInning = 1;
+    if (myType === "TEST") {
+      if (!x.title.toUpperCase().includes("1ST"))
+        myInning  = 2;
+    }
+    x.scores.forEach (bowler => {
+    // ***********************  IMP IMP IMP ***********************
       // some garbage records are sent by cricapi. Have found that in all these case Overs ("O") 
       // was set as "Allrounder", "bowler" "batsman".
       // ideally it should have #overs bowled i.e. numeric
@@ -1565,6 +1582,11 @@ async function updateMatchStats_r1(mmm, cricdata)
   // console.log("Batting started");
   // console.log(battingArray);
   battingArray.forEach( x => {
+    myInning = 1;
+    if (myType === "TEST") {
+      if (!x.title.toUpperCase().includes("1ST"))
+        myInning  = 2;
+    }
     x.scores.forEach(batsman => {
       // console.log(`batting of ${batsman.pid}`)
       myindex = _.findIndex(allplayerstats, {mid: currMatch, 
@@ -1651,6 +1673,11 @@ async function updateMatchStats_r1(mmm, cricdata)
   });
 
   fieldingArray.forEach( x => {
+    myInning = 1;
+    if (myType === "TEST") {
+      if (!x.title.toUpperCase().includes("1ST"))
+        myInning  = 2;
+    }
     x.scores.forEach(fielder => {
       // console.log(`Fielding of ${fielder.pid}`)
       myindex = _.findIndex(allplayerstats, {mid: currMatch, 
