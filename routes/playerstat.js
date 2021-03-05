@@ -530,7 +530,7 @@ router.use('/updatemax/:tournamentName', async function(req, res, next) {
   var tmp = _.maxBy(sumList, x => x.totalRun);
   //console.log(tmp);
   var maxList = _.filter(sumList, x => x.totalRun == tmp.totalRun);
-  var bonusAmount  = BonusMaxRun / maxList.length;
+  var bonusAmount  = BonusMaxRun[myTournament,type] / maxList.length;
   maxList.forEach( mmm => {
     var myrec = getBlankStatRecord(tournamentStat);
     myrec.mid = MaxRunMid;
@@ -555,7 +555,7 @@ router.use('/updatemax/:tournamentName', async function(req, res, next) {
   var tmp = _.maxBy(sumList, x => x.totalWicket);
   //console.log(tmp);
   var maxList = _.filter(sumList, x => x.totalWicket == tmp.totalWicket);
-  bonusAmount  = BonusMaxWicket / maxList.length;
+  bonusAmount  = BonusMaxWicket[myTournament,type] / maxList.length;
   maxList.forEach( mmm => {
     var myrec = getBlankStatRecord(tournamentStat);
     myrec.mid = MaxWicketMid;
@@ -610,8 +610,7 @@ async function readDatabase(igroup) {
   g_allusers = await Pallusers;
   g_auctionList = await PauctionList;
   g_statList = await PstatList;
-  console.log(g_statList.length);
-
+  
   return  ( (g_captainlist) &&
            (g_gmembers) &&
            (g_allusers) && 
@@ -651,6 +650,8 @@ async function statBrief(igroup, iwhichuser, doWhatSend)
   // var allusers = g_allusers;
   // var auctionList = g_auctionList;
   // var statList = g_statList;
+  let tType = await getTournamentType(igroup);
+  //console.log(tType);
 
   var userScoreList = [];    
   // now calculate score for each user
@@ -681,8 +682,8 @@ async function statBrief(igroup, iwhichuser, doWhatSend)
       //console.log(myplayerstats);
       // var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
       var myScore1 = _.sumBy(myplayerstats, x => x.score);
-      var myScore2 = _.sumBy(myplayerstats, x => x.run)*BonusRun*(MF-1);
-      var myScore3 = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt*(MF-1);
+      var myScore2 = _.sumBy(myplayerstats, x => x.run)*BonusRun[tType]*(MF-1);
+      var myScore3 = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt[tType]*(MF-1);
       var myScore = myScore1 + myScore2 + myScore3;
       // var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['mid', 'pid', 'score']));
       var myplayerstats = _.map(myplayerstats, o => _.pick(o, ['pid', 'score']));
@@ -711,6 +712,7 @@ async function statBrief(igroup, iwhichuser, doWhatSend)
     userScoreList = _.filter(userScoreList, x => x.uid == iwhichuser);
   }
   userScoreList = _.sortBy(userScoreList, x => x.userScore).reverse();
+  //console.log(userScoreList);
   //console.log(userScoreList);
   // if (doWhatSend === SENDRES) {
   //   sendok(userScoreList); 
@@ -813,6 +815,7 @@ async function statRank (igroup, iwhichUser, doSendWhat) {
   const Pcaptainlist = Captain.find({gid: igroup});
 
   groupRec = await PgroupRec;
+  let myType = await getTournamentType(igroup);
   var tournamentStat = mongoose.model(groupRec.tournament, StatSchema);
   const PstatList = tournamentStat.find({});
 
@@ -858,13 +861,14 @@ async function statRank (igroup, iwhichUser, doSendWhat) {
       var myplayerstats = _.filter(statList, x => x.pid === p.pid);
       // var myScore = _.sumBy(myplayerstats, x => x.score)*MF;
       var myScore1 = _.sumBy(myplayerstats, x => x.score);
-      var myScore2 = _.sumBy(myplayerstats, x => x.run)*BonusRun*(MF-1);
-      var myScore3 = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt*(MF-1);
+      var myScore2 = _.sumBy(myplayerstats, x => x.run)*BonusRun[myType]*(MF-1);
+      var myScore3 = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt[myType]*(MF-1);
       var myScore = myScore1 + myScore2 + myScore3;
       //console.log(`Player: ${p.pid}   Score: ${myScore}  MF used: ${MF}`);
       userScoreList.push({ uid: userPid, pid: p.pid, playerName: p.name, playerScore: myScore});
     });
     var totscore = _.sumBy(userScoreList, x => x.playerScore);
+	console.log(`Grand Score: ${totscore}`);
     //if (userPid === 9) totscore = 873;  // for testing
     // do not assign rank. Just now. Will be assigned when info of all user grad score is available
     userRank.push({ 
@@ -899,6 +903,7 @@ async function statRank (igroup, iwhichUser, doSendWhat) {
   //   socket.broadcast.emit('rank', userRank);
   //   // console.log(userRank);
   // }
+  //console.log(userRank);
   return(userRank);
 }
 
@@ -1035,9 +1040,17 @@ async function statMax(igroup, iwhichuser, doWhat, sendToWhom)
   return(maxarray)
 }
 
-async function statCalculation (igroup) {
-  var calStart = new Date();
+async function getTournamentType(myGid) {
+	let xxx = await IPLGroup.findOne({gid: myGid});
+	let tRec = await Tournament.findOne({name: xxx.tournament});
+	let tmp = tRec.type;
+	return(tmp);
+}
 
+async function statCalculation (igroup) {
+  let myType = await getTournamentType(igroup);
+  var calStart = new Date();
+  //console.log(`in STAT------------------------------------------------`);
   /*
   const groupRec = await IPLGroup.findOne({gid: igroup});
   var tournamentStat = mongoose.model(groupRec.tournament, StatSchema);
@@ -1062,13 +1075,14 @@ async function statCalculation (igroup) {
 	var userMaxRunList = [];
 	var userMaxWicketList = [];
 
+  //console.log("GM start");
   g_gmembers.forEach( gm => {
     userPid = gm.uid; 
     var urec = _.filter(g_allusers, u => u.uid === userPid);
+	//console.log(`${urec[0].userName}`);
     var myplayers = _.filter(g_auctionList, a => a.uid === userPid); 
-	
 	// user name and dislay name from User record
-    var curruserName = (urec) ? urec[0].userName : "";
+    var curruserName = (urec.length > 0) ? urec[0].userName : "";
     // var currdisplayName = (urec) ? urec[0].displayName : "";
 
     // find out captain and vice captain selected by user
@@ -1086,7 +1100,7 @@ async function statCalculation (igroup) {
 	var userMaxList = [];
 	
     myplayers.forEach( p => {
-
+	  //console.log(`Now calculating for ${p.playerName}`);
       var MF = 1;
       //console.log(capinfo);
       if (p.pid === capinfo.viceCaptain) {
@@ -1100,16 +1114,18 @@ async function statCalculation (igroup) {
 		    MF = 1;
       }
       //console.log(`Mul factor: ${MF}`);
-
+	  //console.log("Player stat");
+	  
       // now get the statistics of this player in various maches
       var myplayerstats = _.filter(g_statList, x => x.pid === p.pid);
       var myScore1 = _.sumBy(myplayerstats, x => x.score);
-      var myRunsBonus = _.sumBy(myplayerstats, x => x.run)*BonusRun*(MF-1);
-      var myWicketsBonus = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt*(MF-1);
+      var myRunsBonus = _.sumBy(myplayerstats, x => x.run)*BonusRun[myType]*(MF-1);
+      var myWicketsBonus = _.sumBy(myplayerstats, x => x.wicket)*BonusWkt[myType]*(MF-1);
       var myScore = myScore1 + myRunsBonus + myWicketsBonus;
+	  //console.log(`${myType} ${myScore1}  ${BonusRun[myType]} ${myWicketsBonus}`);
       userScoreList.push({ uid: userPid, pid: p.pid, playerName: p.name, playerScore: myScore});
-
-		// now find out max of each player
+	  
+	  // now find out max of each player
 	  var totRun = _.sumBy(myplayerstats, x => x.run);
       var totWicket = _.sumBy(myplayerstats, x => x.wicket);
       var tmp = { 
@@ -1123,11 +1139,10 @@ async function statCalculation (igroup) {
         totalRun: totRun,
         totalWicket: totWicket
       };
-      //console.log(tmp);
       userMaxList.push(tmp);
-
     });
-	
+    //console.log(`Max list ${userMaxList.length}`);
+
 	// calculation of player belonging to user is done.
 	// Now do total score, run and wicket
     var totscore = _.sumBy(userScoreList, x => x.playerScore);
@@ -1188,7 +1203,8 @@ async function statCalculation (igroup) {
     });
   }
 });
-  
+  //console.log("GM end");
+
   // assign ranking. Sort by score. Highest first
   userRank = _.sortBy(userRank, 'grandScore').reverse();
   var nextRank = 0;
@@ -1202,7 +1218,7 @@ async function statCalculation (igroup) {
 
   calcEnd = new Date();
 
-  var totDur = calcEnd.getTime() - calStart.getTime();
+  //var totDur = calcEnd.getTime() - calStart.getTime();
   // var duration2 = beforeStat.getTime() - beforeAwait.getTime();
   // var duration3 = dataRead.getTime() - beforeStat.getTime();
   // var duration4 = calcEnd.getTime() - dataRead.getTime();
@@ -1213,7 +1229,7 @@ async function statCalculation (igroup) {
   // console.log(`BeforeStat: ${beforeStat}  Duration: ${duration2}`);
   // console.log(`Read over : ${dataRead}  Duration: ${duration3}`);
   // console.log(`End   calc: ${calcEnd}  Duration: ${duration4}`);
-  // console.log(`Total Time: ${totDur}`) 
+  //console.log(`Total Time: ${totDur}`) 
 
   return({rank: userRank, maxRun: userMaxRunList, maxWicket: userMaxWicketList});
 }
@@ -1868,16 +1884,14 @@ async function processConnection(i) {
   var myTournament = await getTournameDetails(connectionArray[i].gid);
   if (myTournament.length === 0) return;
 
-  // console.log(clientData);
   var myData = _.find(clientData, x => x.tournament === myTournament);
   let sts = false;
+  //myData = null;	//-------------------------------> for testing purpose
   if (!myData) {
     // no data of this tournament with us. Read database and do calculation
-    // console.log("------------------reading database");
     sts = await readDatabase(connectionArray[i].gid );
-    // console.log(`Status is ${sts} for tournamenet data ${myTournament}`);
     if (sts) {
-      // console.log(connectionArray[i].gid );
+      //console.log(` process ${connectionArray[i].gid}` );
       let myDB_Data = await statCalculation(connectionArray[i].gid );
       let mySTAT_Data = await statBrief(connectionArray[i].gid , 0 , SENDSOCKET);
       myData = {tournament: myTournament, dbData: myDB_Data, statData: mySTAT_Data}
@@ -1887,6 +1901,7 @@ async function processConnection(i) {
       console.log(`Total calculation Time: ${duration}`)
     }
   }
+
   switch(connectionArray[i].page.substr(0, 4).toUpperCase()) {
     case "DASH":
       if (myData) { 
@@ -1927,7 +1942,6 @@ async function sendDashboardData() {
   // });
   //--------------CHECK
   let T1 = new Date();
-  console.log("---------------------");
   connectionArray = [].concat(masterConnectionArray)
   // if (connectionArray.length > 0)
   //   console.log(` ${connectionArray[0].gid}  ${connectionArray[0].uid}   ${connectionArray[0].page}`);
