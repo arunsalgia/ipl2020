@@ -729,6 +729,17 @@ router.get('/setfranchisename/:myUser/:myGroup/:myDisplayName', async function (
     gmRec.displayName = myDisplayName
     //console.log(gmRec);
     gmRec.save();
+	// also update in memory
+   for(cdata of clientData) {
+	 let myRec = _.find(cdata.statData, x=> x.uid == myUser && x.gid == myGroup);
+	 if (myRec) myRec.displayName = myDisplayName;
+	 myRec = _.find(cdata.dbData.rank, x=> x.uid == myUser && x.gid == myGroup);
+	 if (myRec) myRec.displayName = myDisplayName;
+	 myRec = _.find(cdata.dbData.maxRun, x=> x.uid == myUser && x.gid == myGroup);
+	 if (myRec) myRec.displayName = myDisplayName;
+	 myRec = _.find(cdata.dbData.maxWicket, x=> x.uid == myUser && x.gid == myGroup);
+	 if (myRec) myRec.displayName = myDisplayName;
+   }
     sendok("OK");
   } else { 
     senderr(624, "Invalid Group"); 

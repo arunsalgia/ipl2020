@@ -11,6 +11,12 @@ router.use('/', function(req, res, next) {
   next('route');
 });
 
+router.get('/latestversion', async function (req, res, next) {
+  AplRes = res;
+  setHeader();
+  sendok("1.0");
+});
+
 
 router.get('/feedback/:userid/:message', async function (req, res, next) {
   AplRes = res;

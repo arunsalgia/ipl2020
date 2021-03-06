@@ -1149,7 +1149,7 @@ async function statCalculation (igroup) {
     userRank.push({ 
       uid: userPid, 
       gid: igroup,
-      userName: urec[0].displayName,   //  curruserName, 
+      userName: urec[0].displayName,   //  curruserName, `
       displayName: gm.displayName,    //  currdisplayName,
       grandScore: totscore, 
       rank: 0});
@@ -1991,6 +1991,7 @@ async function checkallover() {
   }
 }
 
+
 // schedule task 
 cron.schedule('*/1 * * * * *', () => {
   if (!db_connection) {
@@ -2015,7 +2016,7 @@ cron.schedule('*/1 * * * * *', () => {
     clientUpdateCount = 0;
     // console.log("client update over")
   }
-
+  
 });
 
 

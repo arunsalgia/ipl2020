@@ -56,6 +56,8 @@ clientData = [];
 CLIENTUPDATEINTERVAL=10;
 clientUpdateCount=0;
 CRICUPDATEINTERVAL = 15;    // in seconds. Interval after seconds fetch cricket match data from cricapi
+CRICDBCLEANUPINTERVAL = 15;
+dbcleanupCount = 0;
 cricTimer = 0;
 // maintain list of runnning matches
 runningMatchArray = [];
