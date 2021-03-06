@@ -1286,7 +1286,7 @@ async function update_cricapi_data_r1(logToResponse)
 
         var matchTournament = '';
         var mytype = x.type.toUpperCase();
-
+		//if (x.unique_id == 1243388)	console.log(`${myTeam1}  ${myTeam2} ${mytype}`);
         // special case for IPL
         // if match type not specified, then
         if (mytype.length === 0) {
@@ -1303,7 +1303,7 @@ async function update_cricapi_data_r1(logToResponse)
             mytype = "TEST";
             x.type = mytype;
           } else if ((mytype.includes("20")) || (mytype.includes("TWENTY"))) {
-            myType = "TEST";
+            myType = "T20";
             x.type = mytype;
           } 
         }
