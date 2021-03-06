@@ -138,7 +138,8 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   currTime.setDate(currTime.getDate())
   var myGroup = await IPLGroup.find({"gid": igroup})
   var myMatches = await CricapiMatch.find({tournament: myGroup[0].tournament});
-
+  console.log(myGroup[0].tournament);
+  
   // get current match list (may be 2 matches are running). So send it in array list
   // var tmp = _.filter(myMatches, x => (x.matchStarted || _.gte (currTime, x.matchStartTime)) && (x.matchEnded || _.lte(currTime,x.matchEndTime)));
   var tmp = _.filter(myMatches, x => _.gte (currTime, x.matchStartTime) && x.matchEnded === false);
