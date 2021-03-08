@@ -10,7 +10,7 @@ cron = require('node-cron');
 nodemailer = require('nodemailer');
 crypto = require('crypto');
 app = express();
-PRODUCTION=true;  
+PRODUCTION=false;  
 PRIZEPORTION=1.0
 
 //
@@ -152,7 +152,8 @@ UserSchema = mongoose.Schema({
   status: Boolean,
   defaultGroup: Number,
   email: String,
-  userPlan: Number
+  userPlan: Number,
+  mobile: String
 });
 
 IPLGroupSchema = mongoose.Schema({

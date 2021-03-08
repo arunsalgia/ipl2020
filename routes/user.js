@@ -120,10 +120,10 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
 })
 
 
-router.get('/cricsignup/:uName/:uPassword/:uEmail', async function (req, res, next) {
+router.get('/cricsignup/:uName/:uPassword/:uEmail/:mobileNumber', async function (req, res, next) {
   CricRes = res;
   setHeader();
-  var {uName, uPassword, uEmail } = req.params;
+  var {uName, uPassword, uEmail, mobileNumber } = req.params;
   var isValid = false;
   // if user name already used up
   var lname = getLoginName(uName);
@@ -146,6 +146,7 @@ router.get('/cricsignup/:uName/:uPassword/:uEmail', async function (req, res, ne
       defaultGroup: 0,
       email: uEmail,
       userPlan: USERTYPE.TRIAL,
+	  mobile: mobileNumber
     });
   user1.save();
   console.log(`user record for ${lname}`);
