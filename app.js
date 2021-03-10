@@ -10,7 +10,7 @@ cron = require('node-cron');
 nodemailer = require('nodemailer');
 crypto = require('crypto');
 app = express();
-PRODUCTION=false;  
+PRODUCTION=true;  
 PRIZEPORTION=1.0
 
 //
@@ -591,7 +591,7 @@ cricTeamName = function (t)  {
 
 
 masterRec = null;
-joinOffer=500;
+joinOffer=5000;
 
 fetchMasterSettings = async function () {
   // if (masterRec === null) {
@@ -724,8 +724,6 @@ getBlankStatRecord = function(tournamentStat) {
     hattrick: 0,
     maiden: 0,
     oversBowled: 0,
-    maxTouramentRun: 0,
-    maxTouramentWicket: 0,
     // fielding details
     runout: 0,
     stumped: 0,
@@ -735,6 +733,8 @@ getBlankStatRecord = function(tournamentStat) {
     duck: 0,
     economy: 0,
     // overall performance
+    maxTouramentRun: 0,
+    maxTouramentWicket: 0,
     manOfTheMatch: false
   });
 }
@@ -847,7 +847,7 @@ updateTournamentMaxRunWicket = async function(tournamentName) {
     myrec.maxTouramentRun = mmm.totalRun;  
     myrec.save(); 
 
-    let mybrief = getBlankBriefRecord7(BriefStat);
+    let mybrief = getBlankBriefRecord(BriefStat);
     mybrief.sid = MaxRunMid;
     mybrief.pid = mmm.pid;
     mybrief.playerName = mmm.playerName;

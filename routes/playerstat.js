@@ -1277,6 +1277,7 @@ async function update_cricapi_data_r1(logToResponse)
       var tournamentList = _.map(allTournament, 'name'); 
       var allTeams = await Team.find({tournament: {$in: tournamentList} });
 
+
       // process each match found in cricapy
       matchesFromCricapi.matches.forEach(x => {
         var myTeam1 = x['team-1'].toUpperCase();
@@ -1365,12 +1366,11 @@ async function update_cricapi_data_r1(logToResponse)
 
     // match update job done. Now get all matches which have started before current time
     var currtime = new Date(); 
-    console.log(`Curr time ${currtime}`);
     let myfilter = { matchStartTime: {$lt: currtime }, matchEnded: false};
     //let myfilter = { matchEnded: false};
     var matchesFromDB = await CricapiMatch.find(myfilter);
-    // console.log("My Matches");
-    //console.log(matchesFromDB);
+    console.log("My Matches");
+    console.log(matchesFromDB);
     // console.log(`Matches started count ${matchesFromDB.length}`)
 
     // get stas of all these matches
