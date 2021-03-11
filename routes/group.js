@@ -918,7 +918,7 @@ async function tournament_started(mygroup) {
   var groupRec = await IPLGroup.findOne({gid: mygroup})
   if (!groupRec) return("Invalid Group");
   var tournamentRec = await Tournament.findOne({name: groupRec.tournament})  
-  return (tournamentRec.started) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "OK";
+  return (tournamentRec.started) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "";
   /**
   var mymatch = await CricapiMatch.find({tournament: groupRec.tournament}).limit(1).sort({ "matchStartTime": 1 });
   console.log(mymatch.length);
