@@ -1259,13 +1259,13 @@ async function update_cricapi_data_r1(logToResponse)
 
     // 1st if time is up then get match details from cricapi
     if (timeToFetchMatches()) {
-      console.log("time to fetch match details");
+      //console.log("time to fetch match details");
       var existingmatches = await CricapiMatch.find({});
         
       // now fetch fresh match details from cricapi
       var matchesFromCricapi = await fetchMatchesFromCricapi();
       if (matchesFromCricapi.matches == undefined) {
-        console.log(matchesFromCricapi);
+        //console.log(matchesFromCricapi);
         var errmsg = "Could not fetch Match details from CricAPI"
         if (logToResponse)  senderr(CRICFETCHERR, errmsg)
         else                console.log(errmsg);
@@ -1369,8 +1369,8 @@ async function update_cricapi_data_r1(logToResponse)
     let myfilter = { matchStartTime: {$lt: currtime }, matchEnded: false};
     //let myfilter = { matchEnded: false};
     var matchesFromDB = await CricapiMatch.find(myfilter);
-    console.log("My Matches");
-    console.log(matchesFromDB);
+    //console.log("My Matches");
+    //console.log(matchesFromDB);
     // console.log(`Matches started count ${matchesFromDB.length}`)
 
     // get stas of all these matches
@@ -2171,7 +2171,7 @@ async function get_userDisplayName(userId) {
 async function check_all_tournaments() {
   let tmp = await Tournament.find({over: false});
   let allTournaments = _.map(tmp, 'name');
-  console.log(allTournaments);
+  //console.log(allTournaments);
   for(i=0; i < allTournaments.length; ++i) {
     await updatePendingBrief(allTournaments[i]);
   }

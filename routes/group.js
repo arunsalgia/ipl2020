@@ -475,6 +475,8 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
   myGroupMemberRec.prize = 0;
   myGroupMemberRec.save();
 
+  ownerRec.defaultGroup = myRec.gid;
+  ownerRec.save();
   // now save and say okay to user
   sendok(myRec);
 
@@ -822,13 +824,16 @@ router.get('/current/:myGroup/:myUser', async function (req, res, next) {
   sendok(myData);
 });
 
-router.get('/gamestarted/:mygroup', async function (req, res, next) {
+router.get('/started/:mygroup', async function (req, res, next) {
   GroupRes = res;
   setHeader();
   var {mygroup}=req.params;
   if (isNaN(mygroup)) { return senderr(621, `Invalid group ${mygroup}`); return; }
   var igroup = parseInt(mygroup);
+  //console.log(igroup);
   var msg = await tournament_started(igroup);
+  //console.log("recvd message");
+  //console.log(msg);
   sendok(msg);
 });
 
@@ -912,16 +917,20 @@ async function tournament_started(mygroup) {
   var justnow = new Date();
   var groupRec = await IPLGroup.findOne({gid: mygroup})
   if (!groupRec) return("Invalid Group");
+  var tournamentRec = await Tournament.findOne({name: groupRec.tournament})  
+  return (tournamentRec.started) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "OK";
+  /**
   var mymatch = await CricapiMatch.find({tournament: groupRec.tournament}).limit(1).sort({ "matchStartTime": 1 });
-  // console.log(mymatch.length);
+  console.log(mymatch.length);
   var difference = 1;   // make it positive if no match schedule
   if (mymatch.length > 0) {
     var firstMatchStart = mymatch[0].matchStartTime;  
     firstMatchStart.setHours(firstMatchStart.getHours() - 1)
     difference = firstMatchStart - justnow;
   }
-  // console.log(difference);
-  return (difference <= 0) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "";
+  console.log(difference);
+  return (difference <= 0) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "OK";
+  **/
 }
 
 function senderr(errcode, msg) { GroupRes.status(errcode).send(msg); }
