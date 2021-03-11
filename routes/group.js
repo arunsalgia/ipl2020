@@ -824,7 +824,7 @@ router.get('/current/:myGroup/:myUser', async function (req, res, next) {
   sendok(myData);
 });
 
-router.get('/started/:mygroup', async function (req, res, next) {
+router.get('/gamestarted/:mygroup', async function (req, res, next) {
   GroupRes = res;
   setHeader();
   var {mygroup}=req.params;
