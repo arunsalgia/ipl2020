@@ -76,34 +76,7 @@ router.use('/', async function(req, res, next) {
   PlayerStatRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
-
-  // if (forceGroupInfo) {
-  //   var tmp = req.url.split("/")
-  //   var tmpgroup = parseInt(tmp[1]);
-  //   var myrec = null;
-  //   if (!isNaN(tmpgroup))
-  //     myrec = await IPLGroup.findOne({gid: tmpgroup});
-  //   //console.log(tmp.length);
-  //   if (!myrec) {
-  //     senderr(722, `Invalid gourp number specified`);
-  //     return; 
-  //   }
-  //   //console.log(myrec);
-  //   _group = myrec.gid;
-  //   _tournament = myrec.tournament;
-  //   tmp.splice(1, 2);
-  //   req.url = tmp.join("/");
-  //   if (req.url.length === 0) req.url = '/';
-  // }
-  // else {
-  //   _group = 1;
-  //   _tournament = "IPL2020";
-  // }
-
-  // if (req.url == "/")
-  //   publish_stats();
-  // else
-  //   next('route');
+  next('route');
 });
 
 
@@ -248,9 +221,17 @@ router.get('/test/:myGroup', async function(req, res, next) {
 });
 
 
+router.use('/hello', async function(req, res, next) {
+  PlayerStatRes = res;  
+  setHeader();
+  console.log("in hello");
+  sendok("hello");
+});
+
 router.use('/reread/:matchid', async function(req, res, next) {
   PlayerStatRes = res;  
   setHeader();
+  console.log("in reread");
   var {matchid} = req.params;
   if (isNaN(matchid)) { sendok("Invalid Match Id"); return}
   var mymid = parseInt(matchid)
@@ -1887,12 +1868,14 @@ async function processConnection(i) {
   if ((connectionArray[i].gid  <= 0)  || 
       (connectionArray[i].uid  <= 0)  ||
       (connectionArray[i].page.length  <= 0)) return;
-    
+  
+  //console.log(connectionArray[i]);
   var myDate1 = new Date();
   var myTournament = await getTournameDetails(connectionArray[i].gid);
   if (myTournament.length === 0) return;
-
-  var myData = _.find(clientData, x => x.tournament === myTournament);
+  //console.log(`Tournament is ${myTournament}`);
+  
+  var myData = _.find(clientData, x => x.tournament === myTournament && x.gid === connectionArray[i].gid);
   let sts = false;
   //myData = null;	//-------------------------------> for testing purpose
   if (!myData) {
@@ -1902,7 +1885,8 @@ async function processConnection(i) {
       //console.log(` process ${connectionArray[i].gid}` );
       let myDB_Data = await statCalculation(connectionArray[i].gid );
       let mySTAT_Data = await statBrief(connectionArray[i].gid , 0 , SENDSOCKET);
-      myData = {tournament: myTournament, dbData: myDB_Data, statData: mySTAT_Data}
+      myData = {tournament: myTournament, gid: connectionArray[i].gid,
+				dbData: myDB_Data, statData: mySTAT_Data}
       clientData.push(myData);
       var myDate2 = new Date();
       var duration = myDate2.getTime() - myDate1.getTime();
@@ -2008,7 +1992,7 @@ cron.schedule('*/1 * * * * *', () => {
   }   
 
   if (++cricTimer >= CRICUPDATEINTERVAL) {
-    cricTimer = 0;
+      cricTimer = 0;
     // console.log("======== match update start");
     // console.log("TIme to getch cric data");
     update_cricapi_data_r1(false);

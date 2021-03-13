@@ -470,7 +470,7 @@ BonusWkt5 = {"TEST": 50, "ODI": 50, "T20": 50};  //50;
 Wicket3 = {"TEST": 4, "ODI": 4, "T20": 3}
 Wicket5 = {"TEST": 5, "ODI": 5, "T20": 5}
 
-BonusDuck = {"TEST": -5, "ODI": -5, "T20": -5};  //-5;
+BonusDuck = {"TEST": -2, "ODI": -2, "T20": -2};  //-5;
 BonusNoWkt = {"TEST": 0, "ODI": 0, "T20": 0};  //0;
 BonusMOM = {"TEST": 20, "ODI": 20, "T20": 20};  //20;
 

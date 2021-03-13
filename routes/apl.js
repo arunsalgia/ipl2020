@@ -46,6 +46,22 @@ router.get('/feedback/:userid/:message', async function (req, res, next) {
 }); 
 
 
+router.get('/support1', async function (req, res, next) {
+  AplRes = res;
+  setHeader();
+
+  let matchId = 1243388;
+  let myTournament = 'indengt20-2021';
+  let BriefStat = mongoose.model(myTournament+BRIEFSUFFIX, BriefStatSchema);
+  var briefList = await BriefStat.find({ sid: 0 });
+  briefList.forEach(x => {
+    x.sid = matchId;
+    //x.score = x.score/2; 
+    x.save();
+  });
+  sendok('Done');
+}); 
+
 
 function sendok(usrmsg) { AplRes.send(usrmsg); }
 function senderr(errcode, errmsg) { AplRes.status(errcode).send(errmsg); }
