@@ -42,21 +42,21 @@ router.get(`/list/running`, function(req, res, next) {
   TournamentRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
-  publishTournament({over: false});
+  publishTournament({enabled: true, over: false});
 });
 
 router.get(`/list/notstarted`, function(req, res, next) {
   TournamentRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
-  publishTournament({started: false});
+  publishTournament({enabled: true, started: false});
 });
 
 router.get(`/list/over`, function(req, res, next) {
   TournamentRes = res;
   setHeader();
   if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
-  publishTournament({over: true});
+  publishTournament({enabled: true, over: true});
 });
 
 router.get(`/list/enabled`, function(req, res, next) {

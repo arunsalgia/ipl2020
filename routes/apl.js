@@ -14,7 +14,11 @@ router.use('/', function(req, res, next) {
 router.get('/latestversion', async function (req, res, next) {
   AplRes = res;
   setHeader();
-  sendok("1.0");
+  let tmp = await MasterData.findOne({msKey: "LATESTVERSION"});
+  //console.log(tmp);
+  let lVer = (tmp) ? tmp.msValue : "0.0";
+  //console.log(lVer);
+  sendok(lVer);
 });
 
 
@@ -45,6 +49,43 @@ router.get('/feedback/:userid/:message', async function (req, res, next) {
   }
 }); 
 
+router.get('/master/list', async function (req, res, next) {
+  AplRes = res;
+  setHeader();
+
+  let myData = await MasterData.find({});
+  sendok(myData);
+});
+
+router.get('/master/add/:myKey/:myValue', async function (req, res, next) {
+  AplRes = res;
+  setHeader();
+  let { myKey, myValue } = req.params;
+  
+  let myData = await MasterData.findOne({msKey: myKey.toUpperCase()});
+  if (!myData) {
+    myData = new MasterData();
+    let tmp = await MasterData.find().limit(1).sort({ msId: -1 });
+    myData.msId = (tmp.length > 0) ? tmp[0].msId + 1 : 1;
+    myData.msKey = myKey.toUpperCase();
+  }
+  myData.msValue = myValue;
+  myData.save();
+  sendok(myData);
+});
+
+router.get('/master/delete/:myKey', async function (req, res, next) {
+  AplRes = res;
+  setHeader();
+  let { myKey } = req.params;
+  
+  try {
+    await MasterData.deleteOne({msKey: myKey.toUpperCase()});
+    sendok(`Key ${myKey} successfully delete from Master Settings`);
+  } catch (e) {
+    senderr(601, `Key ${myKey} not found in Master Settings`);
+  }
+});
 
 router.get('/support1', async function (req, res, next) {
   AplRes = res;

@@ -68,27 +68,32 @@ io.on('connect', socket => {
   app.set("socket",socket);
   socket.on("page", (pageMessage) => {
     console.log("page message from "+socket.id);
+	console.log(masterConnectionArray);
+	console.log(socket.id);
     console.log(pageMessage);
     var myClient = _.find(masterConnectionArray, x => x.socketId === socket.id);
-    if (pageMessage.page.toUpperCase().includes("DASH")) {
-      myClient.page = "DASH";
-      myClient.gid = parseInt(pageMessage.gid);
-      myClient.uid = parseInt(pageMessage.uid);
-      myClient.firstTime = true;
-      clientUpdateCount = CLIENTUPDATEINTERVAL+1;
-    } else if (pageMessage.page.toUpperCase().includes("STAT")) {
-      myClient.page = "STAT";
-      myClient.gid = parseInt(pageMessage.gid);
-      myClient.uid = parseInt(pageMessage.uid);
-      myClient.firstTime = true;
-      clientUpdateCount = CLIENTUPDATEINTERVAL+1;
-    } else if (pageMessage.page.toUpperCase().includes("AUCT")) {
-      myClient.page = "AUCT";
-      myClient.gid = parseInt(pageMessage.gid);
-      myClient.uid = parseInt(pageMessage.uid);
-      myClient.firstTime = true;
-      clientUpdateCount = CLIENTUPDATEINTERVAL+1;
-    }
+	console.log(myClient);
+	if (myClient) {
+		if (pageMessage.page.toUpperCase().includes("DASH")) {
+		  myClient.page = "DASH";
+		  myClient.gid = parseInt(pageMessage.gid);
+		  myClient.uid = parseInt(pageMessage.uid);
+		  myClient.firstTime = true;
+		  clientUpdateCount = CLIENTUPDATEINTERVAL+1;
+		} else if (pageMessage.page.toUpperCase().includes("STAT")) {
+		  myClient.page = "STAT";
+		  myClient.gid = parseInt(pageMessage.gid);
+		  myClient.uid = parseInt(pageMessage.uid);
+		  myClient.firstTime = true;
+		  clientUpdateCount = CLIENTUPDATEINTERVAL+1;
+		} else if (pageMessage.page.toUpperCase().includes("AUCT")) {
+		  myClient.page = "AUCT";
+		  myClient.gid = parseInt(pageMessage.gid);
+		  myClient.uid = parseInt(pageMessage.uid);
+		  myClient.firstTime = true;
+		  clientUpdateCount = CLIENTUPDATEINTERVAL+1;
+		}
+	}
   });
 });
 
@@ -140,8 +145,10 @@ mongoose_conn_string = "mongodb+srv://akshama:akshama@cluster0-urc6p.mongodb.net
 
 //Schema
 MasterSettingsSchema = mongoose.Schema ({
-  msid: Number,
-  trialExpiry: String,
+  msId: Number,
+  msKey: String,
+  msValue: String
+  //trialExpiry: String,
 })
 
 UserSchema = mongoose.Schema({
@@ -590,18 +597,18 @@ cricTeamName = function (t)  {
 }
 
 
-masterRec = null;
+trialExpiryRec = null;
 joinOffer=5000;
 
 fetchMasterSettings = async function () {
-  // if (masterRec === null) {
-    let tmp = await MasterData.find();
-    masterRec = tmp[0];  
-  // }  
+  let tmp = await MasterData.find({msKey: "TRIALEXPIRY"});
+  if (tmp.length > 0)
+    trialExpiryRec = tmp[0];  
+  else 
+    trialExpiryRec = {msKey: "TRIALEXPIRY", msValue: "2021-04-30"};  
 }
 
 USERTYPE = { TRIAL: 0, SUPERUSER: 1, PAID: 2}
-
 userAlive = async function (uRec) {
   let sts = false;
   if (uRec) {
@@ -615,8 +622,8 @@ userAlive = async function (uRec) {
       case  USERTYPE.TRIAL:
         let cTime = new Date();
         await fetchMasterSettings(); 
-        // console.log(masterRec);
-        let tTime = new Date(masterRec.trialExpiry);
+        // console.log(trialExpiryRec);
+        let tTime = new Date(trialExpiryRec.msValue);
         // console.log(cTime);
         // console.log(tTime);
         sts =  (tTime.getTime() > cTime.getTime());

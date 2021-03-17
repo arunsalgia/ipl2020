@@ -43,6 +43,17 @@ router.get('/suencrypt/:text', async function (req, res, next) {
   sendok(encrypt(text));
 });
 
+router.get('/dbdecrypt/:text', async function (req, res, next) {
+  CricRes = res;
+  setHeader();
+  var { text } = req.params;
+  let tmp = dbdecrypt(text);
+  console.log(tmp);
+  tmp = decrypt(tmp);
+  console.log(tmp);
+  sendok(tmp);
+});
+
 // get users belonging to group "mygroup"
 router.get('/group/:mygroup', async function (req, res, next) {
   CricRes = res;
@@ -468,13 +479,13 @@ router.get('/emailwelcome/:mailid', async function (req, res, next) {
   mailOptions.to = mailid;
   mailOptions.text = `Dear ${uRec.displayName},
   
-    Welcome to the family of CriAuction Permier League,
+    Welcome to the family of Auction Permier League (APL),
 
     Thanking you registering in Auction Permier League.
 
     You can now create Group, with family and friends and select the tournament,
     Auction players among group members
-    and let CricDream provide you the players details during the tournament.
+    and let APL provide you the players details during the tournament.
 
     Your login details are:
     
@@ -483,7 +494,7 @@ router.get('/emailwelcome/:mailid', async function (req, res, next) {
     Password  : ${dbdecrypt(uRec.password)}
 
     Regards,
-    for Cricdream.`
+    for Auction Permier League.`
 
   transporter.sendMail(mailOptions, function(error, info){
     if (error) {
@@ -511,11 +522,11 @@ router.get('/cricemailwelcome/:mailid', async function (req, res, next) {
   
     Welcome to the family of Auction Permier League.
 
-    Thanking you registering in CricDream.
+    Thanking you registering in Auction Permier League (APL).
 
     You can now create Group, with family and friends and select the tournament,
     Auction players among group members
-    and let CricDream provide you the players details during the tournament.
+    and let APL provide you the players details during the tournament.
 
     Your login details are:
     
@@ -524,9 +535,9 @@ router.get('/cricemailwelcome/:mailid', async function (req, res, next) {
     Password  : ${dbdecrypt(uRec.password)}
 
     Regards,
-    for Cricdream.`
+    for Auction Permier League.`
 
-  let resp = await sendCricMail(dbdecrypt(uRec.email), 'Welcome to CricDream', text);
+  let resp = await sendCricMail(dbdecrypt(uRec.email), 'Welcome to Auction Permier League', text);
   console.log(resp);
   if (resp.status) {
 	console.log('Email sent: ' + resp.error);

@@ -1880,7 +1880,6 @@ async function processConnection(i) {
   //myData = null;	//-------------------------------> for testing purpose
   if (!myData) {
     // no data of this tournament with us. Read database and do calculation
-	//memoryLeaked();
     sts = await readDatabase(connectionArray[i].gid );
     if (sts) {
       //console.log(` process ${connectionArray[i].gid}` );
@@ -1893,7 +1892,6 @@ async function processConnection(i) {
       var duration = myDate2.getTime() - myDate1.getTime();
       console.log(`Total calculation Time: ${duration}`)
     }
-	//memoryLeaked();
   }
 
   switch(connectionArray[i].page.substr(0, 4).toUpperCase()) {
@@ -1926,13 +1924,6 @@ async function processConnection(i) {
   return;
 }
 
-function memoryLeaked() {
-	const used = process.memoryUsage();
-	for (let key in used) {
-		console.log(`${key} ${Math.round(used[key] / 1024 / 1024 * 100) / 100} MB`);
-	}
-}
-
 async function sendDashboardData() {
   // clientData = [];
   // first cleanup data of tournament which has running matches
@@ -1957,18 +1948,8 @@ async function sendDashboardData() {
   runningMatchArray.forEach( ccc => {
     _.remove(clientData, x => x.tournament === ccc.tournament);
   });
-  //-----------
-  //------ Start Remove calculated data for the group which has no connection
-  let newClientdata = [];
-  clientData.forEach(x => {
-	  let tmp = _.filter(connectionArray, ca => ca.gid === x.gid);
-	  if (tmp.length > 0) newClientdata.push(x);
-  });
-  clientData = [].concat(newClientdata);
-  
-  //-------End Removed unwanted data in memory
   // clientData=[];
-  //console.log(`After client Data list ${clientData.length}`);
+  // console.log(`After client Data list ${clientData.length}`);
   // clientData.forEach(ccc => {
   //   console.log(ccc.tournament);
   // })
@@ -2014,9 +1995,9 @@ cron.schedule('*/1 * * * * *', () => {
       cricTimer = 0;
     // console.log("======== match update start");
     // console.log("TIme to getch cric data");
-    update_cricapi_data_r1(false);
-    updateTournamentBrief();
-    checkallover();
+    // update_cricapi_data_r1(false);
+    // updateTournamentBrief();
+    // checkallover();
     // // console.log("match update over")
   }
 
