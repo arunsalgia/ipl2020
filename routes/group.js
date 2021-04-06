@@ -1,6 +1,6 @@
 const { GroupMemberCount, } = require('./cricspecial'); 
 var router = express.Router();
-var GroupRes;
+// var GroupRes;
 /* GET users listing. */
 
 const fetchBalance = async (groupid) => {
@@ -26,9 +26,9 @@ const fetchBalance = async (groupid) => {
 }
 
 router.use('/', function (req, res, next) {
-  GroupRes = res;
-  setHeader();
-  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; };
+ 
+  setHeader(res);
+  if (!db_connection) { senderr(res,DBERROR, ERR_NODB); return; };
 
   if (req.url == '/')
     publish_groups({});
@@ -37,54 +37,54 @@ router.use('/', function (req, res, next) {
 });
 
 router.get('/info/:groupid', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupid } = req.params;
 
   gdoc = await IPLGroup.findOne({ gid: groupid, enable: true });
-  if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+  if (!gdoc) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
 
   if (gdoc) { 
 	let count = await GroupMemberCount(groupid);
 	let tRec = await Tournament.findOne({name: gdoc.tournament});
-    sendok({info: gdoc, currentCount: count, tournamentStarted: tRec.started});
+    sendok(res,{info: gdoc, currentCount: count, tournamentStarted: tRec.started});
   } else {
-    senderr(601,`Invalid Group`);
+    senderr(res,601,`Invalid Group`);
   }
 });
 
 
 router.get('/close/:groupid/:ownerid', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupid, ownerid } = req.params;
   // groupAction = groupAction.toLowerCase();
-  // if (groupid != "1") { senderr(621, "Invalid Group"); return; }
-  // if (ownerid != "9") { senderr(624, `User ${ownerid} is not owner of Group 1`); return; }
+  // if (groupid != "1") { senderr(res,621, "Invalid Group"); return; }
+  // if (ownerid != "9") { senderr(res,624, `User ${ownerid} is not owner of Group 1`); return; }
 
   gdoc = await IPLGroup.findOne({ gid: groupid });
-  if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+  if (!gdoc) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
 
   if (gdoc.owner == ownerid) { 
     // console.log(gdoc);
     gdoc.tournamentOver = true;
     gdoc.save();
-    sendok(true);
+    sendok(res,true);
   } else {
     
   }
 });
 
 router.get('/gettournamentmax/:groupid', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupid } = req.params;
   // groupAction = groupAction.toLowerCase();
   var groupRec = await IPLGroup.findOne({ gid: groupid });
-  if (!groupRec) { senderr(621, "Invalid Group"); return; }
+  if (!groupRec) { senderr(res,621, "Invalid Group"); return; }
 
   var maxRec = {maxRunPid: 0, maxRunPlayer: "", maxRunValue: 0,
                 maxWicketPid: 0, maxWicketPlayer: "", maxWicketValue: 0};
@@ -113,7 +113,7 @@ router.get('/gettournamentmax/:groupid', async function (req, res, next) {
     maxRec.maxWicketPlayer = myData[0].playerName;
     maxRec.maxWicketValue = myData[0].totalWicket;
   }
-  sendok(maxRec);
+  sendok(res,maxRec);
 });
 
 
@@ -135,40 +135,40 @@ function sendStatusToClient(groupid, newStatus) {
 
 
 router.get('/getauctionstatus/:groupid', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupid } = req.params;
   
   var gdoc = await IPLGroup.findOne({ gid: groupid});  
-  if (!gdoc) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+  if (!gdoc) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
   // let memberCount = GroupMemberCount(groupid);
-  // if (memberCount !== gdoc.memberCount) {senderr(DBFETCHERR, "Could not fetch Group record"); return; }
+  // if (memberCount !== gdoc.memberCount) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
   // // // if ((gdoc.auctionStatus === "RUNNING")) {
   //   const playerList = await Player.find({pid: gdoc.auctionPlayer});
   //   const balanceDetails = await fetchBalance(groupid);
   //   // console.log(`In Get Status: length is ${playerList.length}`);
   //   sendDataToClient(groupid, playerList[0], balanceDetails);
-    sendok(gdoc.auctionStatus);
+    sendok(res,gdoc.auctionStatus);
 });
 
 
 
 router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var { groupid, newstate } = req.params;
   var stateReq = newstate.toUpperCase().substring(0,3);
 
   var gdoc = await IPLGroup.findOne({ gid: groupid, enable: true});
   if (!gdoc) { 
-    senderr(621, `Invalid group ${groupid}`); 
+    senderr(res,621, `Invalid group ${groupid}`); 
     return 
   }
 
   let memberCount = await GroupMemberCount(groupid);
   if (memberCount !== gdoc.memberCount) {
-    senderr(622, "Insufficient member count"); 
+    senderr(res,622, "Insufficient member count"); 
     return; 
   }
 
@@ -177,7 +177,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
   switch (gdoc.auctionStatus) {
     case "PENDING":
       if (stateReq != "RUN") {
-        senderr(625, `Invalid auction state ${newstate}`);
+        senderr(res,625, `Invalid auction state ${newstate}`);
         return;
       }
       newstate = "RUNNING";
@@ -202,7 +202,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
       break;
     case "RUNNING":
       if (stateReq != "OVE") {
-        senderr(625, `Invalid auction state ${newstate}`);
+        senderr(res,625, `Invalid auction state ${newstate}`);
         return;
       }
       newstate = "OVER";
@@ -210,7 +210,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
       break;
     case "OVER":
       if (stateReq != "OVE") {
-        senderr(625, `Invalid auction state ${newstate}`);
+        senderr(res,625, `Invalid auction state ${newstate}`);
         return;
       }
       newstate = "OVER";
@@ -221,31 +221,31 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
   gdoc.currentBidUid = 0;
   gdoc.currentBidUser = "";
   gdoc.save();
-  sendok(aplayer.toString());
+  sendok(res,aplayer.toString());
 });
 
 
 router.get('/getfirstmatch/:groupid', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   console.log("Hello");
   var { groupid } = req.params;
-  if (isNaN(groupid))  { senderr(621, "Invalid Group"); return; }
+  if (isNaN(groupid))  { senderr(res,621, "Invalid Group"); return; }
   var igroup = parseInt(groupid);
   var mygroup = await IPLGroup.findOne({ gid: igroup });
-  if (!mygroup) { senderr(621, "Invalid Group"); return; }
+  if (!mygroup) { senderr(res,621, "Invalid Group"); return; }
   var mymatch = await CricapiMatch.find({tournament: mygroup.tournament}).limit(1).sort({ "matchStartTime": 1 });
   console.log(mymatch);
-  sendok(mymatch);
+  sendok(res,mymatch);
 });
 
 router.get('/getauctionplayer/:groupid',  async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var { groupid } = req.params;
 
   var gdoc = await IPLGroup.findOne({ gid: groupid });
-  if (!gdoc) { senderr(621, `Invalid Group ${groupid}`); return; }
+  if (!gdoc) { senderr(res,621, `Invalid Group ${groupid}`); return; }
 
   if (gdoc.auctionStatus === "RUNNING") {
     const playerDetails = await Player.find({pid:gdoc.auctionPlayer});
@@ -256,55 +256,55 @@ router.get('/getauctionplayer/:groupid',  async function (req, res, next) {
     socket.emit("playerChange", playerDetails[0], balanceDetails )
     socket.broadcast.emit('playerChange', playerDetails[0], balanceDetails );
   }
-  sendok(gdoc.auctionPlayer.toString());
+  sendok(res,gdoc.auctionPlayer.toString());
 });
 
 
 router.get('/setauctionplayer/:groupid/:playerId', function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupid, playerId } = req.params;
   // groupAction = groupAction.toLowerCase();
-  if (groupid != "1") { senderr(621, "Invalid Group"); return; }
-  if (isNaN(playerId)) { senderr(626, `Invalid Player ${playerId}`); return; }
+  if (groupid != "1") { senderr(res,621, "Invalid Group"); return; }
+  if (isNaN(playerId)) { senderr(res,626, `Invalid Player ${playerId}`); return; }
   iplayer = parseInt(playerId);
 
   IPLGroup.findOne({ gid: 1 }, async (err, gdoc) => {
-    if (gdoc === undefined) senderr(DBFETCHERR, "Could not fetch Group record");
+    if (gdoc === undefined) senderr(res,DBFETCHERR, "Could not fetch Group record");
     else {
       if (gdoc.auctionStatus != "RUNNING") {
-        senderr(626, "Cannot update auction Player. Auction is not running");
+        senderr(res,626, "Cannot update auction Player. Auction is not running");
       } else {
         gdoc.auctionPlayer = iplayer;
         gdoc.save();
-        sendok(gdoc.auctionPlayer.toString());
+        sendok(res,gdoc.auctionPlayer.toString());
       }
     }
   });
 });
 
 router.get('/add/:groupid/:ownerid/:userid', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupid, ownerid, userid } = req.params;
   // igroup = parseInt(groupid);
-  // if (isNaN(igroup)) { senderr(621, "Invalid group"); return; }
+  // if (isNaN(igroup)) { senderr(res,621, "Invalid group"); return; }
   // iowner = parseInt(ownerid);
-  // if (isNaN(iowner)) { senderr(622, "Invalid owner"); return; }
+  // if (isNaN(iowner)) { senderr(res,622, "Invalid owner"); return; }
   // iuser = parseInt(userid);
-  // if (isNaN(iuser)) { senderr(623, "Invalid user"); return; }
+  // if (isNaN(iuser)) { senderr(res,623, "Invalid user"); return; }
 
   var gdoc = await IPLGroup.findOne({gid: groupid});
-  if (!gdoc)  { senderr(621, "Invalid group"); return; }
-  if (gdoc.owner != ownerid) { senderr(624, `User ${ownerid} is not owner of Group ${groupid}`); return; }
+  if (!gdoc)  { senderr(res,621, "Invalid group"); return; }
+  if (gdoc.owner != ownerid) { senderr(res,624, `User ${ownerid} is not owner of Group ${groupid}`); return; }
 
   var udoc = await User.findOne({ uid: userid });
-  if (!udoc) { senderr(623, "Invalid user"); return; };
+  if (!udoc) { senderr(res,623, "Invalid user"); return; };
 
   var gmdoc = await GroupMember.findOne({ gid: gdoc.gid, uid: udoc.uid });
-  if (gmdoc) {senderr(624, `User already member to group ${groupid}`); return; }
+  if (gmdoc) {senderr(res,624, `User already member to group ${groupid}`); return; }
 
   //console.log("Valid USer;");              
   //  confirmed that Group  exists
@@ -327,89 +327,89 @@ router.get('/add/:groupid/:ownerid/:userid', async function (req, res, next) {
     enable: true
   });
   gmrec.save();
-  sendok(`Added user ${userid}; to Group ${groupid}`);
+  sendok(res,`Added user ${userid}; to Group ${groupid}`);
 }); // end of get
 
 router.get('/delete/:groupid/:ownerid/:userid', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupid, ownerid, userid } = req.params;
 
   var gdoc = await IPLGroup.findOne({gid: groupid});
-  if (!gdoc)  { senderr(621, "Invalid group"); return; }
-  if (gdoc.owner != ownerid) { senderr(624, `User ${ownerid} is not owner of Group ${groupid}`); return; }
+  if (!gdoc)  { senderr(res,621, "Invalid group"); return; }
+  if (gdoc.owner != ownerid) { senderr(res,624, `User ${ownerid} is not owner of Group ${groupid}`); return; }
   // var udoc = await User.findOne({ uid: userid });
-  // if (!uoc) { senderr(623, "Invalid user"); return; };
+  // if (!uoc) { senderr(res,623, "Invalid user"); return; };
 
   var gmdoc = await GroupMember.findOne({ gid: gdoc.gid, uid: userid });
-  if (!gmdoc) {senderr(624, `User not a member to group ${groupid}`); return; }
+  if (!gmdoc) {senderr(res,624, `User not a member to group ${groupid}`); return; }
   // User.deleteOne({ age: { $gte: 10 } }).then(function(){
   await gmdoc.deleteOne({ gid: gdoc.gid, uid: userid })
 
-  sendok(`Delete user ${userid} from Group ${groupid}`);
+  sendok(res,`Delete user ${userid} from Group ${groupid}`);
 }); // end of get
 
 router.get('/owner', function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   owneradmin();
 });
 
 router.get('/owner', function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   owneradmin();
 });
 
 
 router.get('/setprize/:groupid/:prizecount', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupid, prizecount} = req.params;
 
   let gRec = await IPLGroup.findOne({gid: groupid});
-  if (!gRec) {senderr(601, "invalid parameter"); return;}
+  if (!gRec) {senderr(res,601, "invalid parameter"); return;}
 
   // let icount = parseInt(membercount);
-  // if (isNaN(icount)) {senderr(601, "invalid parameter"); return;}
+  // if (isNaN(icount)) {senderr(res,601, "invalid parameter"); return;}
   // let ifee = parseInt(memberfee);
-  // if (isNaN(ifee)) {senderr(601, "invalid parameter"); return;}
+  // if (isNaN(ifee)) {senderr(res,601, "invalid parameter"); return;}
   
   // verify prize is not greater than member count
   let iprize = parseInt(prizecount);
-  if (isNaN(iprize)) {senderr(601, "invalid parameter"); return;}
-  if (iprize > gRec.memberCount) {senderr(601, "invalid parameter"); return;}
+  if (isNaN(iprize)) {senderr(res,601, "invalid parameter"); return;}
+  if (iprize > gRec.memberCount) {senderr(res,601, "invalid parameter"); return;}
   gRec.prizeCount = iprize;
   gRec.save();
-  sendok(gRec);
+  sendok(res,gRec);
 });
 
 
 router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupName, ownerid, maxbid, mytournament, membercount, memberfee} = req.params;
   var tmp = await IPLGroup.find({});
   var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
-  if (tmp.length > 0) { senderr(601, `Duplicate Group name ${groupName}`); return; }
+  if (tmp.length > 0) { senderr(res,601, `Duplicate Group name ${groupName}`); return; }
 
-  //if (isNaN(maxbid)) { senderr(602, `Invalid max bid amount ${maxbid}`); return; }
+  //if (isNaN(maxbid)) { senderr(res,602, `Invalid max bid amount ${maxbid}`); return; }
   let imaxbid = parseInt(maxbid);
 
   var ownerRec = await User.findOne({uid: ownerid});
-  if (!ownerRec) { senderr(603, `Invalid owner ${ownerid}`); return; }
+  if (!ownerRec) { senderr(res,603, `Invalid owner ${ownerid}`); return; }
 
   mytournament = mytournament.toUpperCase()
   var tournamentRec = await Tournament.findOne({ name: mytournament })
-  if (!tournamentRec) { senderr(604, `Invalid tournament ${mytournament}`); return; }
+  if (!tournamentRec) { senderr(res,604, `Invalid tournament ${mytournament}`); return; }
 
   let myBal = await WalletBalance(ownerid);
-  if (myBal < memberfee) { senderr(605, `Insufficient Balance`); return; }
+  if (myBal < memberfee) { senderr(res,605, `Insufficient Balance`); return; }
 
   // ALl seems to be create. Assign gid for this group
   //Goods.find({}).sort({ price: 1 }).limit(1).then(goods => goods[0].price);
@@ -478,30 +478,30 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
   ownerRec.defaultGroup = myRec.gid;
   ownerRec.save();
   // now save and say okay to user
-  sendok(myRec);
+  sendok(res,myRec);
 
 }); // end of get
 
 
 router.get('/updatewithoutfee/:groupId/:ownerId/:membercount', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   let { groupId, ownerId, membercount } = req.params;
 
   //console.log(memberCount);
-  //if (memberCount <= 1) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  //if (memberCount <= 1) {senderr(res,603, `Member count invalid  ${groupId}`); return;}
   let groupRec = await IPLGroup.findOne({gid: groupId});
-  if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }  
-  if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
+  if (!groupRec) { senderr(res,601, `Invalid Group  ${groupId}`); return; }  
+  if (groupRec.owner != ownerId) { senderr(res,602, `Invalid owner of Group  ${groupId}`); return; }
   let currentCount = await GroupMemberCount(groupRec.gid);
   console.log(currentCount);
-  if (membercount < currentCount) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  if (membercount < currentCount) {senderr(res,603, `Member count invalid  ${groupId}`); return;}
   // if new fee is higher than check if balance with owner
   // use 604 for insufficient balance
   // under what criteria groupedit is permitted
   // 1) AUction should not have been started i.e. it is pending
-  if (groupRec.auctionStatus !== "PENDING") { senderr(604, `Cannot update. Auction has already started`);  return;}
+  if (groupRec.auctionStatus !== "PENDING") { senderr(res,604, `Cannot update. Auction has already started`);  return;}
   
   //groupRec.maxBidAmount = maxbid;
   //groupRec.tournament = mytournament.toUpperCase();
@@ -517,26 +517,26 @@ router.get('/updatewithoutfee/:groupId/:ownerId/:membercount', async function (r
   // myRec.prizeCount = 1;
   groupRec.save();
 
-  sendok(groupRec);
+  sendok(res,groupRec);
 
 }); // end of get
 
 router.get('/updateprizecount/:groupId/:ownerId/:prizeCount', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   let { groupId, ownerId, prizeCount } = req.params;
 
   let groupRec = await IPLGroup.findOne({gid: groupId});
-  if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
-  if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
+  if (!groupRec) { senderr(res,601, `Invalid Group  ${groupId}`); return; }
+  if (groupRec.owner != ownerId) { senderr(res,602, `Invalid owner of Group  ${groupId}`); return; }
   //let currentCount = await GroupMemberCount(groupRec.gid);
-  //if (membercount < currentCount) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  //if (membercount < currentCount) {senderr(res,603, `Member count invalid  ${groupId}`); return;}
   // if new fee is higher than check if balance with owner
   // use 604 for insufficient balance
   // under what criteria groupedit is permitted
   // 1) AUction should not have been started i.e. it is pending
-  if (groupRec.auctionStatus !== "PENDING") { senderr(604, `Cannot update. Auction has already started`);  return;}
+  if (groupRec.auctionStatus !== "PENDING") { senderr(res,604, `Cannot update. Auction has already started`);  return;}
   
   //groupRec.maxBidAmount = maxbid;
   //groupRec.tournament = mytournament.toUpperCase();
@@ -552,27 +552,27 @@ router.get('/updateprizecount/:groupId/:ownerId/:prizeCount', async function (re
   groupRec.prizeCount = prizeCount;
   groupRec.save();
 
-  sendok(groupRec);
+  sendok(res,groupRec);
 
 }); // end of get
 
 
 router.get('/updatewithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   let { groupId, ownerId, maxbid, mytournament, membercount, memberfee} = req.params;
 
   let groupRec = await IPLGroup.find({gid: groupId});
-  if (!groupRec) { senderr(601, `Invalid Group  ${groupId}`); return; }
-  if (groupRec.owner != ownerId) { senderr(602, `Invalid owner of Group  ${groupId}`); return; }
+  if (!groupRec) { senderr(res,601, `Invalid Group  ${groupId}`); return; }
+  if (groupRec.owner != ownerId) { senderr(res,602, `Invalid owner of Group  ${groupId}`); return; }
   let currentCount = await GroupMemberCount(groupRec.gid);
-  if (membercount < currentCount) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  if (membercount < currentCount) {senderr(res,603, `Member count invalid  ${groupId}`); return;}
 
-  // if (membercount < groupMemberRecs.length) {senderr(603, `Member count invalid  ${groupId}`); return;}
+  // if (membercount < groupMemberRecs.length) {senderr(res,603, `Member count invalid  ${groupId}`); return;}
   // under what criteria groupedit is permitted
   // 1) AUction should not have been started i.e. it is pending
-  if (groupRec.auctionStatus !== "PENDING") { senderr(605, `Cannot update. Auction has already started`);  return;}
+  if (groupRec.auctionStatus !== "PENDING") { senderr(res,605, `Cannot update. Auction has already started`);  return;}
 
   // if new fee is higher then check if balance available with owner
   let groupMemberRecs = await GroupMember.find({gid: groupId});
@@ -580,7 +580,7 @@ router.get('/updatewithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/
   for (i=0; i<groupMemberRecs.length; ++i) {
     let mybal = WalletBalance(groupMemberRecs[i].uid);
     if (mybal < feeDiff) {
-      senderr(604, `Insufficient Balance for Member ${groupMemberRecs[i].uid}`); 
+      senderr(res,604, `Insufficient Balance for Member ${groupMemberRecs[i].uid}`); 
       return;
     }
   }
@@ -603,14 +603,14 @@ router.get('/updatewithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/
       await WalletFeeChange(groupMemberRecs[i].uid, groupId, feeDiff);
   }
 
-  sendok(groupRec);
+  sendok(res,groupRec);
 
 }); // end of get
 
 
 router.get('/join/:groupCode/:userid', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   var { groupCode, userid } = req.params;
 
@@ -628,20 +628,20 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
     let xxx = IPLGroup.findOne({_id: groupCode});
     groupRec = await xxx;
   } catch (err) {
-    senderr(611, `Invalid Group code ${groupCode}`); return;
+    senderr(res,611, `Invalid Group code ${groupCode}`); return;
   }
 
   // this validation has to be streamline in more detail
-  if (groupRec.auctionStatus !== "PENDING") { senderr(614, `Auction already started of Group code ${groupCode}`); return; }
+  if (groupRec.auctionStatus !== "PENDING") { senderr(res,614, `Auction already started of Group code ${groupCode}`); return; }
 
   let userRec = await User.findOne({uid: userid});
-  if (!userRec) { senderr(613, `Invalid user ${userid}`); return; }
+  if (!userRec) { senderr(res,613, `Invalid user ${userid}`); return; }
   let userBalance = await WalletBalance(userRec.uid);
-  if (userBalance < groupRec.memberFee) { senderr(615, `Insufficient User Balance`); return; }
-  if (GroupMemberCount(groupRec.gid) >= groupRec.membercount) { senderr(616, `Member count exceed limit`); return; }
+  if (userBalance < groupRec.memberFee) { senderr(res,615, `Insufficient User Balance`); return; }
+  if (GroupMemberCount(groupRec.gid) >= groupRec.membercount) { senderr(res,616, `Member count exceed limit`); return; }
 
   let gmRec = await GroupMember.findOne({gid: groupRec.gid, uid: userRec.uid})
-  if (gmRec) { senderr(612, `User already belongs to  Group with code ${groupCode}`); return; }
+  if (gmRec) { senderr(res,612, `User already belongs to  Group with code ${groupCode}`); return; }
 
   // gid: Number,
   // uid: Number,
@@ -671,7 +671,7 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
   userRec.save();
   
   // now save okay to user
-  sendok(groupRec);
+  sendok(res,groupRec);
 }); 
 
 
@@ -679,23 +679,23 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
 function owneradmin() {
   let igroup = 1;   // currently only group 1 supported
   IPLGroup.findOne({ gid: 1 }, (err, grprec) => {
-    if (!grprec) { senderr(621, "Invalid group"); return; }
+    if (!grprec) { senderr(res,621, "Invalid group"); return; }
     //console.log(grprec);
     User.findOne({ uid: grprec.owner }, (err, userrec) => {
-      if (!userrec) { senderr(DBFETCHERR, `Could fetch record of user ${grprec.uid}`); return; }
-      sendok(userrec);
+      if (!userrec) { senderr(res,DBFETCHERR, `Could fetch record of user ${grprec.uid}`); return; }
+      sendok(res,userrec);
     });
   });
 };
 
 router.get('/test', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
 
   let ankit = await User.findOne({uid: 8});
   let ankit1 = await User.findOne({_id: ankit._id})
   console.log(ankit1);
-  sendok(ankit1);
+  sendok(res,ankit1);
 });
 
 // requred duting sign in
@@ -705,25 +705,25 @@ router.get('/test', async function (req, res, next) {
 // window.localStorage.setItem("tournament", "IPL2020");
 
 router.get('/setdefaultgroup/:myUser/:myGroup', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var {myUser, myGroup}=req.params;
 
   var userRec = await User.findOne({uid: myUser});
-  if (!userRec) { senderr(623, "Invalid user"); return; }
+  if (!userRec) { senderr(res,623, "Invalid user"); return; }
 
   // var gmRec = await IPLGroup.findOne({gid: 2, uid: 8});
   var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
-  if (!gmRec) { senderr(624, "Invalid Group"); return; }
+  if (!gmRec) { senderr(res,624, "Invalid Group"); return; }
 
   userRec.defaultGroup = myGroup;
   userRec.save();
-  sendok("OK");
+  sendok(res,"OK");
 });
 
 router.get('/setfranchisename/:myUser/:myGroup/:myDisplayName', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var {myUser, myGroup, myDisplayName}=req.params;
 
   var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
@@ -742,34 +742,34 @@ router.get('/setfranchisename/:myUser/:myGroup/:myDisplayName', async function (
 	 myRec = _.find(cdata.dbData.maxWicket, x=> x.uid == myUser && x.gid == myGroup);
 	 if (myRec) myRec.displayName = myDisplayName;
    }
-    sendok("OK");
+    sendok(res,"OK");
   } else { 
-    senderr(624, "Invalid Group"); 
+    senderr(res,624, "Invalid Group"); 
   }
 });
 
 router.get('/getfranchisename/:myUser/:myGroup', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var {myUser, myGroup}=req.params;
 
   var gmRec = await GroupMember.findOne({gid: myGroup, uid: myUser});
   if (gmRec) {
     // console.log(gmRec);
-    sendok(gmRec.displayName);
+    sendok(res,gmRec.displayName);
   } else { 
-    senderr(624, "Invalid Group"); 
+    senderr(res,624, "Invalid Group"); 
   }
 });
 
 router.get('/default/:myUser', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var {myUser}=req.params;
 
   // get user rec
   var userRec = await User.findOne({uid: myUser});
-  if (!userRec) { senderr(623, "Invalid user"); return; }
+  if (!userRec) { senderr(res,623, "Invalid user"); return; }
 
   var myGmRec;
   if (userRec.defaultGroup > 0)
@@ -788,7 +788,7 @@ router.get('/default/:myUser', async function (req, res, next) {
     myData.admin = (myUser == myGroup.owner);
   } 
   // console.log(myData);
-  sendok(myData);
+  sendok(res,myData);
 });
 
 
@@ -798,15 +798,15 @@ router.get('/default/:myUser', async function (req, res, next) {
 // window.localStorage.setItem("groupName", "Friends of Happy Home Society");
 // window.localStorage.setItem("tournament", "IPL2020");
 router.get('/current/:myGroup/:myUser', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var {myGroup, myUser}=req.params;
 
   // get user rec
   var userRec = await User.findOne({uid: myUser});
-  if (!userRec) { senderr(623, "Invalid user"); return; }
+  if (!userRec) { senderr(res,623, "Invalid user"); return; }
   var groupRec = await IPLGroup.findOne({gid: myGroup})
-  if (!groupRec) { senderr(621, `Invalid group ${myGroup}`); return; }
+  if (!groupRec) { senderr(res,621, `Invalid group ${myGroup}`); return; }
 
   var myData = {uid: myUser, gid: myGroup, displayName: "", groupName: "", tournament: "", ismember: false, admin: false};
   myData.groupName = groupRec.name;
@@ -821,31 +821,31 @@ router.get('/current/:myGroup/:myUser', async function (req, res, next) {
       myData.displayName = myGroup.displayName;
       myData.ismember = false;    // owner but not member. Remember Apurva
   }
-  sendok(myData);
+  sendok(res,myData);
 });
 
 router.get('/gamestarted/:mygroup', async function (req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var {mygroup}=req.params;
-  if (isNaN(mygroup)) { return senderr(621, `Invalid group ${mygroup}`); return; }
+  if (isNaN(mygroup)) { return senderr(res,621, `Invalid group ${mygroup}`); return; }
   var igroup = parseInt(mygroup);
   //console.log(igroup);
   var msg = await tournament_started(igroup);
   //console.log("recvd message");
   //console.log(msg);
-  sendok(msg);
+  sendok(res,msg);
 });
 
 // list of group of which user is the member
 router.get('/memberof/:userid', async function(req, res, next) {
-  GroupRes = res;
-  setHeader();
+  
+  setHeader(res);
   var {userid}=req.params;
 
   // check if valid user
   var myUser = await User.findOne({uid: userid})
-  if (!myUser) { senderr(623, `Invalid user id ${userid}`); return;}
+  if (!myUser) { senderr(res,623, `Invalid user id ${userid}`); return;}
   // console.log(`${userid} is valid`)
 
   var myGmRec = await GroupMember.find ({uid: userid});
@@ -872,7 +872,7 @@ router.get('/memberof/:userid', async function(req, res, next) {
   var groupData = [];
   groupData.push({ uid: myUser.uid, userName: myUser.userName, displayName: myUser.displayName, groups: gData});
   // console.log("about to send ok")
-  sendok(groupData);
+  sendok(res,groupData);
 });
 
 async function update_tournament_max(groupno) {
@@ -900,15 +900,15 @@ async function update_tournament_max(groupno) {
   // get all records with max runs and max wickets
   var allMaxRunRec = _.filter(maxStat, x => x.run == maxRunRec.run);
   var allMaxWicketRec = _.filter(maxStat, x => x.wicket == maxWicketRec.wicket);
-  sendok(allMaxWicketRec);
+  sendok(res,allMaxWicketRec);
 }
 
 function publish_groups(filter_groups) {
   IPLGroup.find(filter_groups, (err, glist) => {
     if (glist)
-      sendok(glist);
+      sendok(res,glist);
     else
-      senderr(DBFETCHERR, "Unable to fetch Groups from database");
+      senderr(res,DBFETCHERR, "Unable to fetch Groups from database");
   });
 }
 
@@ -933,11 +933,11 @@ async function tournament_started(mygroup) {
   **/
 }
 
-function senderr(errcode, msg) { GroupRes.status(errcode).send(msg); }
-function sendok(msg) { GroupRes.send(msg); GroupRes.end(); }
-function setHeader() {
-  GroupRes.header("Access-Control-Allow-Origin", "*");
-  GroupRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+function senderr(res,errcode, msg) { res.status(errcode).send(msg); }
+function sendok(res,msg) { res.send(msg); res.end(); }
+function setHeader(res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 
 }
 module.exports = router;
