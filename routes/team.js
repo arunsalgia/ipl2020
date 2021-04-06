@@ -11,6 +11,21 @@ router.get('/', function (req, res, next) {
   next('route');
 }); 
 
+router.get('/detail/:myTeam', async function(req, res, next) {
+  TeamRes = res;
+  setHeader();
+
+  var {myTeam}=req.params;
+  myTeam = myTeam.toUpperCase();
+  console.log(myTeam);
+  var myRec = await Team.findOne({name: myTeam});
+  if (myRec) {
+	  sendok(myRec)
+  } else { 
+	senderr(601, `Invalid team ${myTeam}`); 
+}
+ 
+});
 /* GET all users listing. */
 router.get('/list', async function (req, res, next) {
   TeamRes = res;

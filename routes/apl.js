@@ -57,6 +57,17 @@ router.get('/master/list', async function (req, res, next) {
   sendok(myData);
 });
 
+router.get('/getfile/:myFileName', async function (req, res, next) {
+  AplRes = res;
+  setHeader();
+  let { myFileName } = req.params;
+  console.log(myFileName);
+  myFileName = decrypt(myFileName);
+  console.log(myFileName);
+  sendok(myFileName);
+});
+
+
 router.get('/master/add/:myKey/:myValue', async function (req, res, next) {
   AplRes = res;
   setHeader();

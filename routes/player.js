@@ -48,6 +48,20 @@ router.get('/namechange', async function(req, res, next) {
   sendok(numList);
 });
 
+router.get('/detail/:myPid', async function(req, res, next) {
+  PlayerRes = res;
+  setHeader();
+  var {myPid}=req.params;
+  console.log(myPid);
+  var myRec = await Player.findOne({pid: myPid});
+  if (myRec) {
+	  sendok(myRec)
+  } else { 
+	senderr(601, `Invalid Player id ${myPid}`); 
+}
+ 
+});
+
 // get list of all players as per group
 router.get('/group/:groupid', async function(req, res, next) {
   PlayerRes = res;
