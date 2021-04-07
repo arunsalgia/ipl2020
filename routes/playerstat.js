@@ -1535,7 +1535,7 @@ async function update_cricapi_data_r1(logToResponse)
         if (x.type === "UNKNOWN") continue;
 
         let cricMatchId = parseInt(x.unique_id);
-        console.log(`Id: ${cricMatchId} ${myTeam1} ${myTeam2} Match type is ${mytype}`);
+        //console.log(`Id: ${cricMatchId} ${myTeam1} ${myTeam2} Match type is ${mytype}`);
 
         //allTournament.forEach(t => {
         let ankitIdx = 0;
@@ -1580,8 +1580,8 @@ async function update_cricapi_data_r1(logToResponse)
       // set next fetch time
       updateMatchFetchTime(matchesFromCricapi.provider); 
     }
-    else 
-      console.log("Match details not to be fetched now");
+    // else 
+    //   console.log("Match details not to be fetched now");
 
     // match update job done. Now get all matches which have started before current time
     var currtime = new Date(); 
@@ -1612,7 +1612,7 @@ async function update_cricapi_data_r1(logToResponse)
         } else if (mmm.matchEndTime < new Date()) {
           thisMatchOver = true;
         }
-        // if pasrt end time. Then set matchended as true
+        // if past end time. Then set matchended as true
         console.log(`Match Id: ${mmm.mid}  End: ${mmm.matchEndTime} Over sts: ${thisMatchOver} MOM: ${manofthematchPID}`);
         if (thisMatchOver) {
           mmm.matchEnded = true;
