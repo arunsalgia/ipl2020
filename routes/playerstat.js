@@ -1307,7 +1307,7 @@ async function delRunningMatch(mmm) {
   _.remove(runningMatchArray, {mid: mmm.mid});
 }
 
-async function update_cricapi_data_r1(logToResponse)
+async function unoptimised_update_cricapi_data_r1(logToResponse)
 {
     let myindex;
 
@@ -1406,10 +1406,175 @@ async function update_cricapi_data_r1(logToResponse)
         var mymatch = _.find(existingmatches, m => m.mid == parseInt(x.unique_id));
         if (mymatch === undefined) mymatch = new CricapiMatch();
         // console.log(`dating match of ${x.unique_id}`)
-        mymatch = getMatchDetails(x, mymatch, matchTournament);
+        mymatch = getMatchDetails(x, mymatch, matchTournament, myType);
         // console.log(mymatch);
         mymatch.save();
       });
+      // end of check if this match part of our tournament
+
+      // set next fetch time
+      updateMatchFetchTime(matchesFromCricapi.provider); 
+    }
+    else 
+      console.log("Match details not to be fetched now");
+
+    // match update job done. Now get all matches which have started before current time
+    var currtime = new Date(); 
+    let myfilter = { matchStartTime: {$lt: currtime }, matchEnded: false};
+    //let myfilter = { matchEnded: false};
+    var matchesFromDB = await CricapiMatch.find(myfilter);
+    //console.log("My Matches");
+    //console.log(matchesFromDB);
+    // console.log(`Matches started count ${matchesFromDB.length}`)
+
+    // get stas of all these matches
+    // await matchesFromDB.forEach(async (mmm) => {
+    let aidx
+    for(aidx=0; aidx < matchesFromDB.length; ++aidx) {
+      let mmm = matchesFromDB[aidx];
+      addRunningMatch(mmm);
+      await updateTournamentStarted(mmm.tournament);   
+      const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
+      if (cricData != null)
+      if (cricData.data != null) {
+        var manofthematchPID = await updateMatchStats_r1(mmm, cricData.data);
+        // match over if man of the match declared 
+        // OR
+        // current time > matchEndTime
+        let thisMatchOver = false;
+        if (manofthematchPID > 0) {
+          thisMatchOver = true;
+        } else if (mmm.matchEndTime < new Date()) {
+          thisMatchOver = true;
+        }
+        // if pasrt end time. Then set matchended as true
+        console.log(`Match Id: ${mmm.mid}  End: ${mmm.matchEndTime} Over sts: ${thisMatchOver} MOM: ${manofthematchPID}`);
+        if (thisMatchOver) {
+          mmm.matchEnded = true;
+          mmm.save();
+          delRunningMatch(mmm);
+          // update rank score in all group
+          await updateAllGroupRankScore(mmm.tournament);
+          await checkTournamentOver(mmm.tournament);
+        }     
+      }
+    }
+    return;
+}
+
+function get_cricApiMatchType(myTeam1, myTeam2, circType) {
+  let mytype = circType.toUpperCase();
+  if (mytype.includes("TWENTY"))
+    mytype = "T20";
+
+  //if (x.unique_id == 1243388)	console.log(`${myTeam1}  ${myTeam2} ${mytype}`);
+  // special case for IPL
+  // if match type not specified, then
+  if (mytype.length === 0) {
+    let xxxtmp1 = _.find(IPLSPECIAL,  x => myTeam1.includes(x));
+    let xxxtmp2 = _.find(IPLSPECIAL,  x => myTeam2.includes(x));
+    if ((xxxtmp1) && (xxxtmp2))
+      mytype = "T20";
+    else 
+      myType = "UNKNOWN";
+  } else {
+    if (mytype.includes("ODI")) {
+      mytype = "ODI";
+    } else if (mytype.includes("TEST")) {
+      mytype = "TEST";
+    } else if (mytype.includes("20")) {
+      myType = "T20";
+    } else {
+      mytype = "UNKNOWN";
+    }
+  }
+  // console.log(mytype);
+  return mytype;
+}
+
+// modified on 7th April 2021
+async function update_cricapi_data_r1(logToResponse)
+{
+    let myindex;
+
+    // 1st if time is up then get match details from cricapi
+    if (timeToFetchMatches()) {
+      //console.log("time to fetch match details");
+      // why required???????????????????????????????????????
+      // var existingmatches = await CricapiMatch.find({});
+        
+      // now fetch fresh match details from cricapi
+      var matchesFromCricapi = await fetchMatchesFromCricapi();
+      if (matchesFromCricapi.matches == undefined) {
+        //console.log(matchesFromCricapi);
+        var errmsg = "Could not fetch Match details from CricAPI"
+        if (logToResponse)  senderr(CRICFETCHERR, errmsg)
+        else                console.log(errmsg);
+        return; 
+      }
+
+      // get all tournamnet and their teams
+      var allTournament = await Tournament.find({enable: true, over: false});
+      var allTeams = await Team.find({tournament: {$in: tournamentList} });
+      var tournamentList = _.map(allTournament, 'name'); 
+
+
+      // process each match found in cricapy
+      // matchesFromCricapi.matches.forEach(x => {
+      let arunIdx = 0;
+      for(arunIdx=0; arunIdx < matchesFromCricapi.matches.length; ++arunIdx) {
+        let x = matchesFromCricapi.matches[arunIdx];
+        let myTeam1 = x['team-1'].toUpperCase();
+        let myTeam2 = x['team-2'].toUpperCase();
+        x.type = get_cricApiMatchType(myTeam1, myTeam2, x.type);
+        let mytype = x.type;
+        //console.log(`${myTeam1} ${myTeam2}`);
+
+        if (x.unique_id === '') continue;
+        if ((myTeam1 === "TBA") || (myTeam2 === "TBA")) continue;
+        if (x.type === "UNKNOWN") continue;
+
+        let cricMatchId = parseInt(x.unique_id);
+        console.log(`Id: ${cricMatchId} ${myTeam1} ${myTeam2} Match type is ${mytype}`);
+
+        //allTournament.forEach(t => {
+        let ankitIdx = 0;
+        let matchTournament = '';
+        for(ankitIdx=0; arunIdx < allTournament.length; ++arunIdx) {
+          t = allTournament[ankitIdx];
+          if (t.type !== mytype) continue;
+          //console.log(`Two teams are ${myTeam1} and ${myTeam2}`);
+          var myteams = _.filter(allTeams, tm => tm.tournament == t.name); 
+          //console.log(myteams);
+
+          // find team 1  is part of this tournament
+          myindex = _.findIndex(myteams, (x) => { return x.name === myTeam1});
+          //console.log(`My Index for team 1 is ${myindex}`)
+          if (myindex < 0) continue;
+
+          // find team 2  is part of this tournament
+          myindex = _.findIndex(myteams, (x) => { return x.name === myTeam2});
+          //console.log(`My Index for team 2 is ${myindex}`)
+          if (myindex < 0) continue;
+
+          // both the teams belong to this tournament. 
+          //console.log(`Team: ${myTeam1} and ${myTeam2} are part of tournament ${t.name}`);
+          matchTournament = t.name;
+          // how to break. Not sure
+        };    
+        if (matchTournament === '') continue;
+        // console.log(`Tournament: ${matchTournament} Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
+
+        // var mymatch = _.find(existingmatches, m => m.mid == );
+        let mymatch = await CricapiMatch.findOne({mid: cricMatchId});
+        if (!mymatch) {
+          mymatch = new CricapiMatch();
+          // console.log(`dating match of ${x.unique_id}`)
+          mymatch = getMatchDetails(x, mymatch, matchTournament, mytype);
+        // console.log(mymatch);
+          mymatch.save();
+        }
+      };
       // end of check if this match part of our tournament
 
       // set next fetch time
@@ -1813,7 +1978,7 @@ async function updateMatchStats_r1(mmm, cricdata)
 }
 
 
-function getMatchDetails(cricapiRec, mymatch, tournamentName) {
+function getMatchDetails(cricapiRec, mymatch, tournamentName, myMatchType) {
   var stime = getMatchStartTime(cricapiRec);
   var etime = getMatchEndTime(cricapiRec);
   var myweekday = weekDays[stime.getDay()];
@@ -1827,12 +1992,13 @@ function getMatchDetails(cricapiRec, mymatch, tournamentName) {
     // mymatch.team2Description = cricapiRec['team-2'];
     mymatch.matchStartTime = stime;
     mymatch.weekDay = myweekday;
-    if (cricapiRec.type.toUpperCase().includes("TEST"))
-      mymatch.type = "TEST";
-    else if (cricapiRec.type.toUpperCase().includes("ODI"))
-      mymatch.type = "ODI";
-    else
-    mymatch.type = "T20";
+    mymatch.type = myMatchType;
+    // if (cricapiRec.type.toUpperCase().includes("TEST"))
+    //   mymatch.type = "TEST";
+    // else if (cricapiRec.type.toUpperCase().includes("ODI"))
+    //   mymatch.type = "ODI";
+    // else
+    // mymatch.type = "T20";
     mymatch.squad = cricapiRec.squad;
     mymatch.matchStarted = cricapiRec.matchStarted;
     mymatch.matchEndTime = etime;
