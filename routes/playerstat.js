@@ -27,8 +27,10 @@ const doMaxWicket = 2;
 // "ySAewUr5vLamX7LLdfzYD7jTWiJ2","ilzY7ckWVyQfjtULC8uiU2ciSW93","fvxbB9BLVNfxatmOaiseF7Jzz6B2"
 // ]
 
-let keylist;
+// salgia.ankit key purchased on 7th April 2021
+let keylist = ["LrNnasvQp0e2p5JfpAI5Q642o512"]; 
 
+/***
 if (PRODUCTION) {
 // list provided by ANKIT
 keylist = [
@@ -53,6 +55,7 @@ keylist= [
   "r4ZAGKxe9pdy9AuYzViW486eGI83", "ifc1xBF9BfQIYoCCEJatVUxqoVP2",
   "iiyI0vNqKaS4Srie6thRQZe5hIi1", "Z7Vl1j4P7igV5oq2fWobEgjYNY42"];
 }
+***/
 
 // console.log(keylist);
 
@@ -89,6 +92,68 @@ router.get('/updatebrieftable/:tournamnet', async function(req, res) {
   sendok("OK");
 
 });
+
+router.get('/recalc/:tournamnet', async function(req, res) {
+  PlayerStatRes = res;  
+  setHeader();
+  var {tournamnet} = req.params;
+
+  let myTournament = await Tournament.findOne({name: tournamnet});
+  if (!myTournament) {senderr(601, "Not found"); return; }
+  let matchStat= mongoose.model(myTournament.name, StatSchema);
+  let briefStat =  mongoose.model(myTournament.name+BRIEFSUFFIX, BriefStatSchema);
+
+  let match1 = await matchStat.find({mid: 1251572});
+  let match2 = await matchStat.find({mid: 1251573});
+  console.log(match1.length, match2.length);
+  let allMatch = match1.concat(match2);
+  let pidList = _.map(allMatch, 'pid');
+  pidList = _.uniqBy(pidList);
+  console.log(pidList);
+  let allBrief = [];
+  pidList.forEach(myPid => {
+    let myData = _.filter(allMatch, x => x.pid === myPid);
+    if (myData.length !== 0) {
+      var mybrief = getBlankBriefRecord(briefStat);
+      mybrief.sid = 0;
+      mybrief.pid = myPid;
+      mybrief.playerName = myData[0].playerName;
+      mybrief.score = _.sumBy(myData, x => x.score);
+      mybrief.inning = _.sumBy(myData, x => x.inning);
+      // batting details
+      mybrief.run = _.sumBy(myData, x => x.run);
+      mybrief.four = _.sumBy(myData, x => x.four);
+      mybrief.six = _.sumBy(myData, x => x.six);
+      mybrief.fifty = _.sumBy(myData, x => x.fifty);
+      mybrief.hundred =  _.sumBy(myData, x => x.hundred);
+      mybrief.ballsPlayed = _.sumBy(myData, x => x.ballsPlayed);
+      // bowling details
+      mybrief.wicket = _.sumBy(myData, x => x.wicket);
+      mybrief.wicket3 = _.sumBy(myData, x => x.wicket3);
+      mybrief.wicket5 = _.sumBy(myData, x => x.wicket5);
+      mybrief.hattrick = _.sumBy(myData, x => x.hattrick);
+      mybrief.maiden = _.sumBy(myData, x => x.maiden);
+      mybrief.oversBowled = _.sumBy(myData, x => x.oversBowled);
+      // fielding detail
+      mybrief.runout = _.sumBy(myData, x => x.runout);
+      mybrief.stumped = _.sumBy(myData, x => x.stumped);
+      mybrief.bowled = _.sumBy(myData, x => x.bowled);
+      mybrief.lbw = _.sumBy(myData, x => x.lbw);
+      mybrief.catch = _.sumBy(myData, x => x.catch);
+      mybrief.duck = _.sumBy(myData, x => x.duck);
+      mybrief.economy = _.sumBy(myData, x => x.economy);
+      // overall performance
+      mybrief.manOfTheMatch = 0;
+      mybrief.maxTouramentRun = 0;
+      mybrief.maxTouramentWicket = _.filter(myData, x => x.manOfTheMatch === true).length;
+      allBrief.push(mybrief);
+    }
+  })
+  await briefStat.deleteMany({sid: 0});
+  allBrief.forEach(x => { x.save(); });
+  sendok(allBrief);
+});
+
 
 router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
   PlayerStatRes = res;  
@@ -2004,7 +2069,9 @@ async function checkallover() {
 
 
 // schedule task 
-cron.schedule('*/1 * * * * *', () => {
+cron.schedule('*/5 * * * * *', () => {
+  // let T1 = new Date();
+  console.log("Start-------------------------")
   if (!db_connection) {
     console.log("============= No mongoose connection");
     return;
@@ -2014,10 +2081,12 @@ cron.schedule('*/1 * * * * *', () => {
       cricTimer = 0;
     // console.log("======== match update start");
     // console.log("TIme to getch cric data");
+    // let T11 = new Date();
     update_cricapi_data_r1(false);
     updateTournamentBrief();
     checkallover();
-    // // console.log("match update over")
+    // let T12 = new Date();
+    // console.log("match update over-------------", T12.getTime() - T1.getTime());
   }
 
   if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
@@ -2028,6 +2097,9 @@ cron.schedule('*/1 * * * * *', () => {
     // console.log("client update over")
   }
   
+  // let T2 = new Date();
+  // let diff = T2.getTime() - T1.getTime();
+  // console.log("End --------------- time taken: ", diff)
 });
 
 
