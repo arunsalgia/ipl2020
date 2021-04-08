@@ -354,14 +354,14 @@ router.get('/owner', function (req, res, next) {
   
   setHeader(res);
 
-  owneradmin();
+  owneradmin(res);
 });
 
 router.get('/owner', function (req, res, next) {
   
   setHeader(res);
 
-  owneradmin();
+  owneradmin(res);
 });
 
 
@@ -676,7 +676,7 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
 
 
 // who is the owner of the group. Returns user record of the owner
-function owneradmin() {
+function owneradmin(res) {
   let igroup = 1;   // currently only group 1 supported
   IPLGroup.findOne({ gid: 1 }, (err, grprec) => {
     if (!grprec) { senderr(res,621, "Invalid group"); return; }
