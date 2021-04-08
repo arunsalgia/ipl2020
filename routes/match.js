@@ -74,7 +74,7 @@ router.get('/matchinfo/:myGroup', async function(req, res, next) {
   var {myGroup} = req.params;
   var groupRec = await IPLGroup.findOne({gid: myGroup});
   if (groupRec)
-    sendMatchInfoToClient(groupRec.gid, SENDRES);
+    sendMatchInfoToClient(res, groupRec.gid, SENDRES);
   else
     senderr(res, 662, `Invalid group ${myGroup}`);
 });
@@ -132,7 +132,7 @@ router.get('/matchinfo/:myGroup', async function(req, res, next) {
 //   publish_matches(res, myfilter);
 // });
 
-async function sendMatchInfoToClient(igroup, doSendWhat) {
+async function sendMatchInfoToClient(res, igroup, doSendWhat) {
   // var igroup = _group;
   var currTime = new Date();
   currTime.setDate(currTime.getDate())
