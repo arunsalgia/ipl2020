@@ -31,7 +31,7 @@ router.use('/', function (req, res, next) {
   if (!db_connection) { senderr(res,DBERROR, ERR_NODB); return; };
 
   if (req.url == '/')
-    publish_groups({});
+    publish_groups(res, {});
   else
     next('route');
 });
@@ -903,7 +903,7 @@ async function update_tournament_max(groupno) {
   sendok(res,allMaxWicketRec);
 }
 
-function publish_groups(filter_groups) {
+function publish_groups(res, filter_groups) {
   IPLGroup.find(filter_groups, (err, glist) => {
     if (glist)
       sendok(res,glist);

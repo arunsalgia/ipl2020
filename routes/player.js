@@ -12,7 +12,7 @@ router.use('/', async function(req, res, next) {
 router.get('/list', async function(req, res, next) {
   // PlayerRes = res;
   setHeader(res);
-  await publish_players({}); 
+  await publish_players(res, {}); 
 });
 const oldName = ["CSK", "KKR", "RCB", "SRH", "MI", "RR", "DC", "KXIP"]
 const NewName = ["CHENNAI SUPER KINGS", "KOLKATA KNIGHT RIDERS", 
@@ -70,7 +70,7 @@ router.get('/group/:groupid', async function(req, res, next) {
   console.log(groupid);
   var myGroup = await IPLGroup.findOne({gid: groupid});
   if (myGroup) {
-	  await publish_players({ tournament: myGroup.tournament } );
+	  await publish_players(res, { tournament: myGroup.tournament } );
   } else { 
 	senderr(res, 682, `Invalid Group ${groupid}`); 
 }
@@ -81,14 +81,14 @@ router.get('/tournament/:tournamentName', async function(req, res, next) {
   // PlayerRes = res;
   setHeader(res);
   var {tournamentName}=req.params;
-  await publish_players({ tournament: tournamentName } );
+  await publish_players(res, { tournament: tournamentName } );
 });
 
 router.get('/tteam/:tournamentName/:teamName', async function(req, res, next) {
   // PlayerRes = res;
   setHeader(res);
   var {tournamentName, teamName}=req.params;
-  await publish_players({ tournament: tournamentName, Team: teamName } );
+  await publish_players(res, { tournament: tournamentName, Team: teamName } );
 });
 
 router.get('/teamfilter/:tournamentName/:teamName/:partPlayerName', async function(req, res, next) {
@@ -180,7 +180,7 @@ router.get('/sold', async function(req, res, next) {
 
   var alist = await Auction.find({gid: igroup});
   var mypid = _.map(alist, 'pid');
-  publish_players({ tournament: myGroup.tournament, pid: { $in: mypid } } );
+  publish_players(res, { tournament: myGroup.tournament, pid: { $in: mypid } } );
 });
 
 // get list of players not purchased (only 1 group)
@@ -197,7 +197,7 @@ router.get('/unsold', async function(req, res, next) {
   var soldplayers = await Auction.find({gid: igroup});
   var soldpid = _.map(soldplayers, 'pid');
 
-  publish_players({tournament: myGroup.tournament,  pid: { $nin: soldpid } } );
+  publish_players(res, {tournament: myGroup.tournament,  pid: { $nin: soldpid } } );
 });
 
 
@@ -236,7 +236,7 @@ router.get('/available/:playerid', async function(req, res, next) {
 
 
 
-async function publish_players(filter_players)
+async function publish_players(res, filter_players)
 {
 	//console.log("About to publish");
   //console.log(filter_players);

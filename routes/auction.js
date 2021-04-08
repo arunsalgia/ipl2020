@@ -40,7 +40,7 @@ function calculateBalance(arpanaGID) {
   return balanceDetails;
 }
 
-async function processNextPlayer(isItSamePlayer, howToSend, kratiGID, kratiUID) {
+async function processNextPlayer(res, isItSamePlayer, howToSend, kratiGID, kratiUID) {
 
   if (isItSamePlayer === NOTSAMEPLAYER) {
     // console.log(skippedPlayerList);
@@ -165,7 +165,7 @@ router.get('/add/:igroup/:iuser/:iplayer/:ibid', async function(req, res, next) 
     playerName: myplayer.name});
   
   skippedPlayerList[arunGID] = await SkippedPlayer.find({gid: arunGID});
-  await processNextPlayer(NOTSAMEPLAYER, SENDSOCKET, arunGID, arunUID);
+  await processNextPlayer(res, NOTSAMEPLAYER, SENDSOCKET, arunGID, arunUID);
   return;
   // now find all unsold players 
   // remember that iplayer just got sold, thus will not be part of unsold player list
@@ -352,7 +352,7 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
   // console.log(skippedPlayerList.length);
 
   auctionSoldPlayers[akshuGID] = await PauctionList;
-  await processNextPlayer(NOTSAMEPLAYER, SENDSOCKET, akshuGID, akshuUID);
+  await processNextPlayer(res, NOTSAMEPLAYER, SENDSOCKET, akshuGID, akshuUID);
   return;
   // now find all unsold players 
 
@@ -442,7 +442,7 @@ router.get('/current/:groupId', async function(req, res, next) {
     pid: auctionGroup[ankitGID].auctionPlayer});
 
   auctionSoldPlayers[ankitGID] = await PauctionList;
-  await processNextPlayer(SAMEPLAYER, SENDRES, ankitGID, ankitUID);
+  await processNextPlayer(res, SAMEPLAYER, SENDRES, ankitGID, ankitUID);
   return;
   // var igroup = myGroup.gid;
   // var playerId = myGroup.auctionPlayer;

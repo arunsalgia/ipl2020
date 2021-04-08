@@ -129,7 +129,7 @@ router.get('/matchinfo/:myGroup', async function(req, res, next) {
 //   //var currdate = new Date();
 //   //console.log(`Curr Date: ${currdate} Start Date: ${startDate}   End Date: ${endDate}`);
 //   let myfilter = { tournament: _tournament, matchStartTime: { $gte: startDate, $lt: endDate } };
-//   publish_matches(myfilter);
+//   publish_matches(res, myfilter);
 // });
 
 async function sendMatchInfoToClient(igroup, doSendWhat) {
@@ -172,7 +172,7 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   }
 }
 
-async function publish_matches(myfilter)
+async function publish_matches(res, myfilter)
 {
   // console.log(myfilter);
   var matchlist = await CricapiMatch.find(myfilter);  

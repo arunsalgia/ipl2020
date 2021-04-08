@@ -8,7 +8,7 @@ router.use('/', function(req, res, next) {
   if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
 
   if (req.url == '/') 
-    publishTournament({});
+    publishTournament(res, {});
   else
     next('route');
 }); 
@@ -20,7 +20,7 @@ router.use('/info/:tournamentName', function(req, res, next) {
 
   var {tournamentName} = req.params;
   tournamentName = tournamentName.toUpperCase();
-  publishTournament({name: tournamentName});
+  publishTournament(res, {name: tournamentName});
 });
 
 router.get('/allfilter/:partTournamentName', async function(req, res, next) {
@@ -42,35 +42,35 @@ router.get(`/list/running`, function(req, res, next) {
   // TournamentRes = res;
   setHeader(res);
   if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
-  publishTournament({enabled: true, over: false});
+  publishTournament(res, {enabled: true, over: false});
 });
 
 router.get(`/list/notstarted`, function(req, res, next) {
   // TournamentRes = res;
   setHeader(res);
   if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
-  publishTournament({enabled: true, started: false});
+  publishTournament(res, {enabled: true, started: false});
 });
 
 router.get(`/list/over`, function(req, res, next) {
   // TournamentRes = res;
   setHeader(res);
   if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
-  publishTournament({enabled: true, over: true});
+  publishTournament(res, {enabled: true, over: true});
 });
 
 router.get(`/list/enabled`, function(req, res, next) {
   // TournamentRes = res;
   setHeader(res);
   if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
-  publishTournament({enabled: true});
+  publishTournament(res, {enabled: true});
 });
 
 router.get(`/list/disabled`, function(req, res, next) {
   // TournamentRes = res;
   setHeader(res);
   if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
-  publishTournament({enabled: false});
+  publishTournament(res, {enabled: false});
 });
 
 router.get(`/statusupdate/:tournamentName`, async function(req, res, next) {
@@ -191,7 +191,7 @@ router.use('/team/:tournamentName', function(req, res, next) {
 
     var {tournamentName} = req.params;
     tournamentName = tournamentName.toUpperCase();
-    publish_teams({tournament: tournamentName});
+    publish_teams(res, {tournament: tournamentName});
 });
 
 async function getMatchDetails(tournamentName) {
@@ -261,7 +261,7 @@ async function sendTournamentStatus(tname, started)
     sendok(res, retsts);
 }
 
-async function publishTournament(filter_tournament)
+async function publishTournament(res, filter_tournament)
 {
   var tlist = await Tournament.find(filter_tournament);
   // tlist = _.map(tlist, o => _.pick(o, ['name', 'desc', 'type', 'over']));
@@ -270,7 +270,7 @@ async function publishTournament(filter_tournament)
 }
 
 
-async function publish_teams(filter_teams)
+async function publish_teams(res, filter_teams)
 {
   var tlist = await Team.find(filter_teams);
   tlist = _.map(tlist, o => _.pick(o, ['name', 'fullname', 'tournament']));

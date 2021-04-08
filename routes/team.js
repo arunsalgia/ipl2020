@@ -31,7 +31,7 @@ router.get('/list', async function (req, res, next) {
   // TeamRes = res;
   setHeader(res);  
   console.log("list");
-  await publishTeam({}, false);
+  await publishTeam(res, {}, false);
 });
 
 router.get('/tournament/:tournamentName', async function (req, res, next) {
@@ -40,7 +40,7 @@ router.get('/tournament/:tournamentName', async function (req, res, next) {
   console.log("list");
   var {tournamentName} = req.params;
   tournamentName = tournamentName.toUpperCase();	
-  await publishTeam({tournament: tournamentName}, false);
+  await publishTeam(res, {tournament: tournamentName}, false);
 });
 
 router.get('/tournamentdelete/:tournamentName', async function (req, res, next) {
@@ -56,7 +56,7 @@ router.get('/uniquelist', async function (req, res, next) {
   // TeamRes = res;
   setHeader(res);  
   console.log("uniquelist");
-  await publishTeam({}, true);
+  await publishTeam(res, {}, true);
 });
 
 /* GET all users listing. */
@@ -78,7 +78,7 @@ router.get('/add/:tournamentName/:teamName', async function (req, res, next) {
   sendok(res, "Done");
 });
 
-async function publishTeam(filter_teams, setUnique) {
+async function publishTeam(res, filter_teams, setUnique) {
   var ulist = await Team.find(filter_teams);
   //ulist = _.map(ulist, o => _.pick(o, ['name']));
   if (setUnique)

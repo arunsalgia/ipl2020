@@ -2387,7 +2387,7 @@ function getMatchEndTime(cricapiRec) {
   return etime;
 }
 
-async function publish_stats()
+async function publish_stats(res)
 {
   // Set collection name 
   var tournamentStat = mongoose.model(_tournament, StatSchema);
