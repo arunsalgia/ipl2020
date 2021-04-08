@@ -1,42 +1,42 @@
 const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText, svrToDbText, getLoginName, getDisplayName, sendCricMail, } = require('./cricspecial'); 
 router = express.Router();
-let TeamRes;
+// let TeamRes;
 
 
 /* GET all users listing. */
 router.get('/', function (req, res, next) {
-  TeamRes = res;
-  setHeader();
-  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
+  // TeamRes = res;
+  setHeader(res);
+  if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
   next('route');
 }); 
 
 router.get('/detail/:myTeam', async function(req, res, next) {
-  TeamRes = res;
-  setHeader();
+  // TeamRes = res;
+  setHeader(res);
 
   var {myTeam}=req.params;
   myTeam = myTeam.toUpperCase();
   console.log(myTeam);
   var myRec = await Team.findOne({name: myTeam});
   if (myRec) {
-	  sendok(myRec)
+	  sendok(res, myRec)
   } else { 
-	senderr(601, `Invalid team ${myTeam}`); 
+	senderr(res, 601, `Invalid team ${myTeam}`); 
 }
  
 });
 /* GET all users listing. */
 router.get('/list', async function (req, res, next) {
-  TeamRes = res;
-  setHeader();  
+  // TeamRes = res;
+  setHeader(res);  
   console.log("list");
   await publishTeam({}, false);
 });
 
 router.get('/tournament/:tournamentName', async function (req, res, next) {
-  TeamRes = res;
-  setHeader();  
+  // TeamRes = res;
+  setHeader(res);  
   console.log("list");
   var {tournamentName} = req.params;
   tournamentName = tournamentName.toUpperCase();	
@@ -44,25 +44,25 @@ router.get('/tournament/:tournamentName', async function (req, res, next) {
 });
 
 router.get('/tournamentdelete/:tournamentName', async function (req, res, next) {
-  TeamRes = res;
-  setHeader();  
+  // TeamRes = res;
+  setHeader(res);  
   console.log(`delete tournament ${tournamentName}`);
   var {tournamentName} = req.params;
   await Team.deleteMany({tournament: tournamentName.toUpperCase()});  
-  sendok(`delete tournament ${tournamentName}`)
+  sendok(res, `delete tournament ${tournamentName}`)
 });
 
 router.get('/uniquelist', async function (req, res, next) {
-  TeamRes = res;
-  setHeader();  
+  // TeamRes = res;
+  setHeader(res);  
   console.log("uniquelist");
   await publishTeam({}, true);
 });
 
 /* GET all users listing. */
 router.get('/add/:tournamentName/:teamName', async function (req, res, next) {
-  TeamRes = res;
-  setHeader();  
+  // TeamRes = res;
+  setHeader(res);  
   var {tournamentName, teamName} = req.params;
   
   tournamentName = tournamentName.toUpperCase();
@@ -75,7 +75,7 @@ router.get('/add/:tournamentName/:teamName', async function (req, res, next) {
     myrec.tournament = tournamentName;
 	myrec.save();  
   };
-  sendok("Done");
+  sendok(res, "Done");
 });
 
 async function publishTeam(filter_teams, setUnique) {
@@ -84,15 +84,15 @@ async function publishTeam(filter_teams, setUnique) {
   if (setUnique)
 	ulist = _.uniqBy(ulist, x => x.name);
   ulist = _.sortBy(ulist, 'name');
-  sendok(ulist);
+  sendok(res, ulist);
 }
 
 
-function sendok(usrmgs) { TeamRes.send(usrmgs); }
-function senderr(errcode, errmsg) { TeamRes.status(errcode).send({error: errmsg}); }
-function setHeader() {
-  TeamRes.header("Access-Control-Allow-Origin", "*");
-  TeamRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+function sendok(res, usrmgs) { res.send(usrmgs); }
+function senderr(res, errcode, errmsg) { res.status(errcode).send({error: errmsg}); }
+function setHeader(res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   _group = defaultGroup;
   _tournament = defaultTournament;
 }

@@ -884,7 +884,7 @@ updateTournamentMaxRunWicket = async function(tournamentName) {
     mybrief.pid = mmm.pid;
     mybrief.playerName = mmm.playerName;
     mybrief.score = bonusAmount;
-    mybrief.maxTouramentRun = mmm.totalWicket;  
+    mybrief.maxTouramentWicket = mmm.totalWicket;  
     mybrief.save(); 
   });
 

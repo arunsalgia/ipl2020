@@ -1,30 +1,30 @@
 const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText, svrToDbText, sendCricMail, } = require('./cricspecial'); 
 
 var router = express.Router();
-let AplRes;
+// let AplRes;
 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
-  AplRes = res;
-  setHeader();
-  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
+  // AplRes = res;
+  setHeader(res);
+  if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
   next('route');
 });
 
 router.get('/latestversion', async function (req, res, next) {
-  AplRes = res;
-  setHeader();
+  // AplRes = res;
+  setHeader(res);
   let tmp = await MasterData.findOne({msKey: "LATESTVERSION"});
   //console.log(tmp);
   let lVer = (tmp) ? tmp.msValue : "0.0";
   //console.log(lVer);
-  sendok(lVer);
+  sendok(res, lVer);
 });
 
 
 router.get('/feedback/:userid/:message', async function (req, res, next) {
-  AplRes = res;
-  setHeader();
+  // AplRes = res;
+  setHeader(res);
   
     let { userid, message } = req.params;
     let tDate = new Date();
@@ -42,35 +42,35 @@ router.get('/feedback/:userid/:message', async function (req, res, next) {
 	// now send the mail 
   let resp = await sendCricMail(APLEMAILID, aplRec.message, decrypt(message));
   if (resp.status) {
-    sendok(aplRec._id);
+    sendok(res, aplRec._id);
   } else {
     console.log(resp.error);
-    senderr(603, resp.error);
+    senderr(res, 603, resp.error);
   }
 }); 
 
 router.get('/master/list', async function (req, res, next) {
-  AplRes = res;
-  setHeader();
+  // AplRes = res;
+  setHeader(res);
 
   let myData = await MasterData.find({});
-  sendok(myData);
+  sendok(res, myData);
 });
 
 router.get('/getfile/:myFileName', async function (req, res, next) {
-  AplRes = res;
-  setHeader();
+  // AplRes = res;
+  setHeader(res);
   let { myFileName } = req.params;
   console.log(myFileName);
   myFileName = decrypt(myFileName);
   console.log(myFileName);
-  sendok(myFileName);
+  sendok(res, myFileName);
 });
 
 
 router.get('/master/add/:myKey/:myValue', async function (req, res, next) {
-  AplRes = res;
-  setHeader();
+  // AplRes = res;
+  setHeader(res);
   let { myKey, myValue } = req.params;
   
   let myData = await MasterData.findOne({msKey: myKey.toUpperCase()});
@@ -82,25 +82,25 @@ router.get('/master/add/:myKey/:myValue', async function (req, res, next) {
   }
   myData.msValue = myValue;
   myData.save();
-  sendok(myData);
+  sendok(res, myData);
 });
 
 router.get('/master/delete/:myKey', async function (req, res, next) {
-  AplRes = res;
-  setHeader();
+  // AplRes = res;
+  setHeader(res);
   let { myKey } = req.params;
   
   try {
     await MasterData.deleteOne({msKey: myKey.toUpperCase()});
-    sendok(`Key ${myKey} successfully delete from Master Settings`);
+    sendok(res, `Key ${myKey} successfully delete from Master Settings`);
   } catch (e) {
-    senderr(601, `Key ${myKey} not found in Master Settings`);
+    senderr(res, 601, `Key ${myKey} not found in Master Settings`);
   }
 });
 
 router.get('/support1', async function (req, res, next) {
-  AplRes = res;
-  setHeader();
+  // AplRes = res;
+  setHeader(res);
 
   let matchId = 1243388;
   let myTournament = 'indengt20-2021';
@@ -111,15 +111,15 @@ router.get('/support1', async function (req, res, next) {
     //x.score = x.score/2; 
     x.save();
   });
-  sendok('Done');
+  sendok(res, 'Done');
 }); 
 
 
-function sendok(usrmsg) { AplRes.send(usrmsg); }
-function senderr(errcode, errmsg) { AplRes.status(errcode).send(errmsg); }
-function setHeader() {
-  AplRes.header("Access-Control-Allow-Origin", "*");
-  AplRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+function sendok(res, usrmsg) { res.send(usrmsg); }
+function senderr(res, errcode, errmsg) { res.status(errcode).send(errmsg); }
+function setHeader(res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 }
 
 module.exports = router;

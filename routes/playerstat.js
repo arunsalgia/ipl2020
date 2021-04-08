@@ -1,5 +1,5 @@
 router = express.Router();
-var PlayerStatRes;
+// var PlayerStatRes;
 // var _group = 1;
 // var _tournament = "IPL2020";
 const doMaxRun = 1;
@@ -76,30 +76,30 @@ var g_tournamentStat;
 
 /* GET all users listing. */
 router.use('/', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
-  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
+  // PlayerStatRes = res;
+  setHeader(res);
+  if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
   next('route');
 });
 
 
 router.get('/updatebrieftable/:tournamnet', async function(req, res) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
   var {tournamnet} = req.params;
 
   await check_all_tournaments();
-  sendok("OK");
+  sendok(res, "OK");
 
 });
 
 router.get('/recalc/:tournamnet', async function(req, res) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
   var {tournamnet} = req.params;
 
   let myTournament = await Tournament.findOne({name: tournamnet});
-  if (!myTournament) {senderr(601, "Not found"); return; }
+  if (!myTournament) {senderr(res, 601, "Not found"); return; }
   let matchStat= mongoose.model(myTournament.name, StatSchema);
   let briefStat =  mongoose.model(myTournament.name+BRIEFSUFFIX, BriefStatSchema);
 
@@ -151,23 +151,23 @@ router.get('/recalc/:tournamnet', async function(req, res) {
   })
   await briefStat.deleteMany({sid: 0});
   allBrief.forEach(x => { x.save(); });
-  sendok(allBrief);
+  sendok(res, allBrief);
 });
 
 
 router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
   var {gid1, gid2} = req.params;
-  if (isNaN(gid1)) { senderr(400, "Invalid GID1"); return}
-  if (isNaN(gid2)) { senderr(400, "Invalid GID2"); return}
+  if (isNaN(gid1)) { senderr(res, 400, "Invalid GID1"); return}
+  if (isNaN(gid2)) { senderr(res, 400, "Invalid GID2"); return}
   var igid1 = parseInt(gid1);
   var igid2 = parseInt(gid2);
 
   var tmp = await IPLGroup.findOne({gid: igid1});
-  if (!tmp) { senderr(400, "Invalid GID1"); return}
+  if (!tmp) { senderr(res, 400, "Invalid GID1"); return}
   tmp = await IPLGroup.findOne({gid: igid2});
-  if (!tmp) { senderr(400, "Invalid GID2"); return}
+  if (!tmp) { senderr(res, 400, "Invalid GID2"); return}
 
   // swap GROUP 
   var allRecs = await IPLGroup.find({gid: {$in: [igid1, igid2]} })
@@ -200,12 +200,12 @@ router.use('/xxxxxxswap/:gid1/:gid2', async function(req, res, next) {
     else if (x.gid == igid2)  x.gid = igid1;
     x.save();   
   })
-  sendok("OK");
+  sendok(res, "OK");
 });
 
 router.get('/test/:myGroup', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
   var {myGroup} = req.params;
   var myDate1, myDate2;
   var duration;
@@ -282,33 +282,33 @@ router.get('/test/:myGroup', async function(req, res, next) {
   var myDate2 = new Date();
   var duration = myDate2.getTime() - myDate1.getTime();
   console.log(`Time for read ${duration}`);
-  sendok("OK")
+  sendok(res, "OK")
 });
 
 
 router.use('/hello', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
   console.log("in hello");
-  sendok("hello");
+  sendok(res, "hello");
 });
 
 router.use('/reread/:matchid', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
   console.log("in reread");
   var {matchid} = req.params;
-  if (isNaN(matchid)) { sendok("Invalid Match Id"); return}
+  if (isNaN(matchid)) { sendok(res, "Invalid Match Id"); return}
   var mymid = parseInt(matchid)
   var mmm = await CricapiMatch.findOne({mid: mymid});
-  if (mmm == null) { sendok("Invalid Match Id"); return}
+  if (mmm == null) { sendok(res, "Invalid Match Id"); return}
   
   const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
   console.log(cricData.data);
   if (cricData == null)
-    sendok("cricData is NULL");
+    sendok(res, "cricData is NULL");
   else if (cricData.data == null)
-    sendok(cricData);
+    sendok(res, cricData);
   else {
     var newstats = updateMatchStats_r1(mmm, cricData.data);
     // console.log(`Match Id: ${mmm.mid}  Start: ${mmm.matchStartTime}  End: ${mmm.matchEndTime}`);
@@ -316,13 +316,13 @@ router.use('/reread/:matchid', async function(req, res, next) {
       mmm.matchEnded = true;
       mmm.save();
     }
-    sendok("OK");
+    sendok(res, "OK");
   }     
 });
 
 router.use('/sendmystat/:myGroup', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
  var {myGroup} = req.params;
 
   var groupRec = await IPLGroup.findOne({gid: myGroup});
@@ -331,17 +331,17 @@ router.use('/sendmystat/:myGroup', async function(req, res, next) {
     if (tmp.length === 0)
       myStatGroup.push(groupRec.gid);
     sendMyStat = true;
-    sendok("OK");
+    sendok(res, "OK");
   } else {
-    senderr(722, `Invalid group ${myGroup}`);
+    senderr(res, 722, `Invalid group ${myGroup}`);
   }
 });
 
 router.use('/sendmydashboard/:myGroup', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
   var {myGroup} = req.params;
-  sendok("OK");
+  sendok(res, "OK");
   return;
   var groupRec = await IPLGroup.findOne({gid: myGroup});
   // console.log(groupRec);
@@ -351,26 +351,26 @@ router.use('/sendmydashboard/:myGroup', async function(req, res, next) {
       myDashboardGroup.push(groupRec.gid);
     // console.log(myDashboardGroup);
     sendDashboard = true;
-    sendok("OK");
+    sendok(res, "OK");
   } else {
-    senderr(722, `Invalid group ${myGroup}`);
+    senderr(res, 722, `Invalid group ${myGroup}`);
   }
 });
 
 router.use('/test', async function(req, res, next) {
-  PlayerStatRes = res;  
-  setHeader();
+  // PlayerStatRes = res;  
+  setHeader(res);
 
   await update_cricapi_data_r1(true);
-  sendok("OK");
+  sendok(res, "OK");
 });
 
 // provide scrore of users beloging to the group
 // currently only group 1 supported
 
 router.use('/junked/internal/score', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
+  // PlayerStatRes = res;
+  setHeader(res);
 
   // get list of users in group
   var igroup = _group;
@@ -424,48 +424,48 @@ router.use('/junked/internal/score', async function(req, res, next) {
     });
   })
   //console.log(userScoreList);
-  sendok(userScoreList);
+  sendok(res, userScoreList);
 });
 
 
 router.use('/maxrun/:myGroup/:myuser', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
+  // PlayerStatRes = res;
+  setHeader(res);
 
   var {myGroup , myuser} = req.params;
 
   var groupRec = await IPLGroup.findOne({gid: myGroup});
-  if (!groupRec) { senderr(722, `Invalid group ${myGroup}`); return;  }
+  if (!groupRec) { senderr(res, 722, `Invalid group ${myGroup}`); return;  }
 
   var iuser;
   if (myuser.toUpperCase() === "ALL")
     iuser = 0;
   else {
     if (isNaN(myuser)) {
-      senderr(721, `Invalid user id ${myuser}`);
+      senderr(res, 721, `Invalid user id ${myuser}`);
       return;      
     }
     iuser = parseInt(myuser);
   }
   var myData = await statMax(groupRec.gid, iuser, doMaxRun, SENDRES);
-  sendok(myData);
+  sendok(res, myData);
 });
 
 router.use('/maxwicket/:myGroup/:myuser', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
+  // PlayerStatRes = res;
+  setHeader(res);
 
   var {myGroup, myuser} = req.params;
 
   var groupRec = await IPLGroup.findOne({gid: myGroup});
-  if (!groupRec) { senderr(722, `Invalid group ${myGroup}`); return;  }
+  if (!groupRec) { senderr(res, 722, `Invalid group ${myGroup}`); return;  }
 
   var iuser;
   if (myuser.toUpperCase() === "ALL")
     iuser = 0;
   else {
     if (isNaN(myuser)) {
-      senderr(721, `Invalid user id ${myuser}`);
+      senderr(res, 721, `Invalid user id ${myuser}`);
       return;      
     }
     iuser = parseInt(myuser);
@@ -476,40 +476,40 @@ router.use('/maxwicket/:myGroup/:myuser', async function(req, res, next) {
 
 
 router.use('/brief/:myGroup/:myuser', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
+  // PlayerStatRes = res;
+  setHeader(res);
 
   var {myGroup, myuser} = req.params;
   var iuser;
 
   groupRec = await IPLGroup.findOne({gid: myGroup});
-  if (!groupRec) { senderr(722, `Invalid user id ${myGroup}`); return;  }
+  if (!groupRec) { senderr(res, 722, `Invalid user id ${myGroup}`); return;  }
 
   if (myuser.toUpperCase() === "ALL")
     iuser = 0;
   else {
     if (isNaN(myuser)) {
-      senderr(721, `Invalid user id ${myuser}`);
+      senderr(res, 721, `Invalid user id ${myuser}`);
       return;      
     }
     iuser = parseInt(myuser);
   }
   var myData = await statBrief(groupRec.gid, iuser, SENDRES);
-  sendok(myData);
+  sendok(res, myData);
 
 });
 
 
 router.use('/score/:myuser', function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
+  // PlayerStatRes = res;
+  setHeader(res);
   var {myuser} = req.params;
   var iuser;
   if (myuser.toUpperCase() === "ALL")
     iuser = 0;
   else {
     if (isNaN(myuser)) {
-      senderr(721, `Invalid user id ${myuser}`);
+      senderr(res, 721, `Invalid user id ${myuser}`);
       return;      
     }
     iuser = parseInt(myuser);
@@ -518,36 +518,36 @@ router.use('/score/:myuser', function(req, res, next) {
 });
 
 router.use('/rank/:myGroup/:myuser', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
+  // PlayerStatRes = res;
+  setHeader(res);
   var {myGroup,myuser} = req.params;
   var iuser;
 
   var groupRec = await IPLGroup.findOne({gid: myGroup});
-  if (!groupRec) { senderr(722, `Invalid group ${myGroup}`); return; }
+  if (!groupRec) { senderr(res, 722, `Invalid group ${myGroup}`); return; }
 
   if (myuser.toUpperCase() === "ALL")
     iuser = 0;
   else {
     if (isNaN(myuser)) {
-      senderr(721, `Invalid user id ${myuser}`);
+      senderr(res, 721, `Invalid user id ${myuser}`);
       return;      
     }
     iuser = parseInt(myuser);
   }
   var myData = 
-  sendok(statRank(groupRec.gid, iuser, SENDRES));
+  sendok(res, statRank(groupRec.gid, iuser, SENDRES));
 });
 
 router.use('/updatemax/:tournamentName', async function(req, res, next) {
-  PlayerStatRes = res;
-  setHeader();
+  // PlayerStatRes = res;
+  setHeader(res);
   var {tournamentName} = req.params;
   // first check if tournament is over (END has been signalled)
   var myTournament = await Tournament.findOne({name: tournamentName});
-  if (!myTournament) { senderr(723,"Invalid tournament"); return;}
+  if (!myTournament) { senderr(res, 723,"Invalid tournament"); return;}
   if (!myTournament.over) {
-    senderr(723, "Tournament not yet over. Cannot assign Bonus point for Tournament Max Run and Wicket");
+    senderr(res, 723, "Tournament not yet over. Cannot assign Bonus point for Tournament Max Run and Wicket");
     return;
   }
 
@@ -557,12 +557,12 @@ router.use('/updatemax/:tournamentName', async function(req, res, next) {
   var tdata = await tournamentStat.find({});
   var tmp = _.filter(tdata, x => x.mid == MaxRunMid);
   if (tmp.length > 0) {
-    senderr(724, "Bonus point for Maximum run already assigned");
+    senderr(res, 724, "Bonus point for Maximum run already assigned");
     return;
   }
   var tmp = _.filter(tdata, x => x.mid == MaxWicketMid);
   if (tmp.length > 0) {
-    senderr(724, "Bonus point for Maximum wicket already assigned");
+    senderr(res, 724, "Bonus point for Maximum wicket already assigned");
     return;
   }
 
@@ -629,7 +629,7 @@ router.use('/updatemax/:tournamentName', async function(req, res, next) {
 
   });
   
-  sendok("OK");
+  sendok(res, "OK");
   // allocate bonus points to player with maximum run and maximum wicket
 });
 
@@ -769,7 +769,7 @@ async function statBrief(igroup, iwhichuser, doWhatSend)
   //console.log(userScoreList);
   //console.log(userScoreList);
   // if (doWhatSend === SENDRES) {
-  //   sendok(userScoreList); 
+  //   sendok(res, userScoreList); 
   // } else {
   //   const socket = app.get("socket");
   //   socket.emit("brief", userScoreList)
@@ -852,7 +852,7 @@ async function statScore(iwhichUser) {
   })
   if (iwhichUser != 0)
     userScoreList = _.filter(userScoreList, x => x.uid === iwhichUser);
-  sendok(userScoreList);
+  sendok(res, userScoreList);
 }
 
 
@@ -950,7 +950,7 @@ async function statRank (igroup, iwhichUser, doSendWhat) {
 
   // console.log(userRank);
   // if (doSendWhat === SENDRES) {
-  //   sendok(userRank);
+  //   sendok(res, userRank);
   // } else {
   //   const socket = app.get("socket");
   //   socket.emit("rank", userRank)
@@ -1079,7 +1079,7 @@ async function statMax(igroup, iwhichuser, doWhat, sendToWhom)
   });
   //console.log(maxarray);
   // if (sendToWhom === SENDRES)  {
-  //   sendok(maxarray);
+  //   sendok(res, maxarray);
   // } else {
   //   const socket = app.get("socket");
   //   if (doWhat === doMaxRun) {
@@ -1321,7 +1321,7 @@ async function unoptimised_update_cricapi_data_r1(logToResponse)
       if (matchesFromCricapi.matches == undefined) {
         //console.log(matchesFromCricapi);
         var errmsg = "Could not fetch Match details from CricAPI"
-        if (logToResponse)  senderr(CRICFETCHERR, errmsg)
+        if (logToResponse)  senderr(res, CRICFETCHERR, errmsg)
         else                console.log(errmsg);
         return; 
       }
@@ -1508,7 +1508,7 @@ async function update_cricapi_data_r1(logToResponse)
       if (matchesFromCricapi.matches == undefined) {
         //console.log(matchesFromCricapi);
         var errmsg = "Could not fetch Match details from CricAPI"
-        if (logToResponse)  senderr(CRICFETCHERR, errmsg)
+        if (logToResponse)  senderr(res, CRICFETCHERR, errmsg)
         else                console.log(errmsg);
         return; 
       }
@@ -2081,7 +2081,7 @@ async function sendMatchInfoToClient(igroup, doSendWhat) {
   var upcomingMatch = _.find(myMatches, x => _.gte(x.matchStartTime, currTime));
 
   if (doSendWhat === SENDRES) {
-    sendok(currMatches);
+    sendok(res, currMatches);
     console.log(upcomingMatch);
   } else {
     const socket = app.get("socket");
@@ -2392,11 +2392,11 @@ async function publish_stats()
   // Set collection name 
   var tournamentStat = mongoose.model(_tournament, StatSchema);
   var statList = await tournamentStat.find({});
-  sendok(statList);
+  sendok(res, statList);
   // //console.log(filter_stats);
   // Stat.find(filter_stats,(err,slist) =>{
-  //   if(slist) sendok(slist);
-  //   else      senderr(DBFETCHERR, "Unable to fetch statistics from database");
+  //   if(slist) sendok(res, slist);
+  //   else      senderr(res, DBFETCHERR, "Unable to fetch statistics from database");
   // });
 }
 
@@ -2427,11 +2427,11 @@ async function check_all_tournaments() {
 }
 
 
-function sendok(usrmsg) { PlayerStatRes.send(usrmsg); }
-function senderr(errcode, errmsg) { PlayerStatRes.status(errcode).send(errmsg); }
-function setHeader() {
-  PlayerStatRes.header("Access-Control-Allow-Origin", "*");
-  PlayerStatRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+function sendok(res, usrmsg) { res.send(usrmsg); }
+function senderr(res, errcode, errmsg) { res.status(errcode).send(errmsg); }
+function setHeader(res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   // _group = 1;
   // _tournament = "IPL2020";
 

@@ -1,28 +1,28 @@
 //var express = require('express');
 var router = express.Router();
-let PrizeRes;
+// let PrizeRes;
 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
-  PrizeRes = res;
-  setHeader();
-  if (!db_connection) { senderr(DBERROR, ERR_NODB); return; }
+  // PrizeRes = res;
+  setHeader(res);
+  if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
   next('route');
 });
  
  
 router.get('/data', async function (req, res, next) {
-  PrizeRes = res;
-  setHeader();
+  // PrizeRes = res;
+  setHeader(res);
 
 	let myPrize = await Prize.find({})
-	sendok(myPrize);
+	sendok(res, myPrize);
 }); 
 
 
 router.get('/all/:amount', async function (req, res, next) {
-  PrizeRes = res;
-  setHeader();
+  // PrizeRes = res;
+  setHeader(res);
 
   var { amount } = req.params;
  
@@ -31,14 +31,14 @@ router.get('/all/:amount', async function (req, res, next) {
     let mytab = await getPrizeTable(i, amount);
     allPrize.push(mytab);
   }
-  sendok(allPrize);
+  sendok(res, allPrize);
 }); 
 
 
 
 router.get('/addprize', async function (req, res, next) {
-  PrizeRes = res;
-  setHeader();
+  // PrizeRes = res;
+  setHeader(res);
 
   let myPrize = new Prize({
     prizeCount: 1,
@@ -115,14 +115,14 @@ router.get('/addprize', async function (req, res, next) {
   })
   myPrize.save();
 
-  sendok("ok");
+  sendok(res, "ok");
 }); 
 
 
-function sendok(usrmsg) { PrizeRes.send(usrmsg); }
-function senderr(errcode, errmsg) { PrizeRes.status(errcode).send(errmsg); }
-function setHeader() {
-  PrizeRes.header("Access-Control-Allow-Origin", "*");
-  PrizeRes.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+function sendok(res, usrmsg) { res.send(usrmsg); }
+function senderr(res, errcode, errmsg) { res.status(errcode).send(errmsg); }
+function setHeader(res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 }
 module.exports = router;

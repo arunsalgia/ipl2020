@@ -933,8 +933,11 @@ async function tournament_started(mygroup) {
   **/
 }
 
-function senderr(res,errcode, msg) { res.status(errcode).send(msg); }
-function sendok(res,msg) { res.send(msg); res.end(); }
+function senderr(res, errcode, msg) { res.status(errcode).send(msg); }
+function sendok(res, msg) { 
+  res.send(msg); 
+  //res.end();  END NOT REQUIRED after send
+}
 function setHeader(res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
