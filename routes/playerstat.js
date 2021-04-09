@@ -2235,7 +2235,7 @@ async function checkallover() {
 
 
 // schedule task 
-cron.schedule('*/5 * * * * *', () => {
+cron.schedule('*/15 * * * * *', () => {
   // let T1 = new Date();
   console.log("Start-------------------------")
   if (!db_connection) {
@@ -2255,7 +2255,7 @@ cron.schedule('*/5 * * * * *', () => {
     // console.log("match update over-------------", T12.getTime() - T1.getTime());
   }
 
-  if (++clientUpdateCount > CLIENTUPDATEINTERVAL) {
+  if (++clientUpdateCount >= CLIENTUPDATEINTERVAL) {
     // console.log("======== clinet update start");
     // console.log(connectionArray);
     sendDashboardData(); 
