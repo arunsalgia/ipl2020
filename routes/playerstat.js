@@ -2235,7 +2235,7 @@ async function checkallover() {
 
 
 // schedule task 
-cron.schedule('*/10 * * * * *', () => {
+cron.schedule('*/12 * * * * *', () => {
   // let T1 = new Date();
   console.log("Start-------------------------")
   if (!db_connection) {
