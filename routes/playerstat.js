@@ -795,12 +795,12 @@ async function statScore(iwhichUser) {
   var PstatList =  tournamentStat.find({});
   var PauctionList =  Auction.find({gid: igroup});
   var Pallusers =  User.find({});
-  var Pgmembers =  GroupMember.find({gid: igroup});
+  // var Pgmembers =  GroupMember.find({gid: igroup});
   var Pcaptainlist =  Captain.find({gid: igroup});
 
   // wait for data fetch to be over
   captainlist = await Pcaptainlist;
-  gmembers = await Pgmembers;
+  gmembers = await akshuGetGroupMembers(igroup);      //   Pgmembers;
   allusers = await Pallusers;
   auctionList = await PauctionList;
   statList = await PstatList;
@@ -869,21 +869,21 @@ async function statRank (igroup, iwhichUser, doSendWhat) {
   // Set collection name 
   // var igroup = _group;
   // make async mongose calls
-  const PgroupRec = IPLGroup.findOne({gid: igroup});
-  const PauctionList = Auction.find({gid: igroup });
+  //const PgroupRec = IPLGroup.findOne({gid: igroup});
+  //const PauctionList = Auction.find({gid: igroup });
   const Pallusers = User.find({});
-  const Pgmembers = GroupMember.find({gid: igroup});
+  //const Pgmembers = GroupMember.find({gid: igroup});
   const Pcaptainlist = Captain.find({gid: igroup});
 
-  groupRec = await PgroupRec;
+  groupRec = await akshuGetGroup(igroup);       //   PgroupRec;
   let myType = await getTournamentType(igroup);
   var tournamentStat = mongoose.model(groupRec.tournament, StatSchema);
   const PstatList = tournamentStat.find({});
 
   captainlist = await Pcaptainlist;
-  gmembers = await Pgmembers;
+  gmembers = await akshuGetGroupMembers(igroup);      //   Pgmembers;
   allusers = await Pallusers
-  auctionList = await PauctionList
+  auctionList = await akshuGetAuction(igroup);      //  PauctionList
   statList = await PstatList;
 
   // now calculate score for each user
@@ -973,21 +973,21 @@ async function statMax(igroup, iwhichuser, doWhat, sendToWhom)
 {
   // var igroup = _group;
   // get list of users in group
-  var PgroupRec = IPLGroup.findOne({gid: igroup});
-  var PauctionList = Auction.find({gid: igroup});
+  //var PgroupRec = IPLGroup.findOne({gid: igroup});
+  //var PauctionList = Auction.find({gid: igroup});
   var Pallusers = User.find({});
-  var Pgmembers = GroupMember.find({gid: igroup}); 
+  //var Pgmembers = GroupMember.find({gid: igroup}); 
   var Pcaptainlist = Captain.find({gid: igroup});
   
-  groupRec = await PgroupRec;
+  groupRec = await akshuGetGroup(igroup);     //  PgroupRec;
   console.log(groupRec);
   var tournamentStat = await mongoose.model(groupRec.tournament, StatSchema);
   var PstatList = tournamentStat.find({});
  
   var captainlist = await Pcaptainlist;
-  var gmembers = await Pgmembers;
+  var gmembers = await akshuGetGroupMembers(igroup);    //  Pgmembers;
   var allusers= await Pallusers;
-  var auctionList = await PauctionList;
+  var auctionList = await akshuGetAuction(igroup);      // PauctionList;
   var statList = await PstatList;
 
   // get all players auctioned by this group 
