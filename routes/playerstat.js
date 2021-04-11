@@ -2236,14 +2236,15 @@ async function checkallover() {
 
 
 // schedule to just read cricmatch
-cron.schedule('*/5 * * * * *', () => {
-  if (!db_connection) {
-    return;
-  }   
-  update_cricapi_data_r1(false);
-  updateTournamentBrief();
-  checkallover();
-});
+// cron.schedule('*/5 * * * * *', () => {
+//   if (!db_connection) {
+//     return;
+//   }   
+//   update_cricapi_data_r1(false);
+//   updateTournamentBrief();
+//   checkallover();
+// });
+
 
 // schedule task 
 let clientSemaphore = false;
@@ -2252,23 +2253,27 @@ cron.schedule('*/1 * * * * *', () => {
   if (!db_connection) {
     return;
   }
+
   if (clientSemaphore) return;       // previous execution in progress
   clientSemaphore = true;
-  // if (cricTimer >= CRICUPDATEINTERVAL) {
-  //     cricTimer = 0;
-  //   // update_cricapi_data_r1(false);
-  //   updateTournamentBrief();
-  //   checkallover();
-  // }
+
+  console.log("Start --------------------")
+  let T1 = new Date();
+  if (cricTimer >= CRICUPDATEINTERVAL) {
+      cricTimer = 0;
+    await update_cricapi_data_r1(false);
+    await updateTournamentBrief();
+    await checkallover();
+  }
 
   if (clientUpdateCount >= CLIENTUPDATEINTERVAL) {
     clientUpdateCount = 0;
-    sendDashboardData(); 
+    await sendDashboardData(); 
   }
   
-  // let T2 = new Date();
-  // let diff = T2.getTime() - T1.getTime();
-  // console.log("End --------------- time taken: ", diff)
+  let T2 = new Date();
+  let diff = T2.getTime() - T1.getTime();
+  console.log("End --------------- time taken: ", diff)
   clientSemaphore = false;  // job over
 });
 
