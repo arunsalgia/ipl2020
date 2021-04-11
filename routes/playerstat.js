@@ -2246,7 +2246,6 @@ cron.schedule('*/5 * * * * *', () => {
 
 // schedule task 
 let clientSemaphore = false;
-cron.schedule('*/1 * * * * *', () => {
   console.log(clientUpdateCount);
   ++clientUpdateCount;
   if (!db_connection) {
