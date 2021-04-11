@@ -54,7 +54,7 @@ connectionArray  = [];
 masterConnectionArray  = [];
 clientData = [];
 
-CLIENTUPDATEINTERVAL = 1;
+CLIENTUPDATEINTERVAL = 5;
 CRICUPDATEINTERVAL = 1;    // in seconds. Interval after seconds fetch cricket match data from cricapi
 cricTimer = 0;
 clientUpdateCount=0;

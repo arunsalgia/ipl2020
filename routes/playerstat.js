@@ -2234,38 +2234,42 @@ async function checkallover() {
 }
 
 
-// schedule task 
-cron.schedule('*/12 * * * * *', () => {
-  // let T1 = new Date();
-  console.log("Start-------------------------")
+// schedule to just read cricmatch
+cron.schedule('*/5 * * * * *', () => {
   if (!db_connection) {
-    console.log("============= No mongoose connection");
     return;
   }   
+  update_cricapi_data_r1(false);
+  updateTournamentBrief();
+  checkallover();
+});
 
-  if (++cricTimer >= CRICUPDATEINTERVAL) {
-      cricTimer = 0;
-    // console.log("======== match update start");
-    // console.log("TIme to getch cric data");
-    // let T11 = new Date();
-    update_cricapi_data_r1(false);
-    updateTournamentBrief();
-    checkallover();
-    // let T12 = new Date();
-    // console.log("match update over-------------", T12.getTime() - T1.getTime());
+// schedule task 
+let clientSemaphore = false;
+cron.schedule('*/1 * * * * *', () => {
+  ++clientUpdateCount;
+  if (!db_connection) {
+    return;
   }
+  if (clientSemaphore) return;       // previous execution in progress
+  clientSemaphore = true;
+  console.log("Start-------------------------")
+  // if (cricTimer >= CRICUPDATEINTERVAL) {
+  //     cricTimer = 0;
+  //   // update_cricapi_data_r1(false);
+  //   updateTournamentBrief();
+  //   checkallover();
+  // }
 
-  if (++clientUpdateCount >= CLIENTUPDATEINTERVAL) {
-    // console.log("======== clinet update start");
-    // console.log(connectionArray);
-    sendDashboardData(); 
+  if (clientUpdateCount >= CLIENTUPDATEINTERVAL) {
     clientUpdateCount = 0;
-    // console.log("client update over")
+    sendDashboardData(); 
   }
   
   // let T2 = new Date();
   // let diff = T2.getTime() - T1.getTime();
   // console.log("End --------------- time taken: ", diff)
+  clientSemaphore = false;  // job over
 });
 
 
