@@ -2261,14 +2261,19 @@ cron.schedule('*/1 * * * * *', () => {
   let T1 = new Date();
   if (cricTimer >= CRICUPDATEINTERVAL) {
       cricTimer = 0;
-    await update_cricapi_data_r1(false);
-    await updateTournamentBrief();
-    await checkallover();
+      (async () => {
+        await update_cricapi_data_r1(false);
+        await updateTournamentBrief();
+        await checkallover();
+      })();
+        
   }
 
   if (clientUpdateCount >= CLIENTUPDATEINTERVAL) {
     clientUpdateCount = 0;
-    await sendDashboardData(); 
+    (async () => {
+      await sendDashboardData(); 
+    })();
   }
   
   let T2 = new Date();
