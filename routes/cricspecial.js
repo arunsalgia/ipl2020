@@ -188,7 +188,11 @@ function akshuUpdGroup(groupRec) {
 
 
 async function akshuGetAuction(gid) {
-  let retVal;
+  let retVal = arun_auction[gid];
+  if (retVal) return retVal;
+
+  // not in buffer
+  console.log("Auctioj not i buffer");
   let myGroup = await akshuGetGroup(gid);
   if (myGroup) { 
     if (myGroup.auctionStatus === "OVER")  {
