@@ -1,4 +1,4 @@
-const { GroupMemberCount, } = require('./cricspecial'); 
+const { GroupMemberCount, akshuGetGroup, akshuUpdGroup } = require('./cricspecial'); 
 var router = express.Router();
 // var GroupRes;
 /* GET users listing. */
@@ -36,13 +36,35 @@ router.use('/', function (req, res, next) {
     next('route');
 });
 
-router.get('/info/:groupid', async function (req, res, next) {
+router.get('/orginfo/:groupid', async function (req, res, next) {
   
   setHeader(res);
 
   var { groupid } = req.params;
 
   gdoc = await IPLGroup.findOne({ gid: groupid, enable: true });
+  if (!gdoc) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
+
+  if (gdoc) { 
+	let count = await GroupMemberCount(groupid);
+	let tRec = await Tournament.findOne({name: gdoc.tournament});
+    sendok(res,{info: gdoc, currentCount: count, tournamentStarted: tRec.started});
+  } else {
+    senderr(res,601,`Invalid Group`);
+  }
+});
+
+
+
+router.get('/info/:groupid', async function (req, res, next) {
+  
+  setHeader(res);
+
+  var { groupid } = req.params;
+
+  groupid = Number(groupid);
+  console.log(groupid);
+  let gdoc = await akshuGetGroup(groupid);
   if (!gdoc) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
 
   if (gdoc) { 
@@ -139,8 +161,10 @@ router.get('/getauctionstatus/:groupid', async function (req, res, next) {
   setHeader(res);
 
   var { groupid } = req.params;
+  groupid = Number(groupid);  
   
-  var gdoc = await IPLGroup.findOne({ gid: groupid});  
+  // var gdoc = await IPLGroup.findOne({ gid: groupid});  
+  let gdoc = await akshuUpdGroup(groupid);
   if (!gdoc) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
   // let memberCount = GroupMemberCount(groupid);
   // if (memberCount !== gdoc.memberCount) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }

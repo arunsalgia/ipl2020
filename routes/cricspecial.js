@@ -5,6 +5,10 @@ const ankitsecretKey = 'Tikna@Itark#1989#1993Bonaventure';
 const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16);
 //zTvzr3p67VC61jmV54rIYu1545x4TlY
 
+arun_group={};
+arun_auction={};
+
+
 const encrypt = (text) => {
 
     //console.log(`Text is ${text}`);
@@ -134,11 +138,43 @@ async function GroupMemberCount(groupid) {
     return(memberCount);
   }
   
-  
+async function akshuGetGroup(gid) {
+  let retGroup = arun_group[gid];
+  if (!retGroup)
+  {
+    retGroup = await IPLGroup.findOne({gid: gid});
+    if (retGroup)
+      arun_group[retGroup.gid] = retGroup;
+  }
+  return(retGroup);
+} 
+
+
+
+function akshuUpdGroup(gid, groupRec) {
+  arun_group[gid] = groupRec;
+} 
+
+
+async function akshuGetAuction(gid) {
+  let retVal = arun_auction[gid];
+  if (!retVal)
+  {
+    retVal = await Auction.find({gid: gid});
+    if (retGroup)
+      arun_auction[retGroup.gid] = retVal;
+  }
+  return(retVal);
+} 
+
 module.exports = {
     getLoginName, getDisplayName,
     encrypt, decrypt, dbencrypt, dbdecrypt,
-	dbToSvrText, svrToDbText,
+  	dbToSvrText, svrToDbText,
     GroupMemberCount,
-	sendCricMail,
+	  sendCricMail,
+
+    akshuGetGroup,
+    akshuUpdGroup,
+    akshuGetAuction,
 }; 

@@ -1,4 +1,7 @@
 router = express.Router();
+const { GroupMemberCount, akshuGetGroup, akshuUpdGroup,
+  akshuGetAuction,
+} = require('./cricspecial'); 
 // var PlayerStatRes;
 // var _group = 1;
 // var _tournament = "IPL2020";
@@ -636,7 +639,8 @@ router.use('/updatemax/:tournamentName', async function(req, res, next) {
 async function getTournameDetails(igroup) {
   var retVal = "";
   try {
-    g_groupRec = await IPLGroup.findOne({gid: igroup});
+    // g_groupRec = await IPLGroup.findOne({gid: igroup});
+    g_groupRec = await akshuGetGroup(igroup);
     g_tournamentStat = mongoose.model(g_groupRec.tournament+BRIEFSUFFIX, BriefStatSchema);
     retVal = g_groupRec.tournament
   } catch (err) {
@@ -654,7 +658,8 @@ async function readDatabase(igroup) {
     // console.log("Stat read error");
     return(false);
   }
-  var PauctionList = Auction.find({gid: igroup});
+
+  //var PauctionList = Auction.find({gid: igroup});
   var Pallusers = User.find({});
   var Pgmembers = GroupMember.find({gid: igroup});
   var Pcaptainlist = Captain.find({gid: igroup});
@@ -662,8 +667,8 @@ async function readDatabase(igroup) {
   g_captainlist = await Pcaptainlist;
   g_gmembers = await Pgmembers;
   g_allusers = await Pallusers;
-  g_auctionList = await PauctionList;
   g_statList = await PstatList;
+  g_auctionList = await akshuGetAuction(igroup);
   
   return  ( (g_captainlist) &&
            (g_gmembers) &&
