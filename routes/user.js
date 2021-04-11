@@ -1,8 +1,10 @@
-const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText, 
-  akshuGetGroupMembers,
-  svrToDbText, getLoginName, getDisplayName, sendCricMail, 
-} = require('./cricspecial'); 
 router = express.Router();
+const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText, 
+  akshuGetGroup, akshuUpdGroup, akshuGetGroupMembers,
+  akshuGetAuction, akshuGetTournament,
+  getTournamentType,
+  svrToDbText, getLoginName, getDisplayName, sendCricMail, akshuGetUser, 
+} = require('./cricspecial'); 
 
 // const allUSER = 99999999;
 const is_Captain = true;
@@ -804,7 +806,7 @@ router.get('/balance/:mygroup/:myuser', async function (req, res, next) {
 // })
 
 
-router.get('/myteam/:userGroup/:userid', function (req, res, next) {
+router.get('/myteam/:userGroup/:userid', async function (req, res, next) {
   // CricRes = res;
   setHeader(res);
 
@@ -970,7 +972,7 @@ async function updateCaptainOrVicecaptain(res, igroup, iuser, iplayer, mytype) {
   });
 }
 
-async function publish_auctionedplayers(res, groupid, userid, withOrWithout)
+async function unopt_publish_auctionedplayers(res, groupid, userid, withOrWithout)
 {
   var myfilter;
   var userFilter;
@@ -1027,6 +1029,76 @@ async function publish_auctionedplayers(res, groupid, userid, withOrWithout)
   // console.log(grupdatalist.length);
   sendok(res, grupdatalist);
 }
+
+async function publish_auctionedplayers(res, groupid, userid, withOrWithout)
+{
+  var myfilter;
+  var userFilter;
+
+  // var myGroup = await IPLGroup.findOne({gid: 1});
+  var myGroup = await akshuGetGroup(groupid);
+  if (!myGroup) { senderr(res, 601, `Invalid group number ${groupid}`); return; }
+  // console.log(myGroup);
+
+  // if (isNaN(userid)) { senderr(res, 605, "Invalid user"); return; }
+  if (userid === allUSER) { 
+    myfilter = {gid: groupid};
+    userFilter = {};
+  } else {
+    myfilter = {gid: groupid, uid: userid};
+    userFilter = {uid: userid}
+  }
+
+  var PallCaptains = Captain.find(myfilter); 
+  // var Pgmembers = GroupMember.find({gid: groupid});
+  // var PallUsers = User.find(userFilter);
+  // var Pdatalist = Auction.find(myfilter);
+  
+  var allCaptains = await PallCaptains;
+  // var allUsers = await PallUsers;
+
+  let gmembers = await akshuGetGroupMembers(groupid);       //     Pgmembers; 
+  let userlist = _.map(gmembers, d => _.pick(d, ['uid']));
+  let datalist = await akshuGetAuction(groupid);
+  datalist = _.map(datalist, d => _.pick(d, ['uid', 'pid', 'playerName', 'team', 'bidAmount']));
+
+  if (userid !== allUSER) {
+    userlist = _.filter(userlist, u => u.uid === userid);
+    datalist = _.filter(datalist, d => d.uid === userid);
+  }  
+  
+  var grupdatalist = [];
+  // userlist.forEach( myuser => {
+  for(idx=0; idx<userlist.length; ++idx) {
+    let myuser = userlist[idx];
+    let userRec = await akshuGetUser(myuser.uid);   //          _.filter(allUsers, x => x.uid == myuser.uid);
+    //console.log(`${userRec}`);
+
+    let myplrs = _.filter(datalist, p => p.uid === myuser.uid);
+    myplrs = _.sortBy(myplrs, p => p.playerName);
+
+    // set captain and vice captain
+    if (withOrWithout === WITH_CVC) {
+      let caprec = _.find(allCaptains, c => c.uid === myuser.uid);
+      if (caprec) {
+        var myidx = _.findIndex(myplrs, (x) => {return x.pid == caprec.captain;}, 0);
+        if (myidx >= 0) myplrs[myidx].playerName = myplrs[myidx].playerName + " (C)"
+        myidx = _.findIndex(myplrs, (x) => {return x.pid == caprec.viceCaptain;}, 0);
+        if (myidx >= 0) myplrs[myidx].playerName = myplrs[myidx].playerName + " (VC)"  
+      } 
+    }
+
+    let tmp = {uid: myuser.uid, 
+      userName: userRec.userName, displayName: userRec.displayName, 
+      players: myplrs};
+    grupdatalist.push(tmp);
+  };
+  grupdatalist = _.sortBy(grupdatalist, 'bidAmount').reverse();
+  // console.log(grupdatalist.length);
+  sendok(res, grupdatalist);
+}
+
+
 
 async function publish_users(res, filter_users) {
   //console.log(filter_users);
