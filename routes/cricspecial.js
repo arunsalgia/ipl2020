@@ -188,6 +188,7 @@ function akshuUpdGroup(groupRec) {
 
 
 async function akshuGetAuction(gid) {
+  console.log(arun_auction[gid]);
   let retVal = arun_auction[gid];
   if (retVal) return retVal;
 
