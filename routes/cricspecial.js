@@ -141,89 +141,89 @@ async function GroupMemberCount(groupid) {
   return(memberCount);
 }
 
+
 async function akshuGetUser(uid) {
-  let retUser = arun_user[uid];
-  if (!retUser)
-  {
-    retUser = await User.findOne({uid: uid});
-    if (retUser)
-      arun_user[retUser.uid] = retUser;  // buffer this data
-  }
+  let suid = uid.toString();
+  let retUser = arun_user[suid];
+  if (retUser) return retUser;
+
+  // console.log("from database");
+  retUser = await User.findOne({uid: uid});
+  if (retUser)
+    arun_user[suid] = retUser;  // buffer this data
   return(retUser);
 } 
 
 async function akshuGetGroup(gid) {
-  let retGroup = arun_group[gid];
-  if (!retGroup)
-  {
-    retGroup = await IPLGroup.findOne({gid: gid});
-    if (retGroup)
-      arun_group[retGroup.gid] = retGroup;
-  }
+  let sgid = gid.toString();
+  let retGroup = arun_group[sgid];
+  if (retGroup) return retGroup;
+
+  // console.log("from database");
+  retGroup = await IPLGroup.findOne({gid: gid});
+  if (retGroup)
+    arun_group[sgid] = retGroup;
   return(retGroup);
 } 
 
 
 async function akshuGetGroupMembers(gid) {
+  let sgid = gid.toString();
+
+  let retGroupMember = arun_groupMember[sgid];
+  if (retGroupMember) {
+    return retGroupMember;
+  } 
+
+  // console.log("from database");
   let myGroup = await akshuGetGroup(gid);
   if (!myGroup) return [];
 
-  let retGroupMember = arun_groupMember[gid];
-  if (!retGroupMember)
-  {
-    retGroupMember = await GroupMember.find({gid: gid});
-    if (retGroupMember.length === myGroup.memberCount) {
-      // all memebers joined. Now buffer this for future reference
-      arun_groupMember[retGroupMember.gid] = retGroupMember;
-    }
-  } else 
-    console.log("member from buffer");
+  retGroupMember = await GroupMember.find({gid: gid});
+  if (retGroupMember.length === myGroup.memberCount) {
+    // all memebers joined. Now buffer this for future reference
+    arun_groupMember[sgid] = retGroupMember;
+  }
   return(retGroupMember);
 } 
 
 
 function akshuUpdGroup(groupRec) {
-  arun_group[groupRec.gid] = groupRec;
+  arun_group[groupRec.gid.toString()] = groupRec;
 } 
 
 
 async function akshuGetAuction(gid) {
-  console.log(arun_auction[gid]);
-  let retVal = arun_auction[gid];
+  let sgid = gid.toString();
+
+  let retVal = arun_auction[sgid];
   if (retVal) return retVal;
 
-  // not in buffer
-  console.log("Auctioj not i buffer");
+  // not in buffer 
+  // console.log("Auctioj not i buffer");
   let myGroup = await akshuGetGroup(gid);
-  if (myGroup) { 
-    if (myGroup.auctionStatus === "OVER")  {
-      let retVal = arun_auction[gid];
-      if (!retVal)
-      {
-        retVal = await Auction.find({gid: gid});
-        arun_auction[retVal.gid] = retVal;
-      }
-    } else {
-      retVal = await await Auction.find({gid: gid}); 
-      // do not buffer since auction is not yet over
-    }  
+  if (!myGroup) return [];
+  
+  retVal = await Auction.find({gid: gid});
+  if (myGroup.auctionStatus === "OVER")  {
+      arun_auction[sgid] = retVal;
   } 
   return(retVal);
 } 
 
 
 async function akshuGetTournament(gid) {
-  let retVal;
+  let sgid = gid.toString();
+  let retVal = arun_tournament[sgid];
+  if (retVal) return retVal;
+  
+  // console.log("from database");
   let myGroup = await akshuGetGroup(gid);
-  if (myGroup) {
-    retVal = arun_tournament[gid];
-    if (!retVal) {
-      retVal = await Tournament.findOne({name: myGroup.tournament})
-      if (retVal)
-        arun_tournament[gid] = retVal;
-    } else
-      console.log("tournament from buffer");
-  } 
+  if (!myGroup)  return;
+
+  retVal = await Tournament.findOne({name: myGroup.tournament})
+  if (retVal)
+    arun_tournament[sgid] = retVal;
   return(retVal);
 } 
 

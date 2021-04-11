@@ -1,5 +1,5 @@
 router = express.Router();
-const { GroupMemberCount,
+const { 
   akshuGetGroup, akshuUpdGroup, akshuGetGroupMembers,
   akshuGetAuction, akshuGetTournament,
   getTournamentType,
@@ -661,16 +661,16 @@ async function readDatabase(igroup) {
     return(false);
   }
 
-  var PauctionList = Auction.find({gid: igroup});
-  var Pgmembers = GroupMember.find({gid: igroup});
+  // var PauctionList = Auction.find({gid: igroup});
+  // var Pgmembers = GroupMember.find({gid: igroup});
   var Pallusers = User.find({});
   var Pcaptainlist = Captain.find({gid: igroup});
 
   g_captainlist = await Pcaptainlist;
-  g_gmembers = await Pgmembers;
+  g_gmembers = await akshuGetGroupMembers(igroup);    //   Pgmembers;
   g_allusers = await Pallusers;
   g_statList = await PstatList;
-  g_auctionList = await PauctionList;         //await akshuGetAuction(igrou
+  g_auctionList = await akshuGetAuction(igroup);  // PauctionList;         //await akshuGetAuction(igrou
 
   return  ( (g_captainlist) &&
            (g_gmembers) &&
@@ -793,16 +793,16 @@ async function statScore(iwhichUser) {
   var igroup = _group;
 
   var PstatList =  tournamentStat.find({});
-  var PauctionList =  Auction.find({gid: igroup});
+  // var PauctionList =  Auction.find({gid: igroup});
   var Pallusers =  User.find({});
-  var Pgmembers =  GroupMember.find({gid: igroup});
+  // var Pgmembers =  GroupMember.find({gid: igroup});
   var Pcaptainlist =  Captain.find({gid: igroup});
 
   // wait for data fetch to be over
   captainlist = await Pcaptainlist;
-  gmembers = await Pgmembers;   //await akshuGetGroupMembers(igroup);      //   ;
+  gmembers = await akshuGetGroupMembers(igroup);  //  Pgmembers;   //await akshuGetGroupMembers(igroup);      //   ;
   allusers = await Pallusers;
-  auctionList = await PauctionList;
+  auctionList = await akshuGetAuction(igroup);    //  PauctionList;
   statList = await PstatList;
 
   // now calculate score for each user
@@ -985,9 +985,9 @@ async function statMax(igroup, iwhichuser, doWhat, sendToWhom)
   var PstatList = tournamentStat.find({});
  
   var captainlist = await Pcaptainlist;
-  var gmembers = await Pgmembers;  //akshuGetGroupMembers(igroup);    //  Pgmembers;
+  var gmembers = await akshuGetGroupMembers(igroup);  //akshuGetGroupMembers(igroup);    //  Pgmembers;
   var allusers= await Pallusers;
-  var auctionList = await PauctionList;   //akshuGetAuction(igroup);      // PauctionList;
+  var auctionList = await akshuGetAuction(igroup);   //akshuGetAuction(igroup);      // PauctionList;
   var statList = await PstatList;
 
   // get all players auctioned by this group 

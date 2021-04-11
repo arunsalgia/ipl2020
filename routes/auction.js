@@ -1,5 +1,11 @@
 // const { multiply } = require("lodash");
 var router = express.Router();
+const { 
+  akshuGetGroup, akshuUpdGroup, akshuGetGroupMembers,
+  akshuGetAuction, akshuGetTournament,
+  getTournamentType,
+} = require('./cricspecial'); 
+
 // let AuctionRes;
 
 router.use('/', function(req, res, next) {
@@ -420,6 +426,17 @@ router.get('/skip/:groupId/:playerId', async function(req, res, next) {
   socket.emit("playerChange", allPlayers[myindex], balanceDetails)
   socket.broadcast.emit('playerChange', allPlayers[myindex], balanceDetails);
   sendok(res, allPlayers[myindex]);
+});
+
+
+router.get('/arun/:groupId', async function(req, res, next) {
+  // AuctionRes = res;
+  setHeader(res);
+  var {groupId}=req.params;
+  groupId = Number(groupId);
+
+  let myData = await akshuGetAuction(groupId);
+  sendok(res, myData);
 });
 
 router.get('/current/:groupId', async function(req, res, next) {

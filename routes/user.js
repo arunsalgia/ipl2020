@@ -1,4 +1,7 @@
-const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText, svrToDbText, getLoginName, getDisplayName, sendCricMail, } = require('./cricspecial'); 
+const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText, 
+  akshuGetGroupMembers,
+  svrToDbText, getLoginName, getDisplayName, sendCricMail, 
+} = require('./cricspecial'); 
 router = express.Router();
 
 // const allUSER = 99999999;
@@ -1072,7 +1075,8 @@ module.exports = router;
 
 async function showGroupMembers(res, groupno) {
   //console.log(_ggroupnoroup);
-  gmlist = await GroupMember.find({ gid: groupno, enable: true });
+  // gmlist = await GroupMember.find({ gid: groupno, enable: true });
+  gmlist = await akshuGetGroupMembers(groupno);
   // ulist = _.map(ulist, o => _.pick(o, ['uid', 'userName', 'displayName', 'defaultGroup']));
   if (gmlist.length > 0)
     gmlist = _.map(gmlist, o => _.pick(o, ['gid', 'uid', 'userName', 'displayName']));
