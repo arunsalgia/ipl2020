@@ -162,7 +162,7 @@ async function akshuGetAuction(gid) {
   {
     retVal = await Auction.find({gid: gid});
     if (retVal)
-      arun_auction[retGroup.gid] = retVal;
+      arun_auction[retVal.gid] = retVal;
   }
   return(retVal);
 } 
