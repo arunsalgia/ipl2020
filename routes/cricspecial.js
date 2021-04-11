@@ -5,8 +5,11 @@ const ankitsecretKey = 'Tikna@Itark#1989#1993Bonaventure';
 const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16);
 //zTvzr3p67VC61jmV54rIYu1545x4TlY
 
+arun_user={};
 arun_group={};
+arun_groupMember={};
 arun_auction={};
+arun_tournament={};
 
 
 const encrypt = (text) => {
@@ -129,15 +132,26 @@ async function sendCricMail (dest, mailSubject, mailText) {
 
   
 async function GroupMemberCount(groupid) {
-    let memberCount = 0;
-    let xxx = await GroupMember.aggregate([
-      {$match: {gid: parseInt(groupid)}},
-      {$group : {_id : "$gid", num_members : {$sum : 1}}}
-    ]);
-    if (xxx.length === 1) memberCount = xxx[0].num_members;
-    return(memberCount);
+  let memberCount = 0;
+  let xxx = await GroupMember.aggregate([
+    {$match: {gid: parseInt(groupid)}},
+    {$group : {_id : "$gid", num_members : {$sum : 1}}}
+  ]);
+  if (xxx.length === 1) memberCount = xxx[0].num_members;
+  return(memberCount);
+}
+
+async function akshuGetUser(uid) {
+  let retUser = arun_user[uid];
+  if (!retUser)
+  {
+    retUser = await User.findOne({uid: uid});
+    if (retUser)
+      arun_user[retUser.uid] = retUser;  // buffer this data
   }
-  
+  return(retUser);
+} 
+
 async function akshuGetGroup(gid) {
   let retGroup = arun_group[gid];
   if (!retGroup)
@@ -150,22 +164,74 @@ async function akshuGetGroup(gid) {
 } 
 
 
+async function akshuGetGroupMembers(gid) {
+  let myGroup = await akshuGetGroup(gid);
+  if (!myGroup) return [];
 
-function akshuUpdGroup(gid, groupRec) {
-  arun_group[gid] = groupRec;
+  let retGroupMember = arun_groupMember[gid];
+  if (!retGroupMember)
+  {
+    retGroupMember = await GroupMember.find({gid: gid});
+    if (retGroupMember.length === myGroup.memberCount) {
+      // all memebers joined. Now buffer this for future reference
+      arun_groupMember[retGroup.gid] = retGroupMember;
+    }
+  } else 
+    console.log("member from buffer");
+  return(retGroupMember);
+} 
+
+
+function akshuUpdGroup(groupRec) {
+  arun_group[groupRec.gid] = groupRec;
 } 
 
 
 async function akshuGetAuction(gid) {
-  let retVal = arun_auction[gid];
-  if (!retVal)
-  {
-    retVal = await Auction.find({gid: gid});
-    if (retVal)
-      arun_auction[retVal.gid] = retVal;
-  }
+  let retVal;
+  let myGroup = await akshuGetGroup(gid);
+  if (myGroup) { 
+    if (myGroup.auctionStatus === "OVER")  {
+      let retVal = arun_auction[gid];
+      if (!retVal)
+      {
+        retVal = await Auction.find({gid: gid});
+        arun_auction[retVal.gid] = retVal;
+      }
+    } else {
+      retVal = await await Auction.find({gid: gid}); 
+      // do not buffer since auction is not yet over
+    }  
+  } 
   return(retVal);
 } 
+
+
+async function akshuGetTournament(gid) {
+  let retVal;
+  let myGroup = await akshuGetGroup(gid);
+  if (myGroup) {
+    retVal = arun_tournament[gid];
+    if (!retVal) {
+      retVal = await Tournament.findOne({name: myGroup.tournament})
+      if (retVal)
+        arun_tournament[gid] = retVal;
+    } else
+      console.log("tournament from buffer");
+  } 
+  return(retVal);
+} 
+
+async function getTournamentType(myGid) {
+  // let xxx = await IPLGroup.findOne({gid: myGid});
+	// let tRec = await Tournament.findOne({name: xxx.tournament});
+	// let tmp = tRec.type;
+	// return(tmp);
+  let tType = "";
+  let myTournament = await akshuGetTournament(myGid);
+  if (myTournament) tType = myTournament.type;
+  return tType;
+}
 
 module.exports = {
     getLoginName, getDisplayName,
@@ -174,7 +240,11 @@ module.exports = {
     GroupMemberCount,
 	  sendCricMail,
 
+    akshuGetUser,
     akshuGetGroup,
     akshuUpdGroup,
+    akshuGetGroupMembers,
     akshuGetAuction,
+    akshuGetTournament,
+    getTournamentType,
 }; 

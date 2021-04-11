@@ -1,6 +1,8 @@
 router = express.Router();
-const { GroupMemberCount, akshuGetGroup, akshuUpdGroup,
-  akshuGetAuction,
+const { GroupMemberCount, 
+  akshuGetGroup, akshuUpdGroup, akshuGetGroupMembers,
+  akshuGetAuction, akshuGetTournament,
+  getTournamentType,
 } = require('./cricspecial'); 
 // var PlayerStatRes;
 // var _group = 1;
@@ -660,16 +662,16 @@ async function readDatabase(igroup) {
   }
 
   //var PauctionList = Auction.find({gid: igroup});
+  // var Pgmembers = GroupMember.find({gid: igroup});
   var Pallusers = User.find({});
-  var Pgmembers = GroupMember.find({gid: igroup});
   var Pcaptainlist = Captain.find({gid: igroup});
 
   g_captainlist = await Pcaptainlist;
-  g_gmembers = await Pgmembers;
+  g_gmembers = await akshuGetGroupMembers(igroup);    // Pgmembers;
   g_allusers = await Pallusers;
   g_statList = await PstatList;
   g_auctionList = await akshuGetAuction(igroup);
-  
+
   return  ( (g_captainlist) &&
            (g_gmembers) &&
            (g_allusers) && 
@@ -1099,12 +1101,6 @@ async function statMax(igroup, iwhichuser, doWhat, sendToWhom)
   return(maxarray)
 }
 
-async function getTournamentType(myGid) {
-	let xxx = await IPLGroup.findOne({gid: myGid});
-	let tRec = await Tournament.findOne({name: xxx.tournament});
-	let tmp = tRec.type;
-	return(tmp);
-}
 
 async function statCalculation (igroup) {
   let myType = await getTournamentType(igroup);
