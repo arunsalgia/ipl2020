@@ -2253,7 +2253,6 @@ cron.schedule('*/1 * * * * *', () => {
   }
   if (clientSemaphore) return;       // previous execution in progress
   clientSemaphore = true;
-  console.log("Start-------------------------")
   // if (cricTimer >= CRICUPDATEINTERVAL) {
   //     cricTimer = 0;
   //   // update_cricapi_data_r1(false);

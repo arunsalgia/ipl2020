@@ -69,12 +69,12 @@ auctioData = [];
 io.on('connect', socket => {
   app.set("socket",socket);
   socket.on("page", (pageMessage) => {
-    console.log("page message from "+socket.id);
-	console.log(masterConnectionArray);
-	console.log(socket.id);
-    console.log(pageMessage);
-    var myClient = _.find(masterConnectionArray, x => x.socketId === socket.id);
-	console.log(myClient);
+  // console.log("page message from "+socket.id);
+	// console.log(masterConnectionArray);
+	// console.log(socket.id);
+  //   console.log(pageMessage);
+  var myClient = _.find(masterConnectionArray, x => x.socketId === socket.id);
+	// console.log(myClient);
 	if (myClient) {
 		if (pageMessage.page.toUpperCase().includes("DASH")) {
 		  myClient.page = "DASH";
