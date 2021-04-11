@@ -174,7 +174,7 @@ async function akshuGetGroupMembers(gid) {
     retGroupMember = await GroupMember.find({gid: gid});
     if (retGroupMember.length === myGroup.memberCount) {
       // all memebers joined. Now buffer this for future reference
-      arun_groupMember[retGroup.gid] = retGroupMember;
+      arun_groupMember[retGroupMember.gid] = retGroupMember;
     }
   } else 
     console.log("member from buffer");
