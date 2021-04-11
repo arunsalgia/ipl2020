@@ -5,11 +5,11 @@ const ankitsecretKey = 'Tikna@Itark#1989#1993Bonaventure';
 const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16);
 //zTvzr3p67VC61jmV54rIYu1545x4TlY
 
-arun_user={};
-arun_group={};
-arun_groupMember={};
-arun_auction={};
-arun_tournament={};
+let arun_user={};
+let arun_group={};
+let arun_groupMember={};
+let arun_auction={};
+let arun_tournament={};
 
 
 const encrypt = (text) => {
