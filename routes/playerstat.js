@@ -2249,6 +2249,7 @@ async function checkallover() {
 // schedule task 
 let clientSemaphore = false;
 cron.schedule('*/1 * * * * *', async () => {
+  ++cricTimer;
   ++clientUpdateCount;
   if (!db_connection) {
     return;
@@ -2260,6 +2261,7 @@ cron.schedule('*/1 * * * * *', async () => {
   console.log("Start --------------------")
   let T1 = new Date();
   if (cricTimer >= CRICUPDATEINTERVAL) {
+    cricTimer = 0;
     await update_cricapi_data_r1(false);
     await updateTournamentBrief();
     await checkallover();
