@@ -2263,8 +2263,15 @@ cron.schedule('*/1 * * * * *', async () => {
   if (cricTimer >= CRICUPDATEINTERVAL) {
     cricTimer = 0;
     await update_cricapi_data_r1(false);
+    let T11 = new Date();
     await updateTournamentBrief();
+    let T12 = new Date();
     await checkallover();
+    let T13 = new Date();
+    let diff11 = T11.getTime() - T11.getTime();
+    let diff12 = T12.getTime() - T11.getTime();
+    let diff13 = T13.getTime() - T12.getTime();
+    console.log(diff1, diff2, diff3);
   }
   let T2 = new Date();
   let diff = T2.getTime() - T1.getTime();
