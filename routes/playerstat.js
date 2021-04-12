@@ -2266,7 +2266,7 @@ cron.schedule('*/1 * * * * *', async () => {
     let T11 = new Date();
     await updateTournamentBrief();
     let T12 = new Date();
-    await checkallover();
+    // await checkallover();
     let T13 = new Date();
     let diff11 = T11.getTime() - T11.getTime();
     let diff12 = T12.getTime() - T11.getTime();
