@@ -190,9 +190,18 @@ async function akshuGetGroupMembers(gid) {
 
 
 function akshuUpdGroup(groupRec) {
-  arun_group[groupRec.gid.toString()] = groupRec;
+  arun_group[groupRec.gid] = groupRec;
 } 
 
+function akshuUpdGroupMember(gmRec) {
+  let x = arun_groupMember[gmRec.gid];
+  if (x) {
+    let tmp = _.filter(x, u => u.uid !== gmRec.uid);
+    tmp.push(gmRec);
+    arun_groupMember[gmRec.gid] = tmp;
+    // console.log(arun_groupMember);
+  } 
+}
 
 async function akshuGetAuction(gid) {
   // let x = Object.keys(arun_auction);
@@ -246,12 +255,15 @@ module.exports = {
   	dbToSvrText, svrToDbText,
     GroupMemberCount,
 	  sendCricMail,
-
+    // get
     akshuGetUser,
     akshuGetGroup,
-    akshuUpdGroup,
     akshuGetGroupMembers,
     akshuGetAuction,
     akshuGetTournament,
     getTournamentType,
-}; 
+    // update
+    akshuUpdGroup,
+    akshuUpdGroupMember,
+
+  }; 

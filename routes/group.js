@@ -1,4 +1,4 @@
-const { GroupMemberCount, akshuGetGroup, akshuUpdGroup } = require('./cricspecial'); 
+const { GroupMemberCount, akshuGetGroup, akshuUpdGroup, akshuUpdGroupMember } = require('./cricspecial'); 
 var router = express.Router();
 // var GroupRes;
 /* GET users listing. */
@@ -245,6 +245,7 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
   gdoc.currentBidUid = 0;
   gdoc.currentBidUser = "";
   gdoc.save();
+  akshuUpdGroup(gdoc);
   sendok(res,aplayer.toString());
 });
 
@@ -575,6 +576,7 @@ router.get('/updateprizecount/:groupId/:ownerId/:prizeCount', async function (re
   //groupRec.memberFee = memberfee;
   groupRec.prizeCount = prizeCount;
   groupRec.save();
+  await akshuUpdGroup(groupRec);
 
   sendok(res,groupRec);
 
@@ -622,6 +624,7 @@ router.get('/updatewithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/
   groupRec.memberFee = memberfee;
   // myRec.prizeCount = 1;
   groupRec.save();
+  akshuUpdGroup(groupRec);
 
   for (i=0; i<groupMemberRecs.length; ++i) {
       await WalletFeeChange(groupMemberRecs[i].uid, groupId, feeDiff);
@@ -755,6 +758,7 @@ router.get('/setfranchisename/:myUser/:myGroup/:myDisplayName', async function (
     gmRec.displayName = myDisplayName
     //console.log(gmRec);
     gmRec.save();
+    akshuUpdGroupMember(gmRec);
 	// also update in memory
    for(cdata of clientData) {
 	 let myRec = _.find(cdata.statData, x=> x.uid == myUser && x.gid == myGroup);
