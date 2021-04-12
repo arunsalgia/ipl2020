@@ -2266,7 +2266,7 @@ cron.schedule('*/1 * * * * *', async () => {
     await updateTournamentBrief();
     await checkallover();
   }
-  let T2 = new DataCue();
+  let T2 = new Date();
   let diff = T2.getTime() - T1.getTime();
   console.log(`Cric update time taken : ${diff}`)
 
