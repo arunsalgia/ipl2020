@@ -2271,7 +2271,7 @@ cron.schedule('*/1 * * * * *', async () => {
     let diff11 = T11.getTime() - T11.getTime();
     let diff12 = T12.getTime() - T11.getTime();
     let diff13 = T13.getTime() - T12.getTime();
-    console.log(diff1, diff2, diff3);
+    console.log(diff11, diff12, diff13);
   }
   let T2 = new Date();
   let diff = T2.getTime() - T1.getTime();
