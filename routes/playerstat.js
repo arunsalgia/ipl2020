@@ -2266,15 +2266,18 @@ cron.schedule('*/1 * * * * *', async () => {
     await updateTournamentBrief();
     await checkallover();
   }
+  let T2 = new DataCue();
+  let diff = T2.getTime() - T1.getTime();
+  console.log(`Cric update time taken : ${diff}`)
 
   if (clientUpdateCount >= CLIENTUPDATEINTERVAL) {
     clientUpdateCount = 0;
     await sendDashboardData(); 
   }
   
-  let T2 = new Date();
-  let diff = T2.getTime() - T1.getTime();
-  console.log("End --------------- time taken: ", diff)
+  let T3 = new Date();
+  let diff1 = T3.getTime() - T1.getTime();
+  console.log("End --------------- time taken: ", diff1)
   clientSemaphore = false;  // job over
 });
 
