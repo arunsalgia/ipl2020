@@ -70,6 +70,12 @@ const cricapiMatchInfo_postkey = "";
 // to get match statistics
 const cricapi_MatchDetails_prekey = "https://cricapi.com/api/fantasySummary?apikey=";
 const cricapi_MatchDetails_postkey = "&unique_id=";
+// to get match score
+const cricapi_ScoreDetails_prekey = "https://cricapi.com/api/cricketScore?apikey=";
+const cricapi_ScoreDetails_postkey = "&unique_id=";
+
+
+const score ={};
 
 var g_groupRec;
 var g_captainlist;
@@ -1593,7 +1599,10 @@ async function update_cricapi_data_r1(logToResponse)
     let aidx
     for(aidx=0; aidx < matchesFromDB.length; ++aidx) {
       let mmm = matchesFromDB[aidx];
+    
       addRunningMatch(mmm);
+     const liveScore= await fetchMatchScoreFromCricapi(mmm.mid);
+     score[mmm.tournament]=liveScore.description;
       await updateTournamentStarted(mmm.tournament);   
       const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
       if (cricData != null)
@@ -2073,6 +2082,17 @@ function calculateScore(mystatrec, type) {
 
 
 // get details of match (batting and bowling)
+async function fetchMatchScoreFromCricapi(matchId) { // (1)
+  let cricres = await fetch(get_cricapi_ScoreDetails_URL(matchId)); 
+
+  if (cricres.status == 200) {
+    let json = await cricres.json(); // (3)
+    return json;
+  }
+  // console
+  throw new Error(cricres.status);
+}
+// get match score
 async function fetchMatchStatsFromCricapi(matchId) { // (1)
   let cricres = await fetch(get_cricapi_MatchDetails_URL(matchId)); 
 
@@ -2158,6 +2178,7 @@ async function processConnection(i) {
         io.to(connectionArray[i].socketId).emit('maxRun', myData.dbData.maxRun);
         io.to(connectionArray[i].socketId).emit('maxWicket', myData.dbData.maxWicket);
         io.to(connectionArray[i].socketId).emit('rank', myData.dbData.rank);
+        io.to(connectionArray[i].socketId).emit('score', score[myTournament]);
         console.log("sent Dash data to " + connectionArray[i].socketId);
       }
       break;
@@ -2308,6 +2329,10 @@ function get_cricapiMatchInfo_URL()
 function get_cricapi_MatchDetails_URL(matchid)
 {
   return cricapi_MatchDetails_prekey + nextapikey() + cricapi_MatchDetails_postkey + matchid;
+}
+function get_cricapi_ScoreDetails_URL(matchid)
+{
+  return cricapi_ScoreDetails_prekey + nextapikey() + cricapi_ScoreDetails_postkey + matchid;
 }
 
 // time based functions:
