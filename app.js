@@ -691,24 +691,6 @@ updateTournamentOver = async function (tournamentName) {
   } 
 };
 
-// check if all matches complete. If yes then set tournament over
-checkTournamentOver = async function (tournamentName) {
-  // await update brief of this tournament
-  await updatePendingBrief(tournamentName);
-  // check if any uncomplete match  
-  //console.log(tournamentName);
-  let matchesNotOver = await CricapiMatch.find({tournament: tournamentName, matchEnded: false});
-  //console.log(matchesNotOver);
-  // if no uncomplete match then declare tournament as over
-  if (matchesNotOver.length === 0) {
-    // set tournamet as over
-    await updateTournamentOver(tournamentName);
-    // add min and max run of the tournamenet and assign points to user
-    await updateTournamentMaxRunWicket(tournamentName);
-    // update group with rank / score. Also allocate prize money
-    await awardRankPrize(tournamentName);
-  }
-}
 
 
 
@@ -790,34 +772,26 @@ awardRankPrize = async function(tournamentName) {
   let allGroups = await IPLGroup.find({tournament: tournamentName, enable: true});
   // allGroups.forEach(g => {
   for(const g of allGroups) {
-    // arun
-    // memberCount: Number,
-    // memberFee: Number,
-    // prizeCount: Number,
-    let prizeTable = await getPrizeTable(g.prizeCount, g.memberCount*memberFee);
+    let prizeTable = await getPrizeTable(g.prizeCount, g.memberCount*g.memberFee);
     let allgmRec = await GroupMember.find({gid: g.gid});
     // allgmRec.forEach(gmRec => {
     for (const gmRec of allgmRec) {
-      // arun
+      if (gmRec.rank === 0) continue;
+      if (gmRec.rank > g.prizeCount) continue;
+      
       if (gmRec.rank <= g.prizeCount) {
-        gmRec.prize = prizeTable[gmRec.rank-1].prizeAmount;
-        await WalletArun(gmRec.gid, gmRec.uid, prizeTable[gmRec.rank-1].prizeAmount)
-      } else {
-        gmRec.prize = 0;
-      }
-      gmRec.save();
+        gmRec.prize = prizeTable[gmRec.rank-1].prize;
+        await WalletPrize(gmRec.gid, gmRec.uid, gmRec.rank, prizeTable[gmRec.rank-1].prize)
+        gmRec.save();
+      } 
     }
   }
 }
 
 
 updateTournamentMaxRunWicket = async function(tournamentName) {
-//--- start
+  //--- start
   // ------------ Assuming tournament as over
-  // let myTournament = await Tournament.findOne({name: tournamentName});
-  // if (!myTournament) return false;
-  // if (!myTournament.over) return false;
-
   let tournamentStat = mongoose.model(tournamentName, StatSchema);
   let BriefStat = mongoose.model(tournamentName+BRIEFSUFFIX, BriefStatSchema);
 
@@ -898,7 +872,6 @@ updatePendingBrief = async function (mytournament) {
   // get match if the matches that are completed in this tournament
   let ttt = mytournament.toUpperCase();
   let completedMatchList = await CricapiMatch.find({tournament: ttt, matchEnded: true});
-  // console.log(`${ttt} Completed match status ${completedMatchList.length}`)
   if (completedMatchList.length <= 0) return;
   let midList = _.map(completedMatchList, 'mid');
 
@@ -1057,6 +1030,17 @@ WalletAccountOffer = async function (userid, offeramount) {
   myTrans.transType = WalletTransType.offer;
   myTrans.uid = userid;
   myTrans.amount = offeramount;
+  await myTrans.save();
+  return myTrans;
+}
+
+WalletPrize = async function (groupid, userid, rank, prizeAmount) {
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.prize;
+  myTrans.uid = userid;
+  myTrans.gid = groupid;
+  myTrans.rank = rank;
+  myTrans.amount = prizeAmount;
   await myTrans.save();
   return myTrans;
 }

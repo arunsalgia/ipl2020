@@ -1454,9 +1454,9 @@ async function unoptimised_update_cricapi_data_r1(logToResponse)
           mmm.matchEnded = true;
           mmm.save();
           delRunningMatch(mmm);
+          let tOver = await checkTournamentOver(mmm.tournament);
           // update rank score in all group
-          await updateAllGroupRankScore(mmm.tournament);
-          await checkTournamentOver(mmm.tournament);
+          // await updateAllGroupRankScore(mmm.tournament);
         }     
       }
     }
@@ -1587,14 +1587,9 @@ async function update_cricapi_data_r1(logToResponse)
     // match update job done. Now get all matches which have started before current time
     var currtime = new Date(); 
     let myfilter = { matchStartTime: {$lt: currtime }, matchEnded: false};
-    //let myfilter = { matchEnded: false};
     var matchesFromDB = await CricapiMatch.find(myfilter);
-    //console.log("My Matches");
-    //console.log(matchesFromDB);
-    // console.log(`Matches started count ${matchesFromDB.length}`)
 
     // get stas of all these matches
-    // await matchesFromDB.forEach(async (mmm) => {
     let aidx
     for(aidx=0; aidx < matchesFromDB.length; ++aidx) {
       let mmm = matchesFromDB[aidx];
@@ -1619,13 +1614,42 @@ async function update_cricapi_data_r1(logToResponse)
           mmm.matchEnded = true;
           mmm.save();
           delRunningMatch(mmm);
-          // update rank score in all group
-          await updateAllGroupRankScore(mmm.tournament);
+          // if touramnet over
+          // updare tournament
+          // update scrore and rank for all groups
+          // award prize as per rank for all group 
           await checkTournamentOver(mmm.tournament);
         }     
       }
     }
     return;
+}
+
+// check if all matches complete. If yes then set tournament over
+checkTournamentOver = async function (tournamentName) {
+  // await update brief of this tournament
+  await updatePendingBrief(tournamentName);
+
+  let tRec = await Tournament.findOne({name: tournamentName});
+  if (tRec.over) return true;
+   
+  console.log("To be updated");
+  let matchesNotOver = await CricapiMatch.find({tournament: tournamentName, matchEnded: false});
+  
+    // if no uncomplete match then declare tournament as over
+  if (matchesNotOver.length === 0) {    
+    // declare tournament as over
+    // await updateTournamentOver(tournamentName);
+    // add min and max run of the tournamenet and assign points to user
+    await updateTournamentMaxRunWicket(tournamentName);
+    // update group with rank / score. Also allocate prize money
+    await updateAllGroupRankScore(tournamentName);
+    await awardRankPrize(tournamentName);
+
+    tRec.over = true;
+    tRec.save();
+  }
+  return tRec.over;
 }
 
 async function updateGroupRankScore(groupRec) {
@@ -1651,7 +1675,7 @@ async function updateGroupRankScore(groupRec) {
 
 
 async function updateAllGroupRankScore(tournamentName)  {
-  let allGroups = await IPLGroup.find({tournamnet: tournamentName, enable: true});
+  let allGroups = await IPLGroup.find({tournament: tournamentName, enable: true});
   // allGroups.forEach(g => {
   for (const g of allGroups) {
     await updateGroupRankScore(g);
@@ -2233,18 +2257,6 @@ async function checkallover() {
     await checkTournamentOver(allTRec[i].name);
   }
 }
-
-
-// schedule to just read cricmatch
-// cron.schedule('*/5 * * * * *', () => {
-//   if (!db_connection) {
-//     return;
-//   }   
-//   update_cricapi_data_r1(false);
-//   updateTournamentBrief();
-//   checkallover();
-// });
-
 
 // schedule task 
 let clientSemaphore = false;

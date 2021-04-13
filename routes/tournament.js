@@ -206,7 +206,7 @@ async function getMatchDetails(tournamentName) {
 }
 
 
-router.use('/tournament', async function(req, res, next) {
+router.get('/tournament', async function(req, res, next) {
   // TournamentRes = res;
   setHeader(res);
   if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
@@ -243,6 +243,19 @@ router.use('/tournament', async function(req, res, next) {
   }
   matchesOfTournament = _.sortBy(matchesOfTournament, 'startTime');
   sendok(res, matchesOfTournament);
+});
+
+router.get('/arun/:tournamentName', async function(req, res, next) {
+  // TournamentRes = res;
+  setHeader(res);
+  if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
+
+  var {tournamentName} = req.params;
+
+  let myTournament = await Tournament.findOne({name: tournamentName})
+  if (!myTournament) { senderr(res, 601, "Invalid tournament"); return; };
+  checkTournamentOver(tournamentName);
+  sendok(res, "Checking done");
 });
 
 async function sendTournamentStatus(tname, started)
