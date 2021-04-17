@@ -874,10 +874,12 @@ updatePendingBrief = async function (mytournament) {
   let completedMatchList = await CricapiMatch.find({tournament: ttt, matchEnded: true});
   if (completedMatchList.length <= 0) return;
   let midList = _.map(completedMatchList, 'mid');
+console.log("MId", midList);
 
   // get gets record in brief table which are not yet merge
   let BriefStat = mongoose.model(mytournament+BRIEFSUFFIX, BriefStatSchema);
   var briefList = await BriefStat.find({ sid: { $in: midList } });
+  console.log(briefList);
   if (briefList.length === 0) return;
   console.log("Pending procesing started");
   // some pending reocrd to be update

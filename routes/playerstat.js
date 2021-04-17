@@ -2303,7 +2303,7 @@ cron.schedule('*/1 * * * * *', async () => {
   if (clientUpdateCount >= CLIENTUPDATEINTERVAL) {
     clientUpdateCount = 0;
     await sendDashboardData(); 
-  }
+  } 
   
   let T3 = new Date();
   let diff1 = T3.getTime() - T1.getTime();

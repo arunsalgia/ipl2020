@@ -1,7 +1,6 @@
 const algorithm = 'aes-256-ctr';
 const akshusecretKey = 'TihomHahs@UhskaHahs#19941995Bona';
 const ankitsecretKey = 'Tikna@Itark#1989#1993Bonaventure';
-
 const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16);
 //zTvzr3p67VC61jmV54rIYu1545x4TlY
 
@@ -70,7 +69,7 @@ const svrToDbText = (text) => {
 
 const dbToSvrText = (text) => {
 	// first decrypt text of database
-    let xxx = dbdecryptdecrypt(text);
+    let xxx = dbdecrypt(text);
 	// now encrypt this for server
 	xxx = encrypt(xxx);
     return xxx;
@@ -94,15 +93,15 @@ async function sendCricMail (dest, mailSubject, mailText) {
     text: ''
   };
 
-  console.log("About to start");
+  //console.log("About to start");
   mailOptions.to = dest;
   mailOptions.subject = mailSubject;
   mailOptions.text = mailText;
 
-  console.log(mailOptions.to);
-  console.log(mailOptions.subject);
-  console.log(mailOptions.text.length);
-  console.log(`About to send email`);
+  //console.log(mailOptions.to);
+  //console.log(mailOptions.subject);
+  //console.log(mailOptions.text.length);
+  //console.log(`About to send email`);
   try {
     let response = await transporter.sendMail(mailOptions);
     //console.log(response);
@@ -154,12 +153,16 @@ async function akshuGetUser(uid) {
   return(retUser);
 } 
 
+function akshuUpdUser(userRec) {
+  arun_user[userRec.uid] = userRec;
+} 
+
 async function akshuGetGroup(gid) {
   let retGroup = arun_group[gid];
   if (retGroup) return retGroup;
 
-  console.log("from database");
-  retGroup = await IPLGroup.findOne({gid: gid});
+  //console.log("from database");
+  retGroup = await IPLGroup.findOne({gid: gid, enable: true});
   if (retGroup)
     arun_group[gid] = retGroup;
   return(retGroup);
@@ -181,13 +184,23 @@ async function akshuGetGroupMembers(gid) {
 
   retGroupMember = await GroupMember.find({gid: gid});
   if (retGroupMember.length === myGroup.memberCount) {
-    // all memebers joined. Now buffer this for future reference
+    // only if all members joined, buffer this for future reference
     // console.log("buffering");
     arun_groupMember[gid] = retGroupMember;
   }
   return(retGroupMember);
 } 
 
+async function akshuGetGroupUsers(gid) {
+	let retUserMembers = [];
+
+	let myGroupMembers = await akshuGetGroupMembers(gid)
+	for(gm=0; gm < myGroupMembers.length; ++gm) {
+		let tmp = await akshuGetUser(myGroupMembers[gm].uid);
+		if (tmp) retUserMembers.push(tmp);
+	}
+    return retUserMembers;
+} 
 
 function akshuUpdGroup(groupRec) {
   arun_group[groupRec.gid] = groupRec;
@@ -257,8 +270,10 @@ module.exports = {
 	  sendCricMail,
     // get
     akshuGetUser,
+	akshuUpdUser,
     akshuGetGroup,
     akshuGetGroupMembers,
+	akshuGetGroupUsers,
     akshuGetAuction,
     akshuGetTournament,
     getTournamentType,
