@@ -2,6 +2,7 @@ router = express.Router();
 const { 
   akshuGetGroup, akshuUpdGroup, akshuGetGroupMembers,
   akshuGetAuction, akshuGetTournament,
+  akshuGetGroupUsers,
   getTournamentType,
 } = require('./cricspecial'); 
 // var PlayerStatRes;
@@ -669,12 +670,12 @@ async function readDatabase(igroup) {
 
   // var PauctionList = Auction.find({gid: igroup});
   // var Pgmembers = GroupMember.find({gid: igroup});
-  var Pallusers = User.find({});
+  // var Pallusers = User.find({});
   var Pcaptainlist = Captain.find({gid: igroup});
 
   g_captainlist = await Pcaptainlist;
   g_gmembers = await akshuGetGroupMembers(igroup);    //   Pgmembers;
-  g_allusers = await Pallusers;
+  g_allusers = await akshuGetGroupUsers(igroup);      // Pallusers;
   g_statList = await PstatList;
   g_auctionList = await akshuGetAuction(igroup);  // PauctionList;         //await akshuGetAuction(igrou
 
@@ -1601,8 +1602,8 @@ async function update_cricapi_data_r1(logToResponse)
       let mmm = matchesFromDB[aidx];
     
       addRunningMatch(mmm);
-     const liveScore= await fetchMatchScoreFromCricapi(mmm.mid);
-     score[mmm.tournament]=liveScore.description;
+      // const liveScore= await fetchMatchScoreFromCricapi(mmm.mid);
+      // score[mmm.tournament]=liveScore.description;
       await updateTournamentStarted(mmm.tournament);   
       const cricData = await fetchMatchStatsFromCricapi(mmm.mid);
       if (cricData != null)
@@ -1621,7 +1622,7 @@ async function update_cricapi_data_r1(logToResponse)
         console.log(`Match Id: ${mmm.mid}  End: ${mmm.matchEndTime} Over sts: ${thisMatchOver} MOM: ${manofthematchPID}`);
         if (thisMatchOver) {
           mmm.matchEnded = true;
-          mmm.save();
+          await mmm.save();
           delRunningMatch(mmm);
           // if touramnet over
           // updare tournament
@@ -1656,7 +1657,7 @@ checkTournamentOver = async function (tournamentName) {
     await awardRankPrize(tournamentName);
 
     tRec.over = true;
-    tRec.save();
+    await tRec.save();
   }
   return tRec.over;
 }
@@ -2293,11 +2294,14 @@ cron.schedule('*/1 * * * * *', async () => {
 
   console.log("Start --------------------")
   let T1 = new Date();
-  if (cricTimer >= CRICUPDATEINTERVAL) {
-    cricTimer = 0;
-    await update_cricapi_data_r1(false);
-    await updateTournamentBrief();
-    // await checkallover();  ---- Confirm this is done when match ends
+  
+  if (PRODUCTION) {
+    if (cricTimer >= CRICUPDATEINTERVAL) {
+      cricTimer = 0;
+      await update_cricapi_data_r1(false);
+      await updateTournamentBrief();
+      // await checkallover();  ---- Confirm this is done when match ends
+    }
   }
 
   if (clientUpdateCount >= CLIENTUPDATEINTERVAL) {

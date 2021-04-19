@@ -3,7 +3,8 @@ const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText,
   akshuGetGroup, akshuUpdGroup, akshuGetGroupMembers,
   akshuGetAuction, akshuGetTournament,
   getTournamentType,
-  svrToDbText, getLoginName, getDisplayName, sendCricMail, akshuGetUser, 
+  svrToDbText, getLoginName, getDisplayName, sendCricMail, 
+  akshuGetUser, akshuUpdUser,
 } = require('./cricspecial'); 
 
 // const allUSER = 99999999;
@@ -36,6 +37,7 @@ router.get('/xxxxalluser', async function (req, res, next) {
     uRec.email = dbencrypt(uRec.email);
     uRec.password = dbencrypt(uRec.password);
     uRec.save();
+    akshuUpdUser(uRec);
   })
   sendok(res, "Done");
 });
@@ -127,6 +129,7 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
       userPlan: USERTYPE.TRIAL,
     });
   user1.save();
+  akshuUpdUser(user1);
   console.log(`user user record for ${lname}`);
   // open user wallet with 0 balance
   await WalletAccountOpen(user1.uid, joinOffer);
@@ -165,6 +168,7 @@ router.get('/cricsignup/:uName/:uPassword/:uEmail/:mobileNumber', async function
 	  mobile: mobileNumber
     });
   user1.save();
+  akshuUpdUser(user1);
   console.log(`user record for ${lname}`);
   // open user wallet with 0 balance
   await WalletAccountOpen(user1.uid, joinOffer);
@@ -185,6 +189,7 @@ router.get('/reset/:userId/:oldPwd/:newPwd', async function (req, res, next) {
     if (uDoc.password === dbencrypt(oldPwd)) {
       uDoc.password = dbencrypt(newPwd);
       uDoc.save();
+      akshuUpdUser(uDoc);
       sendok(res, "OK");
       return;
     }
@@ -204,6 +209,7 @@ router.get('/// CricReset/:userId/:oldPwd/:newPwd', async function (req, res, ne
 	  newPwd = decrypt(newPwd)
       uDoc.password = dbencrypt(newPwd);
       uDoc.save();
+      akshuUpdUser(uDoc);
       sendok(res, "OK");
       return;
     }
@@ -307,6 +313,7 @@ router.get('/updateprofile/:userId/:displayName/:emailId', async function (req, 
   userRec.email = emailId;
   userRec.displayName = displayName;
   userRec.save();
+  akshuUpdUser(userRec);
   sendok(res, `Update profile of user ${userRec.uid}`);    
 });
 
@@ -331,6 +338,7 @@ router.get('/cricupdateprofile/:userId/:displayName/:emailId', async function (r
   userRec.email = emailId;
   userRec.displayName = displayName;
   userRec.save();
+  akshuUpdUser(userRec);
   sendok(res, `Update profile of user ${userRec.uid}`);    
 });
 

@@ -161,7 +161,7 @@ router.get('/getauctionstatus/:groupid', async function (req, res, next) {
   setHeader(res);
 
   var { groupid } = req.params;
-  groupid = Number(groupid);  
+  // groupid = Number(groupid);  
   
   var gdoc = await IPLGroup.findOne({ gid: groupid});  
   if (!gdoc) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }

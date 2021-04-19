@@ -199,7 +199,7 @@ async function akshuGetGroupUsers(gid) {
 		let tmp = await akshuGetUser(myGroupMembers[gm].uid);
 		if (tmp) retUserMembers.push(tmp);
 	}
-    return retUserMembers;
+  return retUserMembers;
 } 
 
 function akshuUpdGroup(groupRec) {
@@ -270,14 +270,14 @@ module.exports = {
 	  sendCricMail,
     // get
     akshuGetUser,
-	akshuUpdUser,
     akshuGetGroup,
     akshuGetGroupMembers,
-	akshuGetGroupUsers,
+	  akshuGetGroupUsers,
     akshuGetAuction,
     akshuGetTournament,
     getTournamentType,
     // update
+	  akshuUpdUser,
     akshuUpdGroup,
     akshuUpdGroupMember,
 
