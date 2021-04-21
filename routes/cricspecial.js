@@ -3,6 +3,7 @@ const akshusecretKey = 'TihomHahs@UhskaHahs#19941995Bona';
 const ankitsecretKey = 'Tikna@Itark#1989#1993Bonaventure';
 const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16);
 //zTvzr3p67VC61jmV54rIYu1545x4TlY
+let debugTest = true;
 
 var arun_user={};
 var arun_group={};
@@ -146,7 +147,8 @@ async function akshuGetUser(uid) {
   let retUser = arun_user[uid];
   if (retUser) return retUser;
 
-  // console.log("from database");
+  if (debugTest) console.log(`read user ${uid} from database`);
+
   retUser = await User.findOne({uid: uid});
   if (retUser)
     arun_user[uid] = retUser;  // buffer this data
@@ -161,7 +163,8 @@ async function akshuGetGroup(gid) {
   let retGroup = arun_group[gid];
   if (retGroup) return retGroup;
 
-  //console.log("from database");
+  if (debugTest) console.log(`Read group ${gid} from database`);
+
   retGroup = await IPLGroup.findOne({gid: gid, enable: true});
   if (retGroup)
     arun_group[gid] = retGroup;
@@ -178,7 +181,7 @@ async function akshuGetGroupMembers(gid) {
     return retGroupMember;
   } 
 
-  // console.log("from database");
+  if (debugTest) console.log(`Read group members of Group ${gid} from database`);
   let myGroup = await akshuGetGroup(gid);
   if (!myGroup) return [];
 
@@ -224,7 +227,9 @@ async function akshuGetAuction(gid) {
   if (retVal) return retVal;
 
   // not in buffer 
-  // console.log("Auctioj not i buffer");
+  
+  if (debugTest) console.log(`Read Auction of Group ${gid} from database`);
+  
   let myGroup = await akshuGetGroup(gid);
   if (!myGroup) return [];
   
@@ -241,7 +246,7 @@ async function akshuGetTournament(gid) {
   let retVal = arun_tournament[gid];
   if (retVal) return retVal;
   
-  // console.log("from database");
+  if (debugTest) console.log(`Read Tournament of group ${gid} from database`);
   let myGroup = await akshuGetGroup(gid);
   if (!myGroup)  return;
 
