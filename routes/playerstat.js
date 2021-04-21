@@ -2292,29 +2292,33 @@ cron.schedule('*/1 * * * * *', async () => {
   if (clientSemaphore) return;       // previous execution in progress
   clientSemaphore = true;
 
-  console.log("Start --------------------")
-  let T1 = new Date();
-  
-  if (PRODUCTION) {
-    if (cricTimer >= CRICUPDATEINTERVAL) {
-      cricTimer = 0;
-      await update_cricapi_data_r1(false);
-      await updateTournamentBrief();
-      // await checkallover();  ---- Confirm this is done when match ends
-    }
-  }
+  try {
+    console.log("Start --------------------")
+    let T1 = new Date();
 
-  if (clientUpdateCount >= CLIENTUPDATEINTERVAL) {
-    clientUpdateCount = 0;
-    await sendDashboardData(); 
-  } 
+    if (PRODUCTION) {
+      if (cricTimer >= CRICUPDATEINTERVAL) {
+        cricTimer = 0;
+        await update_cricapi_data_r1(false);
+        await updateTournamentBrief();
+        // await checkallover();  ---- Confirm this is done when match ends
+      }
+    }
+
+    if (clientUpdateCount >= CLIENTUPDATEINTERVAL) {
+      clientUpdateCount = 0;
+      await sendDashboardData(); 
+    } 
   
-  let T3 = new Date();
-  let diff1 = T3.getTime() - T1.getTime();
-  console.log("End --------------- time taken: ", diff1)
+    let T3 = new Date();
+    let diff1 = T3.getTime() - T1.getTime();
+    console.log("End --------------- time taken: ", diff1);
+  } catch(e) {
+    console.log("Error in schedule fuction");
+    console.log(e);
+  }
   clientSemaphore = false;  // job over
 });
-
 
 var keyIndex = 0;
 function nextapikey() {
