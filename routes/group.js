@@ -1,4 +1,4 @@
-const { GroupMemberCount, akshuGetGroup, akshuUpdGroup, akshuUpdGroupMember } = require('./cricspecial'); 
+const { GroupMemberCount, akshuGetGroup, akshuUpdGroup, akshuUpdGroupMember, akshuUpdUser, akshuGetUser } = require('./cricspecial'); 
 var router = express.Router();
 // var GroupRes;
 /* GET users listing. */
@@ -93,6 +93,8 @@ router.get('/close/:groupid/:ownerid', async function (req, res, next) {
     // console.log(gdoc);
     gdoc.tournamentOver = true;
     gdoc.save();
+    akshuUpdGroup(gdoc);
+    
     sendok(res,true);
   } else {
     
@@ -252,14 +254,14 @@ router.get('/setauctionstatus/:groupid/:newstate', async function (req, res, nex
 router.get('/getfirstmatch/:groupid', async function (req, res, next) {
   
   setHeader(res);
-  console.log("Hello");
+  // console.log("Hello");
   var { groupid } = req.params;
   if (isNaN(groupid))  { senderr(res,621, "Invalid Group"); return; }
   var igroup = parseInt(groupid);
   var mygroup = await IPLGroup.findOne({ gid: igroup });
   if (!mygroup) { senderr(res,621, "Invalid Group"); return; }
   var mymatch = await CricapiMatch.find({tournament: mygroup.tournament}).limit(1).sort({ "matchStartTime": 1 });
-  console.log(mymatch);
+  // console.log(mymatch);
   sendok(res,mymatch);
 });
 
@@ -302,6 +304,7 @@ router.get('/setauctionplayer/:groupid/:playerId', function (req, res, next) {
       } else {
         gdoc.auctionPlayer = iplayer;
         gdoc.save();
+        akshuUpdGroup(gdoc);
         sendok(res,gdoc.auctionPlayer.toString());
       }
     }
@@ -381,12 +384,6 @@ router.get('/owner', function (req, res, next) {
   owneradmin(res);
 });
 
-router.get('/owner', function (req, res, next) {
-  
-  setHeader(res);
-
-  owneradmin(res);
-});
 
 
 router.get('/setprize/:groupid/:prizecount', async function (req, res, next) {
@@ -409,6 +406,7 @@ router.get('/setprize/:groupid/:prizecount', async function (req, res, next) {
   if (iprize > gRec.memberCount) {senderr(res,601, "invalid parameter"); return;}
   gRec.prizeCount = iprize;
   gRec.save();
+  akshuUpdGroup(gRec);
   sendok(res,gRec);
 });
 
@@ -471,6 +469,8 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
   myRec.memberFee = memberfee;
   myRec.prizeCount = 1;
   myRec.save();
+  akshuUpdGroup(myRec);
+
   // console.log(myRec._id);
 
   await WalletAccountGroupJoin(myRec.gid, myRec.owner, memberfee);
@@ -501,6 +501,7 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
 
   ownerRec.defaultGroup = myRec.gid;
   ownerRec.save();
+  akshuUpdUser(ownerRec);
   // now save and say okay to user
   sendok(res,myRec);
 
@@ -540,7 +541,7 @@ router.get('/updatewithoutfee/:groupId/:ownerId/:membercount', async function (r
   //groupRec.memberFee = memberfee;
   // myRec.prizeCount = 1;
   groupRec.save();
-
+  akshuUpdGroup(groupRec);
   sendok(res,groupRec);
 
 }); // end of get
@@ -575,7 +576,7 @@ router.get('/updateprizecount/:groupId/:ownerId/:prizeCount', async function (re
   //groupRec.memberFee = memberfee;
   groupRec.prizeCount = prizeCount;
   groupRec.save();
-  await akshuUpdGroup(groupRec);
+  akshuUpdGroup(groupRec);
 
   sendok(res,groupRec);
 
@@ -695,7 +696,8 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
   
   userRec.defaultGroup = groupRec.gid;
   userRec.save();
-  
+  akshuUpdUser(userRec);
+
   // now save okay to user
   sendok(res,groupRec);
 }); 
@@ -744,6 +746,8 @@ router.get('/setdefaultgroup/:myUser/:myGroup', async function (req, res, next) 
 
   userRec.defaultGroup = myGroup;
   userRec.save();
+  akshuUpdUser(userRec);
+
   sendok(res,"OK");
 });
 
@@ -865,7 +869,7 @@ router.get('/gamestarted/:mygroup', async function (req, res, next) {
 });
 
 // list of group of which user is the member
-router.get('/memberof/:userid', async function(req, res, next) {
+router.get('/orgmemberof/:userid', async function(req, res, next) {
   
   setHeader(res);
   var {userid}=req.params;
@@ -900,6 +904,54 @@ router.get('/memberof/:userid', async function(req, res, next) {
   groupData.push({ uid: myUser.uid, userName: myUser.userName, displayName: myUser.displayName, groups: gData});
   // console.log("about to send ok")
   sendok(res,groupData);
+});
+
+// list of group of which user is the member
+router.get('/memberof/:userid', async function(req, res, next) {  
+  setHeader(res);
+  var {userid}=req.params;
+  userid = Number(userid);
+  let ggg;
+  let tmp;
+  // check if valid user
+  var myUser = await akshuGetUser(userid);      //     User.findOne({uid: userid})
+  if (!myUser) { senderr(res,623, `Invalid user id ${userid}`); return;}
+  // console.log(`${userid} is valid`)
+
+  var myGmRec = await GroupMember.find ({uid: userid});
+  // console.log(myGmRec);
+
+  let allGroups = [];
+  for(ggg=0; ggg<myGmRec.length; ++ggg) {
+    tmp = await akshuGetGroup(myGmRec[ggg].gid);
+    // console.log(tmp);
+    if (tmp)
+    if (tmp.enable)
+      allGroups.push(tmp);
+  }
+  // console.log(myGmRec);
+  // var allGroups = await IPLGroup.find({enable: true});
+  // console.log(allGroups);
+  // console.log(allGroups);
+  var gData = [];
+  // allGroups.forEach(ggg => {
+  for(ggg=0; ggg < allGroups.length; ++ggg) {
+    tmp = myGmRec.find(x => x.gid === allGroups[ggg].gid);
+    if (tmp) {
+      var isDefault = tmp.gid === myUser.defaultGroup;
+      var adminSts = (tmp.uid === ggg.owner) //? "Admin" : "";
+      var xxx =  { gid: tmp.gid, displayName: tmp.displayName, 
+        groupName: allGroups[ggg].name, tournament: allGroups[ggg].tournament, 
+        admin: adminSts, defaultGroup: isDefault};
+        gData.push(xxx)
+    }
+  };
+  gData = _.sortBy(gData, x => x.gid).reverse();
+  // console.log(gData);
+  var groupData = [];
+  groupData.push({ uid: myUser.uid, userName: myUser.userName, displayName: myUser.displayName, groups: gData});
+  // console.log("about to send ok")
+  sendok(res, groupData);
 });
 
 async function update_tournament_max(groupno) {

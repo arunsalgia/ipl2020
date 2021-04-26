@@ -10,6 +10,8 @@ cron = require('node-cron');
 nodemailer = require('nodemailer');
 crypto = require('crypto');
 app = express();
+const { akshuDelGroup } = require('./routes/cricspecial'); 
+
 PRODUCTION=true;  
 PRIZEPORTION=1.0
 
@@ -63,6 +65,7 @@ CRICDBCLEANUPINTERVAL = 15;
 dbcleanupCount = 0;
 // maintain list of runnning matches
 runningMatchArray = [];
+runningScoreArray = [];
 clentData = [];
 auctioData = [];
 
@@ -649,6 +652,8 @@ doDisableAndRefund = async function(g) {
   if (memberCount !== g.memberCount) {
     g.enable = false;
     g.save();
+    akshuDelGroup(g);
+
     // refund wallet amount since group is disabled.
     await refundGroupFee(g.gid, g.memberFee);
     console.log(`Refund compeletd fpr group ${g.gid}`)

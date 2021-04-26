@@ -77,6 +77,8 @@ async function processNextPlayer(res, isItSamePlayer, howToSend, kratiGID, krati
     auctionGroup[kratiGID].currentBidUser = '';
     // console.log(auctionGroup);
     auctionGroup[kratiGID].save();
+    akshuUpdGroup(auctionGroup[kratiGID]);
+
     sendNewBidToClient(auctionGroup[kratiGID]);
     auctionNewPlayer[kratiGID] = allPlayers[myIndex]; 
   }
@@ -285,6 +287,7 @@ router.get('/nextbid/:groupId/:userId/:playerId/:bidAmount', async function(req,
         groupRec.currentBidUid = userRec.uid;
         groupRec.currentBidUser = userRec.displayName;
         groupRec.save();
+        akshuUpdGroup(groupRec);
         sendNewBidToClient(groupRec);
         sendok(res, "OK");
   } else {

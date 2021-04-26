@@ -1307,12 +1307,31 @@ async function addRunningMatch(mmm) {
   if (tmp.length === 0) {
     runningMatchArray.push({tournament: mmm.tournament, mid: mmm.mid});
   }
+
+  tmp = _.find(runningScoreArray, x => x.tournament === mid.tournament);
+  if (!tmp) {
+    tmp = {
+      tournament: mmm.tournament, mid: mmm.mid,
+      team1: mmm.team1, team2: mmm.team2,
+      bowl1: 0, bowl2: 0, bowl3, bowl4: 0
+    };
+    runningScoreArray.push(tmp)
+  }
+  tmp.mid = mmm.mid;
+  tmp.team1 = mmm.team1;
+  tmp.team2 = mmm.team2;
+  tmp.bowl1 = 0;
+  tmp.bowl2 = 0;
+  tmp.bowl3 = 0;
+  tmp.bowl4 = 0;
+
   // console.log(runningMatchArray);
   // console.log("Add over");
 }
 
 async function delRunningMatch(mmm) {
   _.remove(runningMatchArray, {mid: mmm.mid});
+  _.remove(runningScoreArray, {tournament: mmm.tournament});
 }
 
 async function unoptimised_update_cricapi_data_r1(logToResponse)
@@ -1692,11 +1711,24 @@ async function updateAllGroupRankScore(tournamentName)  {
   };
 }
 
+function addBowling(prevOver, currOver) {
+  let xxx = currOver.split(".");
+  let currFullOver = parseInt(xxx[0]);
+  let currPartOver = (xxx.length > 1) ? parseInt(xxx[1]) : 0;
+  let prevFullOver = Math.trunc(prevOver / 10);
+  let prevPartOver = prevOver % 10;
+  let newFullover = currFullOver + prevFullOver;
+  let newPartover = currPartOver + prevPartOver;
+  newFullover += Math.trunc(newPartover / 10)
+  newPartover = newPartover % 6;
+  return (newFullover*10 + newPartover);
+}
+
+
 async function updateMatchStats_r1(mmm, cricdata)
 {
   let briefIndex = -1;
   var currMatch = mmm.mid;
-  
   let myType = mmm.type.toUpperCase();
   if (myType.includes("ODI")) 
     myType = "ODI";
@@ -1745,14 +1777,19 @@ async function updateMatchStats_r1(mmm, cricdata)
   // update bowling details
   //console.log("Bowlong Started");
   // console.log(bowlingArray);
+
+  let allInningsBowling = [];
+  let totalOvers = 0;
+
   bowlingArray.forEach( x => {
     myInning = 1;
     if (myType === "TEST") {
       if (!x.title.toUpperCase().includes("1ST"))
         myInning  = 2;
     }
+    totalOvers = 0;
     x.scores.forEach (bowler => {
-    // ***********************  IMP IMP IMP ***********************
+      // ***********************  IMP IMP IMP ***********************
       // some garbage records are sent by cricapi. Have found that in all these case Overs ("O") 
       // was set as "Allrounder", "bowler" "batsman".
       // ideally it should have #overs bowled i.e. numeric
@@ -1793,6 +1830,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       // check for good or bad economy
       let myEconomy = 0;
       if ((bowler.Econ !== undefined) && (bowler.O !== undefined)) {
+        totalOvers = addBowling(totalOvers, bowler.O)
         let myOvers = parseFloat(bowler.O);
         //console.log(`Overs bowled ${myOvers}  ${MinOvers[myType]}`);
         if (myOvers >= MinOvers[myType]) {
@@ -1846,6 +1884,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].score = myscore;
       allbriefstats[briefIndex].score = myscore;
     });
+    allInningsBowling.push(totalOvers);
   });
 
   // update batting details
@@ -1996,6 +2035,22 @@ async function updateMatchStats_r1(mmm, cricdata)
     });
   });
 
+  let myBowlingRec = _.find(runningScoreArray, x => x.tournament === mmm.tournament);
+  if (!myBowlingRec) {
+    let myBowlingRec = {
+      tournament: mmm.tournament, mid: mmm.mid,
+      team1: mmm.team1, team2: mmm.team2,
+      bowl1: 0, bowl2: 0, bowl3, bowl4: 0
+    }
+    runningScoreArray.push(myBowlingRec);
+  }
+  myBowlingRec.mid = mmm.mid;
+  myBowlingRec.team1 = mmm.team1;
+  myBowlingRec.team2 = mmm.team2;
+  myBowlingRec.bowl1 = (allInningsBowling.length >= 1) ? allInningsBowling[0] : 0;
+  myBowlingRec.bowl2 = (allInningsBowling.length >= 2) ? allInningsBowling[1] : 0;
+  myBowlingRec.bowl3 = (allInningsBowling.length >= 3) ? allInningsBowling[2] : 0;
+  myBowlingRec.bowl4 = (allInningsBowling.length >= 4) ? allInningsBowling[3] : 0;
 
   // update statistics in mongoose
   //console.log(allplayerstats.length);
@@ -2293,7 +2348,8 @@ cron.schedule('*/1 * * * * *', async () => {
   clientSemaphore = true;
 
   try {
-    console.log("Start --------------------")
+    console.log("Start with running score --------------------")
+
     let T1 = new Date();
 
     if (PRODUCTION) {
@@ -2301,6 +2357,7 @@ cron.schedule('*/1 * * * * *', async () => {
         cricTimer = 0;
         await update_cricapi_data_r1(false);
         await updateTournamentBrief();
+        console.log(runningScoreArray);
         // await checkallover();  ---- Confirm this is done when match ends
       }
     }

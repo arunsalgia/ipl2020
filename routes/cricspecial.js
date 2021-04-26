@@ -159,6 +159,7 @@ function akshuUpdUser(userRec) {
   arun_user[userRec.uid] = userRec;
 } 
 
+// will buffer only emabled group
 async function akshuGetGroup(gid) {
   let retGroup = arun_group[gid];
   if (retGroup) return retGroup;
@@ -206,8 +207,17 @@ async function akshuGetGroupUsers(gid) {
 } 
 
 function akshuUpdGroup(groupRec) {
-  arun_group[groupRec.gid] = groupRec;
+  if (groupRec.enable)
+    arun_group[groupRec.gid] = groupRec;
 } 
+
+// delete the entry of this group from buffer
+function akshuDelGroup(groupRec) {
+  delete arun_group[groupRec.gid];
+  return;
+} 
+
+
 
 function akshuUpdGroupMember(gmRec) {
   let x = arun_groupMember[gmRec.gid];
@@ -285,5 +295,6 @@ module.exports = {
 	  akshuUpdUser,
     akshuUpdGroup,
     akshuUpdGroupMember,
-
+    // delete
+    akshuDelGroup,
   }; 
