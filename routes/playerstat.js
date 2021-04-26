@@ -1313,7 +1313,7 @@ async function addRunningMatch(mmm) {
     tmp = {
       tournament: mmm.tournament, mid: mmm.mid,
       team1: mmm.team1, team2: mmm.team2,
-      bowl1: 0, bowl2: 0, bowl3, bowl4: 0
+      bowl1: 0, bowl2: 0, bowl3: 0, bowl4: 0
     };
     runningScoreArray.push(tmp)
   }
