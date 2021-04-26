@@ -1729,7 +1729,7 @@ function addBowling(prevOver, currOver) {
 }
 
 function getTitle(mmm, cricTitle) {
-  console.log(cricTitle, mmm.team1, mmm.team2);
+  // console.log(cricTitle, mmm.team1, mmm.team2);
   let newTitle = "";
   cricTitle = cricTitle.toUpperCase();
   if (cricTitle.includes(mmm.team1))
@@ -1737,7 +1737,7 @@ function getTitle(mmm, cricTitle) {
   else if (cricTitle.includes(mmm.team2))
     newTitle = mmm.team2;
 
-  console.log(newTitle);
+  // console.log(newTitle);
   return newTitle;
 }
 
