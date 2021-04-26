@@ -1734,7 +1734,7 @@ function getTitle(mmm, cricTitle) {
   cricTitle = cricTitle.toUpperCase();
   if (cricTitle.includes(mmm.team1))
     newTitle = mmm.team1;
-  else (cricTitle.includes(mmm.team2))
+  else if (cricTitle.includes(mmm.team2))
     newTitle = mmm.team2;
 
   console.log(newTitle);
