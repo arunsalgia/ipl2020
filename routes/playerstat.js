@@ -1313,7 +1313,8 @@ async function addRunningMatch(mmm) {
     tmp = {
       tournament: mmm.tournament, mid: mmm.mid,
       team1: mmm.team1, team2: mmm.team2,
-      bowl1: 0, bowl2: 0, bowl3: 0, bowl4: 0
+      bowl1: 0, bowl2: 0, bowl3: 0, bowl4: 0,
+      title1: "", title2: "", title3: "", title4: ""
     };
     runningScoreArray.push(tmp)
   }
@@ -1324,7 +1325,10 @@ async function addRunningMatch(mmm) {
   tmp.bowl2 = 0;
   tmp.bowl3 = 0;
   tmp.bowl4 = 0;
-
+  tmp.title1 = "";
+  tmp.title2 = "";
+  tmp.title3 = "";
+  tmp.title4 = "";
   // console.log(runningMatchArray);
   // console.log("Add over");
 }
@@ -1780,6 +1784,7 @@ async function updateMatchStats_r1(mmm, cricdata)
 
   let allInningsBowling = [];
   let totalOvers = 0;
+  let allInningsTitle = [];
 
   bowlingArray.forEach( x => {
     myInning = 1;
@@ -1885,6 +1890,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allbriefstats[briefIndex].score = myscore;
     });
     allInningsBowling.push(totalOvers);
+    allInningsTitle.push(x.title);
   });
 
   // update batting details
@@ -2040,7 +2046,8 @@ async function updateMatchStats_r1(mmm, cricdata)
     let myBowlingRec = {
       tournament: mmm.tournament, mid: mmm.mid,
       team1: mmm.team1, team2: mmm.team2,
-      bowl1: 0, bowl2: 0, bowl3, bowl4: 0
+      bowl1: 0, bowl2: 0, bowl3, bowl4: 0,
+      title1: "", title2: "", title3: "", title4: ""
     }
     runningScoreArray.push(myBowlingRec);
   }
@@ -2051,7 +2058,10 @@ async function updateMatchStats_r1(mmm, cricdata)
   myBowlingRec.bowl2 = (allInningsBowling.length >= 2) ? allInningsBowling[1] : 0;
   myBowlingRec.bowl3 = (allInningsBowling.length >= 3) ? allInningsBowling[2] : 0;
   myBowlingRec.bowl4 = (allInningsBowling.length >= 4) ? allInningsBowling[3] : 0;
-
+  myBowlingRec.title1 = (allInningsTitle.length >= 1) ? allInningsTitle[0] : "";
+  myBowlingRec.title2 = (allInningsTitle.length >= 2) ? allInningsTitle[1] : "";
+  myBowlingRec.title3 = (allInningsTitle.length >= 3) ? allInningsTitle[2] : "";
+  myBowlingRec.title4 = (allInningsTitle.length >= 4) ? allInningsTitle[3] : "";
   // update statistics in mongoose
   //console.log(allplayerstats.length);
   //console.log("Saveing statsu");
