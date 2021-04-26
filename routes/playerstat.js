@@ -1729,6 +1729,7 @@ function addBowling(prevOver, currOver) {
 }
 
 function getTitle(mmm, cricTitle) {
+  console.log(cricTitle);
   let newTitle = "";
   cricTitle = cricTitle.toUpperCase();
   if (cricTitle.includes(mmm.team1))
