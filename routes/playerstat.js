@@ -1728,6 +1728,16 @@ function addBowling(prevOver, currOver) {
   return (newFullover*10 + newPartover);
 }
 
+function getTitle(mmm, cricTitle) {
+  let newTitle = "";
+  cricTitle = cricTitle.toUpperCase();
+  if (cricTitle.includes(mmm.team1))
+    newTitle = mmm.team1;
+  else (cricTitle.includes(mmm.team2))
+    newTitle = mmm.team2;
+
+  return newTitle;
+}
 
 async function updateMatchStats_r1(mmm, cricdata)
 {
@@ -1890,7 +1900,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allbriefstats[briefIndex].score = myscore;
     });
     allInningsBowling.push(totalOvers);
-    allInningsTitle.push(x.title);
+    allInningsTitle.push(getTitle(mmm, x.title));
   });
 
   // update batting details
