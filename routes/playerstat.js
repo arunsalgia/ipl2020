@@ -1308,7 +1308,7 @@ async function addRunningMatch(mmm) {
     runningMatchArray.push({tournament: mmm.tournament, mid: mmm.mid});
   }
 
-  tmp = _.find(runningScoreArray, x => x.tournament === mid.tournament);
+  tmp = _.find(runningScoreArray, x => x.tournament === mmm.tournament);
   if (!tmp) {
     tmp = {
       tournament: mmm.tournament, mid: mmm.mid,
