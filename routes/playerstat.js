@@ -1737,6 +1737,7 @@ function getTitle(mmm, cricTitle) {
   else (cricTitle.includes(mmm.team2))
     newTitle = mmm.team2;
 
+  console.log(newTitle);
   return newTitle;
 }
 
