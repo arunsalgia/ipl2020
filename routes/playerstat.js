@@ -2066,10 +2066,10 @@ async function updateMatchStats_r1(mmm, cricdata)
   myBowlingRec.mid = mmm.mid;
   myBowlingRec.team1 = mmm.team1;
   myBowlingRec.team2 = mmm.team2;
-  myBowlingRec.bowl1 = (allInningsBowling.length >= 1) ? allInningsBowling[0]/10 : 0;
-  myBowlingRec.bowl2 = (allInningsBowling.length >= 2) ? allInningsBowling[1]/10 : 0;
-  myBowlingRec.bowl3 = (allInningsBowling.length >= 3) ? allInningsBowling[2]/10 : 0;
-  myBowlingRec.bowl4 = (allInningsBowling.length >= 4) ? allInningsBowling[3]/10 : 0;
+  myBowlingRec.bowl1 = (allInningsBowling.length >= 1) ? allInningsBowling[0] : 0;
+  myBowlingRec.bowl2 = (allInningsBowling.length >= 2) ? allInningsBowling[1] : 0;
+  myBowlingRec.bowl3 = (allInningsBowling.length >= 3) ? allInningsBowling[2] : 0;
+  myBowlingRec.bowl4 = (allInningsBowling.length >= 4) ? allInningsBowling[3] : 0;
   myBowlingRec.title1 = (allInningsTitle.length >= 1) ? allInningsTitle[0] : "";
   myBowlingRec.title2 = (allInningsTitle.length >= 2) ? allInningsTitle[1] : "";
   myBowlingRec.title3 = (allInningsTitle.length >= 3) ? allInningsTitle[2] : "";
