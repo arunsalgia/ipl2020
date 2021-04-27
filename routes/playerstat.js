@@ -1723,9 +1723,11 @@ function addBowling(prevOver, currOver) {
   let prevPartOver = prevOver % 10;
   let newFullover = currFullOver + prevFullOver;
   let newPartover = currPartOver + prevPartOver;
-  newFullover += Math.trunc(newPartover / 10)
+  newFullover += Math.trunc(newPartover / 6)
   newPartover = newPartover % 6;
-  return (newFullover*10 + newPartover);
+  let tmp = newFullover*10 + newPartover
+  //console.log(prevOver, currOver, newFullover, newPartover)
+  return tmp;
 }
 
 function getTitle(mmm, cricTitle) {
