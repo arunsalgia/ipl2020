@@ -12,7 +12,7 @@ crypto = require('crypto');
 app = express();
 const { akshuDelGroup } = require('./routes/cricspecial'); 
 
-PRODUCTION=false;  
+PRODUCTION=true;  
 PRIZEPORTION=1.0
 
 //
