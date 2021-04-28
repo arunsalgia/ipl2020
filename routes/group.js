@@ -918,7 +918,7 @@ router.get('/memberof/:userid', async function(req, res, next) {
   if (!myUser) { senderr(res,623, `Invalid user id ${userid}`); return;}
   // console.log(`${userid} is valid`)
 
-  var myGmRec = await GroupMember.find ({uid: userid});
+  var myGmRec = await GroupMember.find ({uid: userid, enable: true});
   // console.log(myGmRec);
 
   let allGroups = [];
