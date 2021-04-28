@@ -2259,17 +2259,22 @@ async function processConnection(i) {
         io.to(connectionArray[i].socketId).emit('maxWicket', myData.dbData.maxWicket);
         io.to(connectionArray[i].socketId).emit('rank', myData.dbData.rank);
         io.to(connectionArray[i].socketId).emit('score', score[myTournament]);
+        let myOvers = _.find(runningScoreArray, x => x.tournament === myData.tournament)
+        if (!myOvers) { myOvers = {tournament: ""}; }
+        // console.log("Overs ", myOvers);
+        io.to(connectionArray[i].socketId).emit('brief', myData.statData);
+        io.to(connectionArray[i].socketId).emit('overs', myOvers);
         console.log("sent Dash data to " + connectionArray[i].socketId);
       }
       break;
     case "STAT":
       if (myData) {
-		  let myOvers = _.find(runningScoreArray, x => x.tournament === myData.tournament)
-		  if (!myOvers) { myOvers = {tournament: ""}; }
-		  console.log("Overs ", myOvers);
-          io.to(connectionArray[i].socketId).emit('brief', myData.statData);
-          io.to(connectionArray[i].socketId).emit('overs', myOvers);
-          console.log("Sent Stat data to " + connectionArray[i].socketId);
+        let myOvers = _.find(runningScoreArray, x => x.tournament === myData.tournament)
+        if (!myOvers) { myOvers = {tournament: ""}; }
+        // console.log("Overs ", myOvers);
+        io.to(connectionArray[i].socketId).emit('brief', myData.statData);
+        io.to(connectionArray[i].socketId).emit('overs', myOvers);
+        console.log("Sent Stat data to " + connectionArray[i].socketId);
       }
       break
     // case "AUCT":
