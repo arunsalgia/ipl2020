@@ -1715,7 +1715,7 @@ async function updateAllGroupRankScore(tournamentName)  {
   };
 }
 
-function addBowling(prevOver, currOver) {
+function orgaddBowling(prevOver, currOver) {
   let xxx = currOver.split(".");
   let currFullOver = parseInt(xxx[0]);
   let currPartOver = (xxx.length > 1) ? parseInt(xxx[1]) : 0;
@@ -1728,6 +1728,19 @@ function addBowling(prevOver, currOver) {
   let tmp = newFullover*10 + newPartover
   //console.log(prevOver, currOver, newFullover, newPartover)
   return tmp;
+}
+
+function addBowling(prevOver, currOver) {
+  let xxx = currOver.split(".");
+  let currFullOver = parseInt(xxx[0]);
+  let currPartOver = (xxx.length > 1) ? parseInt(xxx[1]) : 0;
+  prevOver.overs += currFullOver;
+  prevOver.balls += currPartOver;
+  if (prevOver.balls >= 6) {
+    ++prevOver.overs;
+    prevOver.balls -= 6;
+  }
+  return prevOver;
 }
 
 function getTitle(mmm, cricTitle) {
@@ -1797,8 +1810,9 @@ async function updateMatchStats_r1(mmm, cricdata)
   // console.log(bowlingArray); 
 
   let allInningsBowling = [];
-  let totalOvers = 0;
   let allInningsTitle = [];
+  // let totalOvers = 0;
+  let totalOvers;
 
   bowlingArray.forEach( x => {
     myInning = 1;
@@ -1806,7 +1820,8 @@ async function updateMatchStats_r1(mmm, cricdata)
       if (!x.title.toUpperCase().includes("1ST"))
         myInning  = 2;
     }
-    totalOvers = 0;
+
+    totalOvers = {overs: 0, balls: 0};    // 6.4 overs will be stored as {overs: 6, balls: 4}
     x.scores.forEach (bowler => {
       // ***********************  IMP IMP IMP ***********************
       // some garbage records are sent by cricapi. Have found that in all these case Overs ("O") 
@@ -1903,7 +1918,7 @@ async function updateMatchStats_r1(mmm, cricdata)
       allplayerstats[myindex].score = myscore;
       allbriefstats[briefIndex].score = myscore;
     });
-    allInningsBowling.push(totalOvers);
+    allInningsBowling.push(totalOvers.overs + totalOvers.balls/10);
     allInningsTitle.push(getTitle(mmm, x.title));
   });
 
@@ -2068,10 +2083,10 @@ async function updateMatchStats_r1(mmm, cricdata)
   myBowlingRec.mid = mmm.mid;
   myBowlingRec.team1 = mmm.team1;
   myBowlingRec.team2 = mmm.team2;
-  myBowlingRec.bowl1 = (allInningsBowling.length >= 1) ? allInningsBowling[0]/10 : 0;
-  myBowlingRec.bowl2 = (allInningsBowling.length >= 2) ? allInningsBowling[1]/10 : 0;
-  myBowlingRec.bowl3 = (allInningsBowling.length >= 3) ? allInningsBowling[2]/10 : 0;
-  myBowlingRec.bowl4 = (allInningsBowling.length >= 4) ? allInningsBowling[3]/10 : 0;
+  myBowlingRec.bowl1 = (allInningsBowling.length >= 1) ? allInningsBowling[0] : 0;
+  myBowlingRec.bowl2 = (allInningsBowling.length >= 2) ? allInningsBowling[1] : 0;
+  myBowlingRec.bowl3 = (allInningsBowling.length >= 3) ? allInningsBowling[2] : 0;
+  myBowlingRec.bowl4 = (allInningsBowling.length >= 4) ? allInningsBowling[3] : 0;
   myBowlingRec.title1 = (allInningsTitle.length >= 1) ? allInningsTitle[0] : "";
   myBowlingRec.title2 = (allInningsTitle.length >= 2) ? allInningsTitle[1] : "";
   myBowlingRec.title3 = (allInningsTitle.length >= 3) ? allInningsTitle[2] : "";
