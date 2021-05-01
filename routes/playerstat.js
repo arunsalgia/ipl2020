@@ -661,13 +661,16 @@ async function getTournameDetails(igroup) {
 
 async function readDatabase(igroup) {
   // console.log("read started");
+  let dataFound = false;
   try {
-  var PstatList = g_tournamentStat.find({});
+	  var PstatList = g_tournamentStat.find({});
+	  dataFound = true;
   } catch (err) {
     // console.log("Stat read error");
-    return(false);
+    //return(false);
+	  dataFound = false;
   }
-
+  
   // var PauctionList = Auction.find({gid: igroup});
   // var Pgmembers = GroupMember.find({gid: igroup});
   // var Pallusers = User.find({});
@@ -676,14 +679,14 @@ async function readDatabase(igroup) {
   g_captainlist = await Pcaptainlist;
   g_gmembers = await akshuGetGroupMembers(igroup);    //   Pgmembers;
   g_allusers = await akshuGetGroupUsers(igroup);      // Pallusers;
-  g_statList = await PstatList;
+  g_statList = (dataFound) ? await PstatList : [];
   g_auctionList = await akshuGetAuction(igroup);  // PauctionList;         //await akshuGetAuction(igrou
 
   return  ( (g_captainlist) &&
            (g_gmembers) &&
            (g_allusers) && 
-           (g_auctionList) &&
-           (g_statList.length > 0))  ? true : false;
+           (g_auctionList)) ? true : false;
+           //(g_statList.length > 0))  ? true : false;
 }
 
 async function statBrief(igroup, iwhichuser, doWhatSend)
@@ -2253,8 +2256,9 @@ async function processConnection(i) {
     // no data of this tournament with us. Read database and do calculation
 	//memoryLeaked();
     sts = await readDatabase(connectionArray[i].gid );
+	  // console.log(`read database status ${sts}`);
     if (sts) {
-      //console.log(` process ${connectionArray[i].gid}` );
+      // console.log(` stat and brief calculation for group ${connectionArray[i].gid}` );
       let myDB_Data = await statCalculation(connectionArray[i].gid );
       let mySTAT_Data = await statBrief(connectionArray[i].gid , 0 , SENDSOCKET);
       myData = {tournament: myTournament, gid: connectionArray[i].gid,
