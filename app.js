@@ -165,7 +165,15 @@ UserSchema = mongoose.Schema({
   defaultGroup: Number,
   email: String,
   userPlan: Number,
-  mobile: String
+  mobile: String,
+  showGuide: Boolean,
+  currentGuide: Number
+});
+
+GuideSchema = mongoose.Schema({
+  guideNumber: Number,
+  guideTitle: String,
+  guideText: String
 });
 
 IPLGroupSchema = mongoose.Schema({
@@ -387,6 +395,7 @@ AUCT_OEVR="OVER";
 
 // models
 User = mongoose.model("users", UserSchema);
+Guide = mongoose.model("guide", GuideSchema);
 Player = mongoose.model("iplplayers", PlayerSchema);
 Auction = mongoose.model("iplauction", AuctionSchema);
 IPLGroup = mongoose.model("iplgroups", IPLGroupSchema);

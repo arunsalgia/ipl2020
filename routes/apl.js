@@ -98,19 +98,133 @@ router.get('/master/delete/:myKey', async function (req, res, next) {
   }
 });
 
+
+router.get('/addguide/:gNum/:gTitle/:gText', async function (req, res, next) {
+  setHeader(res);
+
+  var {gNum, gTitle, gText} = req.params;
+  
+  let myGuide = await Guide.findOne({guideNumber: gNum});
+  if (!myGuide) {
+	myGuide = new Guide();
+	myGuide.guideNumber = gNum;
+  }
+
+  myGuide.guideTitle = gTitle;
+  myGuide.guideText = gText;
+  myGuide.save();
+  
+  sendok(res, myGuide);
+}); 
+
+router.get('/getmaxguide', async function (req, res, next) {
+  // AplRes = res;
+  setHeader(res);
+  
+  let tmp = await Guide.find({}).limit(1).sort({ "guideNumber": -1 });
+  console.log(tmp);
+  sendok(res, tmp[0].guideNumber.toString());
+});
+
+router.get('/getguide/:userId/:guideNum', async function (req, res, next) {
+  // AplRes = res;
+  setHeader(res);
+  var { userId, guideNum } = req.params;
+
+  let guideRec;
+  let userRec = await User.findOne({uid: userId});
+  if (userRec.showGuide) {
+	guideRec = await Guide.findOne({guideNumber: guideNum});
+  }
+  if (guideRec) sendok(res, guideRec);
+  else          senderr(res, 601, "No guides available");
+});
+
+
+router.get('/resetguide/:userId', async function (req, res, next) {
+  // AplRes = res;
+  setHeader(res);
+  var { userId } = req.params;
+
+  let guideRec;
+  let userRec = await User.findOne({uid: userId});
+  userRec.currentGuide = 0;
+  userRec.save();
+  sendok(res, "Done");
+});
+
+router.get('/enableguide/:userId', async function (req, res, next) {
+  // AplRes = res;
+  setHeader(res);
+  var { userId } = req.params;
+
+  let guideRec;
+  let userRec = await User.findOne({uid: userId});
+  userRec.currentGuide = 0;
+  userRec.showGuide = true;
+  userRec.save();
+  sendok(res, "Done");
+});
+
+router.get('/disableguide/:userId', async function (req, res, next) {
+  // AplRes = res;
+  setHeader(res);
+  var { userId } = req.params;
+
+  let guideRec;
+  let userRec = await User.findOne({uid: userId});
+  userRec.currentGuide = 0;
+  userRec.showGuide = false;
+  userRec.save();
+  sendok(res, "Done");
+});
+
+router.get('/getnextguide/:userId', async function (req, res, next) {
+  // AplRes = res;
+  setHeader(res);
+  var { userId, guideNum } = req.params;
+
+  let guideRec;
+  let userRec = await User.findOne({uid: userId});
+  if (userRec.showGuide) {
+	guideRec = await Guide.findOne({guideNumber: (userRec.currentGuide+1)});
+  }
+  if (guideRec) {
+	  ++userRec.currentGuide;
+	  userRec.save();
+	  sendok(res, guideRec);
+  } else
+	  senderr(res, 601, "No guides available");
+});
+
+router.get('/getprevguide/:userId', async function (req, res, next) {
+  setHeader(res);
+  var { userId, guideNum } = req.params;
+
+  let guideRec;
+  let userRec = await User.findOne({uid: userId});
+  if ((userRec.showGuide) && (userRec.currentGuide > 1)) {
+	guideRec = await Guide.findOne({guideNumber: (userRec.currentGuide-1)});
+  }
+  if (guideRec) {
+	  --userRec.currentGuide;
+	  userRec.save();
+	  sendok(res, guideRec);
+  } else
+	  senderr(res, 601, "No guides available");
+});
+
+
 router.get('/support1', async function (req, res, next) {
   // AplRes = res;
   setHeader(res);
 
-  let matchId = 1243388;
-  let myTournament = 'indengt20-2021';
-  let BriefStat = mongoose.model(myTournament+BRIEFSUFFIX, BriefStatSchema);
-  var briefList = await BriefStat.find({ sid: 0 });
-  briefList.forEach(x => {
-    x.sid = matchId;
-    //x.score = x.score/2; 
-    x.save();
-  });
+  let allUsers = await User.find({});
+  for(let u=0; u<allUsers.length; ++u) {
+	allUsers[u].showGuide = true;
+	allUsers[u].currentGuide = 0;
+	allUsers[u].save();
+  }
   sendok(res, 'Done');
 }); 
 

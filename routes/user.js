@@ -56,8 +56,8 @@ router.get('/dbdecrypt/:text', async function (req, res, next) {
   var { text } = req.params;
   let tmp = dbdecrypt(text);
   console.log(tmp);
-  tmp = decrypt(tmp);
-  console.log(tmp);
+  //tmp = decrypt(tmp);
+  //console.log(tmp);
   sendok(res, tmp);
 });
 
@@ -244,9 +244,12 @@ router.get('/criclogin/:uName/:uPassword', async function (req, res, next) {
   let uRec = await User.findOne({ userName:  getLoginName(uName)});
   console.log(uRec)
   uPassword = decrypt(uPassword);
-  if (await userAlive(uRec)) 
-    isValid = (dbencrypt(uPassword) === uRec.password);
-	
+  //console.log(uPassword);
+  uPassword = dbencrypt(uPassword);
+  //console.log(uPassword);
+  isValid = (uPassword === uRec.password);
+  //console.log(isValid);
+  
   if (isValid) sendok(res, uRec);
   else         senderr(res, 602, "Invalid User name or password");
 });

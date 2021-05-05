@@ -4,6 +4,7 @@ var router = express.Router();
 /* GET users listing. */
 
 const fetchBalance = async (groupid) => {
+  let myGrec = await akshuGetGroup(groupid);
   let gmRec = await GroupMember.find({ gid: groupid });
   gmRec = _.sortBy(gmRec, 'uid');
 
@@ -13,7 +14,7 @@ const fetchBalance = async (groupid) => {
   gmRec.forEach(gm => {
     myAuction = _.filter(auctionList, x => x.uid == gm.uid);
     var myPlayerCount = myAuction.length;
-    var mybal = 1000 - _.sumBy(myAuction, 'bidAmount');
+    var mybal = myGrec.maxBidAmount - _.sumBy(myAuction, 'bidAmount');
     balanceDetails.push({
       uid: gm.uid,
       userName: gm.userName,
@@ -333,23 +334,11 @@ router.get('/add/:groupid/:ownerid/:userid', async function (req, res, next) {
   var gmdoc = await GroupMember.findOne({ gid: gdoc.gid, uid: udoc.uid });
   if (gmdoc) {senderr(res,624, `User already member to group ${groupid}`); return; }
 
-  //console.log("Valid USer;");              
-  //  confirmed that Group  exists
-  //  confirmed that owner of the group is correct
-  //  confirmed that new user is correct                        
-  //var myamount = 1000;
-  // gid: Number,
-  // uid: Number,
-  // userName: String,
-  // balanceAmount: Number,        // balance available to be used for bid
-  // displayName: String,
-  // enable: Boolean
-
   var gmrec = new GroupMember({
     gid: gdoc.gid,
     uid: udoc.uid,
     userName: udoc.displayName,
-    balanceAmount: GROUP1_MAXBALANCE,
+    balanceAmount: gdoc.maxBidAmount,
     displayName: udoc.displayName,      // franchise name as per user
     enable: true
   });
@@ -686,7 +675,7 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
   myGroupMemberRec.gid = groupRec.gid;
   myGroupMemberRec.uid = userRec.uid;
   myGroupMemberRec.userName = userRec.displayName;
-  myGroupMemberRec.balanceAmount = 1000;
+  myGroupMemberRec.balanceAmount = groupRec.maxBidAmount;
   myGroupMemberRec.displayName = userRec.displayName;
   myGroupMemberRec.enable = true;
   myGroupMemberRec.score = 0;
