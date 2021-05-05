@@ -1,4 +1,5 @@
-const { GroupMemberCount, akshuGetGroup, akshuUpdGroup, akshuUpdGroupMember, akshuUpdUser, akshuGetUser } = require('./cricspecial'); 
+const { GroupMemberCount, akshuGetGroup, akshuUpdGroup, akshuUpdGroupMember, 
+		akshuUpdUser, akshuGetUser, akshuGetTournament } = require('./cricspecial'); 
 var router = express.Router();
 // var GroupRes;
 /* GET users listing. */
@@ -982,11 +983,16 @@ function publish_groups(res, filter_groups) {
 
 // return true if IPL has started
 async function tournament_started(mygroup) {
+  var timefor1stmatch = "";
   var justnow = new Date();
-  var groupRec = await IPLGroup.findOne({gid: mygroup})
-  if (!groupRec) return("Invalid Group");
-  var tournamentRec = await Tournament.findOne({name: groupRec.tournament})  
-  return (tournamentRec.started) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "";
+  let mytournament = await akshuGetTournament(mygroup);
+  var mymatch = await CricapiMatch.find({tournament: mytournament.name}).limit(1).sort({ "matchStartTime": 1 });
+  if (mymatch.length > 0) {
+	  let diffTime = Math.trunc((mymatch[0].matchStartTime.getTime() - justnow.getTime()) / 1000);
+	  if (diffTime > 0) timefor1stmatch = diffTime.toString();
+  }
+  return timefor1stmatch;
+  //return (tournamentRec.started) ? `${groupRec.tournament} has started!!!! Cannot set Captain/Vice Captain` : "";
   /**
   var mymatch = await CricapiMatch.find({tournament: groupRec.tournament}).limit(1).sort({ "matchStartTime": 1 });
   console.log(mymatch.length);
