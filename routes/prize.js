@@ -19,6 +19,20 @@ router.get('/data', async function (req, res, next) {
 	sendok(res, myPrize);
 }); 
 
+router.get('/prizeportion', async function (req, res, next) {
+  setHeader(res);
+	sendok(res, {prizeportion: 1});
+}); 
+
+router.get('/prizecount/:num', async function (req, res, next) {
+  // PrizeRes = res;
+  setHeader(res);
+  var {num} = req.params;
+
+	let myPrize = await Prize.findOne({prizeCount: num})
+	sendok(res, myPrize);
+}); 
+
 
 router.get('/all/:amount', async function (req, res, next) {
   // PrizeRes = res;

@@ -253,6 +253,29 @@ function sendNewBidToClient(groupRec) {
   });
 }
 
+function sendCountDownToClient(groupRec, count) {
+  //console.log(connectionArray);
+  //console.log(groupRec);
+  var myList = _.filter(connectionArray, x => x.gid == groupRec.gid && x.page === "AUCT");
+  // console.log(myList);
+  myList.forEach(x => {
+	console.log("Sending message to", x.gid, x.uid);
+    io.to(x.socketId).emit('countDown', {countDown: count});
+  });
+}
+
+router.get('/countdown/:groupId/:count', async function (req, res, next) {
+  setHeader(res);
+  var {groupId, count }=req.params;
+  groupId = Number(groupId);
+  count = Number(count);
+
+  console.log("Countdown ", groupId, count);
+  let myGroup = await akshuGetGroup(groupId);
+  sendCountDownToClient(myGroup, count);
+  sendok(res, "Done");
+});
+
 router.get('/nextbid/:groupId/:userId/:playerId/:bidAmount', async function(req, res, next) {
   // AuctionRes = res;
   setHeader(res);
