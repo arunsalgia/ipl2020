@@ -929,7 +929,7 @@ router.get('/memberof/:userid', async function(req, res, next) {
     tmp = myGmRec.find(x => x.gid === allGroups[ggg].gid);
     if (tmp) {
       var isDefault = tmp.gid === myUser.defaultGroup;
-      var adminSts = (tmp.uid === ggg.owner) //? "Admin" : "";
+      var adminSts = (tmp.uid === allGroups[ggg].owner) //? "Admin" : "";
       var xxx =  { gid: tmp.gid, displayName: tmp.displayName, 
         groupName: allGroups[ggg].name, tournament: allGroups[ggg].tournament, 
         admin: adminSts, defaultGroup: isDefault};
