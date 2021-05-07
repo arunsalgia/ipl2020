@@ -126,16 +126,13 @@ router.get('/getmaxguide', async function (req, res, next) {
   sendok(res, tmp[0].guideNumber.toString());
 });
 
-router.get('/getguide/:userId/:guideNum', async function (req, res, next) {
+router.get('/getguide/:guideNum', async function (req, res, next) {
   // AplRes = res;
   setHeader(res);
-  var { userId, guideNum } = req.params;
+  var { guideNum } = req.params;
 
-  let guideRec;
-  let userRec = await User.findOne({uid: userId});
-  if (userRec.showGuide) {
-	guideRec = await Guide.findOne({guideNumber: guideNum});
-  }
+  let guideRec = await Guide.findOne({guideNumber: guideNum});
+ 
   if (guideRec) sendok(res, guideRec);
   else          senderr(res, 601, "No guides available");
 });
@@ -149,6 +146,7 @@ router.get('/resetguide/:userId', async function (req, res, next) {
   let guideRec;
   let userRec = await User.findOne({uid: userId});
   userRec.currentGuide = 0;
+  userRec.showGuide = true;
   userRec.save();
   sendok(res, "Done");
 });

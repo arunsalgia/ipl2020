@@ -46,6 +46,13 @@ function calculateBalance(arpanaGID) {
   return balanceDetails;
 }
 
+function sendNoPlayerToClient(myGid) {
+  let myList = _.filter(connectionArray, x => x.gid == myGid && x.page === "AUCT");
+  myList.forEach(x => {
+    io.to(x.socketId).emit('noPlayer', "No Player Available");
+  });
+}
+
 async function processNextPlayer(res, isItSamePlayer, howToSend, kratiGID, kratiUID) {
 
   if (isItSamePlayer === NOTSAMEPLAYER) {
@@ -68,6 +75,23 @@ async function processNextPlayer(res, isItSamePlayer, howToSend, kratiGID, krati
     }
     // console.log(`Balance players ${allPlayers.length} Sold Players ${soldPlayerId.length} Skipped players ${skipPlayerId.length}`);
 
+	// finally check if any player available 
+	if (allPlayers.length === 0) {
+		auctionGroup[kratiGID].auctionPlayer = 0;
+		auctionGroup[kratiGID].auctionBid = 0;
+		auctionGroup[kratiGID].currentBidUid = 0;
+		auctionGroup[kratiGID].currentBidUser = '';
+		auctionGroup[kratiGID].auctionStatus = "OVER";
+		// console.log(auctionGroup);
+		auctionGroup[kratiGID].save();
+		akshuUpdGroup(auctionGroup[kratiGID]);
+		
+		if (howToSend === SENDSOCKET) {
+			sendNoPlayerToClient(kratiGID);  //, auctionNewPlayer[kratiGID], newBalance);
+		}
+		sendok(res, "OVER");
+	}
+	
     // select new player  
     var myIndex;
     myIndex = Math.floor( Math.random() * allPlayers.length );
@@ -270,7 +294,7 @@ router.get('/countdown/:groupId/:count', async function (req, res, next) {
   groupId = Number(groupId);
   count = Number(count);
 
-  console.log("Countdown ", groupId, count);
+  //console.log("Countdown ", groupId, count);
   let myGroup = await akshuGetGroup(groupId);
   sendCountDownToClient(myGroup, count);
   sendok(res, "Done");
