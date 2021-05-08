@@ -697,15 +697,20 @@ router.get('/captainvicecaptain/:myGroup/:myUser/:myCap/:myVice', async function
     return;
   }
 
-  var myplayer1 = await Auction.findOne({ gid: myGroup, uid: myUser, pid: myCap });  //.countDocuments(function (err, count) {
-  if (!myplayer1) {
-    senderr(res, 607, `Player ${myCap}  not purchased by user ${myUser}`);
-    return;
+  var myplayer1;
+  if (myCap > 0) {
+	myplayer1 = await Auction.findOne({ gid: myGroup, uid: myUser, pid: myCap });  //.countDocuments(function (err, count) {
+	if (!myplayer1) return senderr(res, 607, `Player ${myCap}  not purchased by user ${myUser}`);
+  } else {
+	  myplayer1 = {pid: 0, playerName: ""};
   }
-  var myplayer2 = await Auction.findOne({ gid: myGroup, uid: myUser, pid: myVice });  //.countDocuments(function (err, count) {
-  if (!myplayer2) {
-    senderr(res, 607, `Player ${myVice}  not purchased by user ${myUser}`);
-    return;
+  
+  var myplayer2;
+  if (myVice > 0) {
+	myplayer2 = await Auction.findOne({ gid: myGroup, uid: myUser, pid: myVice });  //.countDocuments(function (err, count) {
+	if (!myplayer2) return senderr(res, 607, `Player ${myVice}  not purchased by user ${myUser}`);
+  } else {
+	  myplayer2 = {pid: 0, playerName: ""};
   }
 
   caprec = await Captain.findOne({ gid: myGroup, uid: myUser });
