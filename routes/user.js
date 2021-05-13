@@ -255,6 +255,32 @@ router.get('/criclogin/:uName/:uPassword', async function (req, res, next) {
 });
 
 
+router.get('/cricreset/:userId/:oldPwd/:newPwd', async function (req, res, next) {
+  // CricRes = res;
+  setHeader(res);
+  console.log("in crioc reset");
+  
+  var {userId, oldPwd, newPwd } = req.params;
+  var isValid = false;
+  let uRec = await User.findOne({ uid:  userId });
+  if (!uRec) return senderr(res, 601, "Invalid User name or password");
+  // console.log(uRec)
+  
+  oldPwd = decrypt(oldPwd);
+  // console.log("Old", oldPwd);
+  oldPwd = dbencrypt(oldPwd);
+  if (oldPwd !== uRec.password) return senderr(res, 601, "Invalid User name or password");
+  
+  newPwd = decrypt(newPwd);
+  // console.log("new", newPwd);
+  newPwd = dbencrypt(newPwd);
+  uRec.password = newPwd;
+  uRec.save();
+  
+  sendok(res, uRec);
+});
+
+
 router.get('/profile/:userId', async function (req, res, next) {
   // CricRes = res;
   setHeader(res);
