@@ -12,18 +12,25 @@ router.use('/', function(req, res, next) {
 });
 
 
+function getDate(x) {
+	let y = ("0" + x.getDate()).slice(-2) + "/" +
+		("0" + (x.getMonth()+1)).slice(-2) + "/" +
+		x.getFullYear();
+	return y;
+}
+
 router.get('/details/:userid', async function (req, res, next) {
   // WalletRes = res;
   setHeader(res);
     let { userid } = req.params;
     
     let userTrans=[];
-    let myTrans = await Wallet.find({uid: userid})
+    let myTrans = await Wallet.find({uid: userid}).sort({ "transNumber": -1 });
     myTrans.forEach(tRec => {
       if (tRec.amount != 0) {
         let tDate = new Date(tRec.transNumber);
         userTrans.push({
-          date: cricDate(tDate), 
+          date: getDate(tDate),			//cricDate(tDate), 
           amount: tRec.amount,
           type: tRec.transType,
         });
