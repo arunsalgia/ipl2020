@@ -75,6 +75,10 @@ const cricapi_MatchDetails_postkey = "&unique_id=";
 const cricapi_ScoreDetails_prekey = "https://cricapi.com/api/cricketScore?apikey=";
 const cricapi_ScoreDetails_postkey = "&unique_id=";
 
+//  https://cricapi.com/api/playerStats?apikey=0400tFCqT1fdlNI5TVZqsnFawRZ2&pid=35320
+const cricapi_PlayerInfo_prekey = "https://cricapi.com/api/playerStats?apikey=";
+const cricapi_PlayerInfo_postkey = "&pid="; 
+
 
 const score ={};
 
@@ -92,6 +96,23 @@ router.use('/', async function(req, res, next) {
   setHeader(res);
   if (!db_connection) { senderr(res, DBERROR, ERR_NODB); return; }
   next('route');
+});
+
+router.get('/playerinfo/:playerId', async function(req, res) {  
+  setHeader(res);
+  var {playerId} = req.params;
+  
+  console.log("in info");
+  
+ var playerInfoFromCricapi = await fetchPlayerInfoFromCricapi(playerId);
+ console.log(playerInfoFromCricapi);
+
+ if (!playerInfoFromCricapi.error)
+	sendok(res, playerInfoFromCricapi);
+ else
+	senderr(res, 601, {});
+	 
+
 });
 
 
@@ -2213,6 +2234,19 @@ async function fetchMatchesFromCricapi() {
   throw new Error(matchres.status); 
 }
 
+
+// get Player information
+async function fetchPlayerInfoFromCricapi(playerId) { // (1)
+  let cricres = await fetch(get_cricapi_PlayerInfo_URL(playerId)); 
+
+  if (cricres.status == 200) {
+    let json = await cricres.json(); // (3)
+    return json;
+  }
+  // console
+  throw new Error(cricres.status);
+}
+
 async function sendMatchInfoToClient(igroup, doSendWhat) {
   // var igroup = _group;
   var currTime = new Date();
@@ -2450,6 +2484,11 @@ function get_cricapi_MatchDetails_URL(matchid)
 function get_cricapi_ScoreDetails_URL(matchid)
 {
   return cricapi_ScoreDetails_prekey + nextapikey() + cricapi_ScoreDetails_postkey + matchid;
+}
+
+function get_cricapi_PlayerInfo_URL(playerid)
+{
+  return cricapi_PlayerInfo_prekey + nextapikey() + cricapi_PlayerInfo_postkey + playerid;
 }
 
 // time based functions:
