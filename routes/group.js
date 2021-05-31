@@ -165,10 +165,18 @@ router.get('/getauctionstatus/:groupid', async function (req, res, next) {
   setHeader(res);
 
   var { groupid } = req.params;
-  // groupid = Number(groupid);  
+  let igroup = Number(groupid);
   
-  var gdoc = await IPLGroup.findOne({ gid: groupid});  
-  if (!gdoc) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
+  let gdoc = await akshuGetGroup(igroup);
+  let status = gdoc.auctionStatus;
+  if (status === "RUNNING") {
+	let mytournament = await akshuGetTournament(igroup);
+	if (mytournament.started) {
+		status = "OVER";
+		gdoc.auctionStatus = status;
+		await akshuUpdGroup(gdoc);
+	}
+  }
   // let memberCount = GroupMemberCount(groupid);
   // if (memberCount !== gdoc.memberCount) {senderr(res,DBFETCHERR, "Could not fetch Group record"); return; }
   // // // if ((gdoc.auctionStatus === "RUNNING")) {
@@ -176,7 +184,7 @@ router.get('/getauctionstatus/:groupid', async function (req, res, next) {
   //   const balanceDetails = await fetchBalance(groupid);
   //   // console.log(`In Get Status: length is ${playerList.length}`);
   //   sendDataToClient(groupid, playerList[0], balanceDetails);
-    sendok(res,gdoc.auctionStatus);
+  sendok(res,status);
 });
 
 

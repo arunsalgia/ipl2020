@@ -1,7 +1,6 @@
+const { GroupMemberCount, akshuGetGroup, akshuUpdGroup, akshuUpdGroupMember, 
+		akshuUpdUser, akshuGetUser, akshuGetTournament } = require('./cricspecial'); 
 var router = express.Router();
-// var MatchRes;
-// var _group;
-// var _tournament;
 
 // /**
 //  * @param {Date} d The date
@@ -132,7 +131,7 @@ router.get('/matchinfo/:myGroup', async function(req, res, next) {
 //   publish_matches(res, myfilter);
 // });
 
-async function sendMatchInfoToClient(res, igroup, doSendWhat) {
+async function orgsendMatchInfoToClient(res, igroup, doSendWhat) {
   // var igroup = _group;
   var currTime = new Date();
   currTime.setDate(currTime.getDate())
@@ -171,6 +170,46 @@ async function sendMatchInfoToClient(res, igroup, doSendWhat) {
     socket.broadcast.emit('upcomingMatch', upcomingMatches);
   }
 }
+
+async function sendMatchInfoToClient(res, igroup, doSendWhat) {
+  var currTime = new Date();
+  //currTime = currTime.setFullYear(currTime.getFullYear()+1);
+  console.log(currTime);
+  
+  let myTournament = await akshuGetTournament(igroup);
+  console.log(myTournament);
+  
+  var currMatches = [];
+  let myfilter = { tournament: myTournament.name, matchEnded: false, matchStartTime: { $lt: currTime } };
+  let tmp = await CricapiMatch.find(myfilter).sort({ "matchStartTime": 1 });
+  tmp.forEach(m => {
+    // console.log(m.matchStartTime);
+    currMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
+  })
+  // console.log(currMatches);
+  
+  // now get upcoming match. Limit it to 5
+  const upcomingCount = 5;
+  myfilter = { tournament: myTournament.name, matchStartTime: { $gt: currTime } };
+  tmp = await CricapiMatch.find(myfilter).limit(upcomingCount).sort({ "matchStartTime": 1 });
+  var upcomingMatches = [];
+  tmp.forEach(m => {
+    // console.log(m.matchStartTime);
+    upcomingMatches.push({team1: cricTeamName(m.team1), team2: cricTeamName(m.team2), matchTime: cricDate(m.matchStartTime)});
+  })
+  // console.log(upcomingMatches);
+
+  if (doSendWhat === SENDRES) {
+    sendok(res, {current: currMatches, upcoming: upcomingMatches});
+  } else {
+    const socket = app.get("socket");
+    socket.emit("currentMatch", currMatches)
+    socket.broadcast.emit('curentMatch', currMatches);
+    socket.emit("upcomingMatch", upcomingMatches)
+    socket.broadcast.emit('upcomingMatch', upcomingMatches);
+  }
+}
+
 
 async function publish_matches(res, myfilter)
 {
