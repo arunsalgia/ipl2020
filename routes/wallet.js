@@ -31,10 +31,9 @@ router.use('/', function(req, res, next) {
   next('route');
 });
 
-router.post('/webhook/:data1/:data2', async function (req, res) {
+router.post('/webhook', async function (req, res) {
   setHeader(res);
-  var {data1, data2} = req.params;
-  console.log(data1, data2);
+  console.log("In WEBHOOK);
 
   return sendok(res, "done");
 });	
