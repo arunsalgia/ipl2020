@@ -18,7 +18,7 @@ var instaOptions = {
   send_email: false,
   send_sms: false,
   allow_repeated_payments: false,
-  webhook: "",
+  webhook: "https://ankitipl.herokuapp.com/wallet/webhook/",
   redirect_url: "",
 };
 
