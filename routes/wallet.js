@@ -34,7 +34,8 @@ router.use('/', function(req, res, next) {
 router.post('/webhook', async function (req, res) {
   setHeader(res);
   console.log("In WEBHOOK");
-
+  console.log(req.body);
+  
   return sendok(res, "done");
 });	
 	
