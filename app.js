@@ -385,6 +385,19 @@ BriefStatSchema = mongoose.Schema({
   maxTouramentWicket: Number,
   manOfTheMatch: Number
 });  
+
+PaymentSchema = mongoose.Schema({
+  uid: Number,
+  email: String,
+  amount: Number,
+  status: String,
+  requestId: String,
+  requestTime: Date,
+  paymentId: String,
+  paymentTime: Date,
+  fee: Number,
+});
+
 // table name will be <tournament Name>_brief r.g. IPL2020_brief
 BRIEFSUFFIX = "_brief";
 RUNNINGMATCH=1;
@@ -411,6 +424,7 @@ CricapiMatch = mongoose.model("cricApiMatch", CricapiMatchSchema)
 Wallet = mongoose.model('wallet', WalletSchema);
 Prize = mongoose.model('prize', PrizeSchema);
 Apl = mongoose.model('aplinfo', AplSchema);
+Payment = mongoose.model('payment', PaymentSchema);
 
 nextMatchFetchTime = new Date();
 router = express.Router();

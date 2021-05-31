@@ -35,6 +35,38 @@ router.post('/webhook', async function (req, res) {
   setHeader(res);
   console.log("In WEBHOOK");
   console.log(req.body);
+  /***
+{
+payment_id: 'MOJO1531F05N07589845',
+status: 'Credit',
+shorturl: '',
+longurl: 'https://test.instamojo.com/@arun_salgia/c2b7d39ddfd84bd4aab6469c1c13f431',
+purpose: 'APL Wallet',
+amount: '81.00',
+fees: '1.54',
+currency: 'INR',
+buyer: 'arunsalgia@gmail.com',
+buyer_name: 'Arun Salgia',
+buyer_phone: '+911234567890',
+payment_request_id: 'c2b7d39ddfd84bd4aab6469c1c13f431',
+mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
+}
+  ***/
+
+  console.log(req.body.payment_request_id);
+  let myPayment = await Payment.findOne({requestId: req.body.payment_request_id});
+  myPayment.paymentId = req.body.payment_id;
+  myPayment.paymentTime = new Date();
+  myPayment.status = req.body.status.toUpperCase();
+  myPayment.fee = parseFloat(req.body.fees);
+  await myPayment.save();
+  
+  let myTrans = createWalletTransaction();
+  myTrans.uid = myPayment.uid;
+  myTrans.transType = WalletTransType.refill;
+  myTrans.transSubType = myPayment.paymentId;
+  myTrans.amount = myPayment.amount;
+  await myTrans.save();
   
   return sendok(res, "done");
 });	
@@ -58,11 +90,15 @@ router.get('/generatepaymentrequest/:userid/:amount', async function (req, res, 
 		const response = await Instamojo.createNewPaymentRequest(paymentData);
 		console.log(response);
 		PAYMENT_REQUEST_ID = response.payment_request.id;
-		paymentRequestArray.push({
-			uid: userRec.uid,
-			amount: parseInt(amount),
-			requestId: PAYMENT_REQUEST_ID
-		});
+		
+		let myPayment = new Payment();
+		myPayment.uid = userRec.uid;
+		myPayment.email = userRec.email;
+		myPayment.amount = parseFloat(amount);
+		myPayment.status = "PENDING";
+		myPayment.requestId = PAYMENT_REQUEST_ID;
+		myPayment.requestTime = new Date();
+		await myPayment.save();
 	} catch (e) {
 		console.log(e);
 	}
@@ -75,8 +111,13 @@ router.get('/getpaymentdetails/:requestId', async function (req, res, next) {
     let { requestId } = req.params;
 	console.log(paymentRequestArray);
 	
-	let myRequest = paymentRequestArray.find(x => x.requestId === requestId);
+	let myRequest = await Payment.findOne({requestId: requestId});
+//	let myRequest = paymentRequestArray.find(x => x.requestId === requestId);
 	if (!myRequest) return senderr(res, 601, 'Invalid request id ' + requestId);
+	console.log(myRequest);
+	sendok(res, myRequest);
+	return;
+	
 	console.log("All okay");
 	Instamojo.setKeys(API_KEY, AUTH_KEY);	
 	Instamojo.isSandboxMode(true); // For testing
