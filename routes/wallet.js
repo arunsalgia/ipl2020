@@ -19,7 +19,7 @@ var instaOptions = {
   send_sms: false,
   allow_repeated_payments: false,
   webhook: "https://ankitipl.herokuapp.com/wallet/webhook/",
-  redirect_url: "",
+  redirect_url: "https://happy-home-ipl-2020.herokuapp.com/apl/walletdetails",
 };
 
 
