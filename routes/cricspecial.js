@@ -81,6 +81,8 @@ async function sendCricMail (dest, mailSubject, mailText) {
   //console.log(`Destination is ${dest}`);
   var transporter = nodemailer.createTransport({
     service: 'gmail',
+	  port: 587,
+	  secure: false, // true for 465, false for other ports
     auth: {
       user: APLEMAILID,
       pass: 'Anob@1989#93'

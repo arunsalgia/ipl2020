@@ -468,20 +468,22 @@ router.get('/cricemailpassword/:mailid', async function (req, res, next) {
   
   let text = `Dear User,
   
-    Greeting from Auction Permier League.
+    Greetings from Auction Permier League.
 
-    As request by you here is your password.
+    As requested by you, here are your login details.
 
     Login Name: ${uRec.userName} 
     User Name : ${uRec.displayName}
     Password  : ${dbdecrypt(uRec.password)}
 
-    Regards,
+	You can use Login/User name in Sigin page.
+	
+    Best Regards,
     for Auction Permier League`
 
    let xxx = decrypt(mailid);
    console.log(`Send message to ${xxx}`);
-  let resp = await sendCricMail(xxx, 'User info from Auction Permier League', text);
+  let resp = await sendCricMail(xxx, 'User info from Auction Premier League', text);
   if (resp.status) {
     console.log('Email sent: ' + resp.error);
     sendok(res, `Email sent to ${resp.error}`);
