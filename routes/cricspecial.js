@@ -4,6 +4,16 @@ const ankitsecretKey = 'Tikna@Itark#1989#1993Bonaventure';
 const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16);
 //zTvzr3p67VC61jmV54rIYu1545x4TlY
 let debugTest = true;
+// for sending email
+const send = require('gmail-send')();
+var mailOptions =  {
+  user: 'cricketpwd@gmail.com',
+  pass: 'cwezdlvmqqbegugi',
+  to:   '',
+  subject: '',
+  text: ''
+}
+
 
 var arun_user={};
 var arun_group={};
@@ -76,7 +86,7 @@ const dbToSvrText = (text) => {
     return xxx;
   }
 
-async function sendCricMail (dest, mailSubject, mailText) {
+async function nommalPasswordsendCricMail (dest, mailSubject, mailText) {
 
   //console.log(`Destination is ${dest}`);
   var transporter = nodemailer.createTransport({
@@ -132,7 +142,22 @@ async function sendCricMail (dest, mailSubject, mailText) {
   ***/
 } 
 
-  
+async function sendCricMail (dest, mailSubject, mailText) {
+
+  // setup to, subject and text
+  mailOptions.to = dest;
+  mailOptions.subject = mailSubject;
+  mailOptions.text = mailText;
+
+  try {
+    const res = await send(mailOptions);
+    return {status: true, error: 'Email Successfully sent'};
+  } catch (e) {
+    console.log(e);
+    return {status: false, error: 'error sending Email'}; 
+  }
+} 
+
 async function GroupMemberCount(groupid) {
   let memberCount = 0;
   let xxx = await GroupMember.aggregate([

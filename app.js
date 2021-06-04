@@ -461,7 +461,7 @@ GROUP1_MAXBALANCE = 1000;
 allUSER = 99999999;
 
 // Number of hours after which match details to be read frpom cricapi.
-MATCHREADINTERVAL = 1;
+MATCHREADINTERVAL = 3;
 
 // Wallet 
 // WalletStatus = {success: "success", failed: "success"};
