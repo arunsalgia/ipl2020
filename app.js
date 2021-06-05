@@ -50,6 +50,7 @@ tournamentRouter = require('./routes/tournament');
 walletRouter = require('./routes/wallet');
 prizeRouter = require('./routes/prize');
 aplRouter = require('./routes/apl');
+kycRouter = require('./routes/kyc');
 
 // maintaing list of all active client connection
 connectionArray  = [];
@@ -143,6 +144,7 @@ app.use('/tournament', tournamentRouter);
 app.use('/wallet', walletRouter);
 app.use('/prize', prizeRouter);
 app.use('/apl', aplRouter);
+app.use('/kyc', kycRouter);
 
 // ---- start of globals
 // connection string for database
@@ -168,6 +170,25 @@ UserSchema = mongoose.Schema({
   mobile: String,
   showGuide: Boolean,
   currentGuide: Number
+});
+
+UserKycSchema = mongoose.Schema({
+  uid: Number,
+  // kyc compeletd or not
+  idKycComplete: Boolean,
+  bankKycComplete: Boolean,
+  // kyc status  PENDING, SUBMITTED, APPROVED etc.
+  idKycStatus: String,
+  bankKycStatus: String,
+  // id of documents uploaded
+  idDocRef: String,
+  bankDocRef: String,
+  // ID details;
+  idNumber: String,
+  // bank details
+  bankAccount: String,
+  bankIFSC: String,
+  userName: String
 });
 
 GuideSchema = mongoose.Schema({
@@ -425,6 +446,7 @@ Wallet = mongoose.model('wallet', WalletSchema);
 Prize = mongoose.model('prize', PrizeSchema);
 Apl = mongoose.model('aplinfo', AplSchema);
 Payment = mongoose.model('payment', PaymentSchema);
+UserKyc = mongoose.model('userkyc', UserKycSchema);
 
 nextMatchFetchTime = new Date();
 router = express.Router();
@@ -468,13 +490,15 @@ MATCHREADINTERVAL = 3;
 WalletTransType = {
   accountOpen: "accountOpen",
   refill: "refill",
-  withdrawl: "withdrawl",
+  withdrawl: "withdrawal",
   offer: "offer",
   bonus: "bonus",
   prize: "prize",
   groupJoin: "groupJoin",
   groupCancel: "groupCancel",
   feeChange: "feeChange",
+  pending: "pending",			// refund pending
+  refundDone: "refundOk",
 };
 
 // match id for record which has bonus score for  Maximum Run and Maximum Wicket
@@ -1082,6 +1106,18 @@ WalletPrize = async function (groupid, userid, rank, prizeAmount) {
 //   await myTrans.save();
 //   return myTransWalletAccountOpen;
 // }
+
+WalletAccountWithdrawl = async function (userid, amount) {
+  // console.log(`Account open for user ${userid} for amount ${openamount}`)
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.pending;
+  myTrans.uid = userid;
+  myTrans.amount = amount;
+  await myTrans.save();
+  // console.log(myTrans);
+  return myTrans;
+}
+
 
 WalletAccountGroupJoin = async function (groupid, userid, groupfee) {
   let myTrans = createWalletTransaction();

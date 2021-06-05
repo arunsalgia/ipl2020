@@ -250,6 +250,21 @@ router.get('/refill/:userId/:amount/:paymentId', async function (req, res, next)
   sendok(res, myTrans);
 }); 
 
+router.get('/withdraw/:userId/:amount', async function (req, res, next) {
+  setHeader(res);
+  var {userId, amount} = req.params;
+	
+  let myTrans = createWalletTransaction();
+  myTrans.transType = WalletTransType.pending;
+  myTrans.uid = userId;
+  myTrans.transSubType = "PENDING";
+  myTrans.amount = -amount;
+  myTrans.save();
+  // console.log(myTrans);
+
+  sendok(res, myTrans);
+}); 
+
 
 function sendok(res, usrmsg) { res.send(usrmsg); }
 function senderr(res, errcode, errmsg) { res.status(errcode).send(errmsg); }
