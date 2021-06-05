@@ -230,7 +230,7 @@ router.get('/alloffer', async function (req, res, next) {
   // var { userid } = req.params;
   let alluserRec = await User.find({});
   for(i=0; i<alluserRec.length; ++i) {
-    await WalletAccountOffer(alluserRec[i].uid, joinOffer);
+    await WalletAccountOffer(alluserRec[i].uid, 0);
   };
   sendok(res, "ok");
 }); 
@@ -250,18 +250,18 @@ router.get('/refill/:userId/:amount/:paymentId', async function (req, res, next)
   sendok(res, myTrans);
 }); 
 
-router.get('/withdraw/:userId/:amount', async function (req, res, next) {
+router.get('/withdraw/:userId/:amount/:details', async function (req, res, next) {
   setHeader(res);
-  var {userId, amount} = req.params;
+  var {userId, amount, details} = req.params;
 	
+
   let myTrans = createWalletTransaction();
   myTrans.transType = WalletTransType.pending;
   myTrans.uid = userId;
-  myTrans.transSubType = "PENDING";
+  myTrans.transSubType = svrToDbText(details);
   myTrans.amount = -amount;
   myTrans.save();
-  // console.log(myTrans);
-
+  
   sendok(res, myTrans);
 }); 
 

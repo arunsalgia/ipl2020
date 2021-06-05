@@ -10,7 +10,9 @@ cron = require('node-cron');
 nodemailer = require('nodemailer');
 crypto = require('crypto');
 app = express();
-const { akshuDelGroup } = require('./routes/cricspecial'); 
+const { akshuDelGroup,
+  getMaster, setMaster,
+} = require('./routes/cricspecial'); 
 
 PRODUCTION=true;  
 PRIZEPORTION=1.0
@@ -649,16 +651,6 @@ cricTeamName = function (t)  {
 }
 
 
-trialExpiryRec = null;
-joinOffer=5000;
-
-fetchMasterSettings = async function () {
-  let tmp = await MasterData.find({msKey: "TRIALEXPIRY"});
-  if (tmp.length > 0)
-    trialExpiryRec = tmp[0];  
-  else 
-    trialExpiryRec = {msKey: "TRIALEXPIRY", msValue: "2021-04-30"};  
-}
 
 USERTYPE = { TRIAL: 0, SUPERUSER: 1, PAID: 2}
 userAlive = async function (uRec) {
@@ -667,19 +659,18 @@ userAlive = async function (uRec) {
     switch (uRec.userPlan) {
       case USERTYPE.SUPERUSER:
         sts = true;
-        break;
+      break;
       case  USERTYPE.PAID:
         sts = true;
-        break;
+      break;
       case  USERTYPE.TRIAL:
+        let expiryDate = getMaster("EXPIRYDATE");
+        if (expiryDate === "") expiryDate = "2021-04-30"
+
         let cTime = new Date();
-        await fetchMasterSettings(); 
-        // console.log(trialExpiryRec);
-        let tTime = new Date(trialExpiryRec.msValue);
-        // console.log(cTime);
-        // console.log(tTime);
+        let tTime = new Date(expiryDate);
         sts =  (tTime.getTime() > cTime.getTime());
-        break;
+      break;
     }
   }
   return sts;
@@ -1159,10 +1150,13 @@ WalletBalance = async function (userid) {
 
 
 getPrizeTable = async function (count, amount) {
+  let tmp = getMaster("PRIZEPORTION");
+  let ourPortion = (tmp !== "") ? parseInt(tmp) : 100;
+
   let myPrize = await Prize.findOne({prizeCount: count})
   // we will keep 5% of amount
   // rest (i.e. 95%) will be distributed among users
-  let totPrize = Math.floor(amount*PRIZEPORTION);
+  let totPrize = Math.floor(amount*ourPortion/100);
   let allotPrize = 0;
   let prizeTable=[]
   for(i=1; i<count; ++i) {

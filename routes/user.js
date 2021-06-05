@@ -5,6 +5,7 @@ const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText,
   getTournamentType,
   svrToDbText, getLoginName, getDisplayName, sendCricMail, 
   akshuGetUser, akshuUpdUser,
+  getMaster, setMaster,
 } = require('./cricspecial'); 
 
 // const allUSER = 99999999;
@@ -130,9 +131,11 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
     });
   user1.save();
   akshuUpdUser(user1);
-  console.log(`user user record for ${lname}`);
+  console.log(`user record for ${lname}`);
   // open user wallet with 0 balance
-  await WalletAccountOpen(user1.uid, joinOffer);
+  let tmp = getMaster("JOINOFFER");
+  let amount = (tmp !== "") ? parseInt(tmp) : 0;
+  await WalletAccountOpen(user1.uid, amount);
 
   // console.log(user1);
   sendok(res, "OK"); 
@@ -171,7 +174,9 @@ router.get('/cricsignup/:uName/:uPassword/:uEmail/:mobileNumber', async function
   akshuUpdUser(user1);
   console.log(`user record for ${lname}`);
   // open user wallet with 0 balance
-  await WalletAccountOpen(user1.uid, joinOffer);
+  let tmp = getMaster("JOINOFFER");
+  let amount = (tmp !== "") ? parseInt(tmp) : 0;
+  await WalletAccountOpen(user1.uid, amount);
 
   // console.log(user1);
   sendok(res, "OK"); 

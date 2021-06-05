@@ -1,3 +1,6 @@
+const { 
+  getMaster, setMaster,
+} = require('./cricspecial'); 
 //var express = require('express');
 var router = express.Router();
 // let PrizeRes;
@@ -14,14 +17,23 @@ router.use('/', function(req, res, next) {
 router.get('/data', async function (req, res, next) {
   // PrizeRes = res;
   setHeader(res);
-
 	let myPrize = await Prize.find({})
 	sendok(res, myPrize);
 }); 
 
-router.get('/prizeportion', async function (req, res, next) {
+router.get('/getprizeportion', async function (req, res, next) {
   setHeader(res);
-	sendok(res, {prizeportion: 1});
+  let myPortion = getMaster("PRIZEPORTION");
+  let amt = (myPortion !== "") ? parseInt(myPortion) : 100;
+	sendok(res, {prizePortion: amt});
+}); 
+
+router.get('/setprizeportion/:percentage', async function (req, res, next) {
+  setHeader(res);
+  var {percentage} = req.params;
+
+  setMaster("PRIZEPORTION", percentage);
+	sendok(res, "OK");
 }); 
 
 router.get('/prizecount/:num', async function (req, res, next) {

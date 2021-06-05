@@ -20,7 +20,7 @@ var arun_group={};
 var arun_groupMember={};
 var arun_auction={};
 var arun_tournament={};
-
+var arun_master=[];
 
 const encrypt = (text) => {
 
@@ -304,12 +304,37 @@ async function getTournamentType(myGid) {
   return tType;
 }
 
+async function getMaster(key) {
+  let retVal =  arun_master.find(x => x.msKey === key);
+  if (!retVal) {
+    retVal = await MasterData.findOne({msKey: key});
+    if (retVal) arun_master.push(retVal);
+  }
+  return (retVal) ? retVal.msValue : "";
+}
+
+async function setMaster(key, value) {
+  let retVal =  arun_master.find(x => x.msKey === key);
+  if (!retVal) {
+    retVal = new MasterData();
+    retVal.msKey = key;
+    retVal.msValue = value;
+    arun_master.push(retVal);
+  } else {
+    retVal.msValue = value;
+  }
+  await retVal.save();
+  return
+}
+
 module.exports = {
     getLoginName, getDisplayName,
     encrypt, decrypt, dbencrypt, dbdecrypt,
   	dbToSvrText, svrToDbText,
     GroupMemberCount,
 	  sendCricMail,
+    // master 
+    getMaster, setMaster,
     // get
     akshuGetUser,
     akshuGetGroup,
