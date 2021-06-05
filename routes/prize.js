@@ -21,19 +21,35 @@ router.get('/data', async function (req, res, next) {
 	sendok(res, myPrize);
 }); 
 
+router.get('/getmaster/:key', async function (req, res, next) {
+  setHeader(res);
+  
+  var {key} = req.params;
+  
+  sendok(res, key);
+}); 
+
+router.get('/setmaster/:key/:value', async function (req, res, next) {
+  setHeader(res);
+  
+  var {key, value} = req.params;
+  await setMaster(key, value);
+  sendok(res, "Done");
+}); 
+
 router.get('/getprizeportion', async function (req, res, next) {
   setHeader(res);
   let myPortion = getMaster("PRIZEPORTION");
   let amt = (myPortion !== "") ? parseInt(myPortion) : 100;
-	sendok(res, {prizePortion: amt});
+  sendok(res, {prizePortion: amt});
 }); 
 
 router.get('/setprizeportion/:percentage', async function (req, res, next) {
   setHeader(res);
   var {percentage} = req.params;
 
-  setMaster("PRIZEPORTION", percentage);
-	sendok(res, "OK");
+  await setMaster("PRIZEPORTION", percentage);
+  sendok(res, "OK");
 }); 
 
 router.get('/prizecount/:num', async function (req, res, next) {
