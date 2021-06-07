@@ -25,15 +25,15 @@ router.get('/getmaster/:key', async function (req, res, next) {
   setHeader(res);
   
   var {key} = req.params;
-  
-  sendok(res, key);
+  let myValue = await getMaster(key.toUpperCase());
+  sendok(res, myValue);
 }); 
 
 router.get('/setmaster/:key/:value', async function (req, res, next) {
   setHeader(res);
   
   var {key, value} = req.params;
-  await setMaster(key, value);
+  await setMaster(key.toUpperCase(), value);
   sendok(res, "Done");
 }); 
 
