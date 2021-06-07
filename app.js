@@ -186,11 +186,9 @@ UserKycSchema = mongoose.Schema({
   idDocRef: String,
   bankDocRef: String,
   // ID details;
-  idNumber: String,
+  idDetails: String,   // id proof as encrypted
   // bank details
-  bankAccount: String,
-  bankIFSC: String,
-  userName: String
+  bankDetails: String    // will store <username>-<account number>-<ifsc>  (encrypted)
 });
 
 GuideSchema = mongoose.Schema({

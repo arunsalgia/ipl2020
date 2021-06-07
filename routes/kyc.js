@@ -1,4 +1,6 @@
-const { decrypt, akshuGetUser, GroupMemberCount, dbencrypt, } = require('./cricspecial'); 
+const {  akshuGetUser, GroupMemberCount,  
+  decrypt, dbencrypt, dbToSvrText, svrToDbText,
+} = require('./cricspecial'); 
 var router = express.Router();
 const KYCSTATUS = {
   pending: "Pending",
@@ -21,11 +23,9 @@ function getBlankKyc(userId) {
     idDocRef: "",
     bankDocRef: "",
     // ID details;
-    idNumber: dbencrypt(""),
+    idDetails: dbencrypt(""),
     // bank details
-    bankAccount: dbencrypt(""),
-    bankIFSC: dbencrypt(""),
-    userName: dbencrypt(""),
+    bankDetails: dbencrypt("--"),
   })
   return tmp;
 }
@@ -46,13 +46,16 @@ router.get('/details/:userid', async function (req, res) {
   if (!myKyc) 
     myKyc = getBlankKyc(userid);
 
-  sendok(res, myKyc);
+  let tmp1 = dbToSvrText(myKyc.bankDetails)
+  let tmp2 = dbToSvrText(myKyc.idDetails);
+
+  sendok(res, {id: tmp2, bank: tmp1});
 });	
 
 
-router.get('/updateid/:userid/:idNumber', async function (req, res) {
+router.get('/updateid/:userid/:details', async function (req, res) {
   setHeader(res);
-  let { userid, idNumber } = req.params;
+  let { userid, details } = req.params;
 
   let myKyc = await UserKyc.findOne({uid: userid});
 
@@ -60,7 +63,7 @@ router.get('/updateid/:userid/:idNumber', async function (req, res) {
   if (!myKyc) 
     myKyc = getBlankKyc(userid);
   
-  myKyc.idNumber = idNumber;
+  myKyc.idDetails = svrToDbText(details);
   // update status for ID
 
   await myKyc.save();
@@ -68,24 +71,22 @@ router.get('/updateid/:userid/:idNumber', async function (req, res) {
   sendok(res, myKyc);
 });	
 	
-router.get('/updatebank/:userid/:bankAccount/:bankIFSC/:userName', async function (req, res) {
+router.get('/updatebank/:userid/:details', async function (req, res) {
   setHeader(res);
-  let { userid, bankAccount, bankIFSC, userName } = req.params;
+  let { userid, details } = req.params;
 
   let myKyc = await UserKyc.findOne({uid: userid});
 
   // if first time
   if (!myKyc) 
     myKyc = getBlankKyc(userid);
-  
-  myKyc.bankAccount = bankAccount;
-  myKyc.bankIFSC = bankIFSC;
-  myKyc.userName = userName;
+
+  myKyc.bankDetails = svrToDbText(details);
 // update status for Bank
 
   await myKyc.save();
   
-  sendok(res, myKyc);
+  sendok(res, "OK");
 });	
 	
 
