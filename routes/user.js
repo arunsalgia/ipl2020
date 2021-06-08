@@ -317,6 +317,7 @@ router.get('/cricprofile/:userId', async function (req, res, next) {
     let groupRec = await IPLGroup.findOne({gid: userRec.defaultGroup})
     let myGroup = (groupRec) ? groupRec.name : "";
     sendok(res, {
+	  userCode: userRec._id,
       loginName: userRec.userName,
       userName: userRec.displayName,
       email: encrypt(dbdecrypt(userRec.email)),

@@ -191,6 +191,17 @@ UserKycSchema = mongoose.Schema({
   bankDetails: String    // will store <username>-<account number>-<ifsc>  (encrypted)
 });
 
+SchemeSchema = mongoose.Schema({
+  date: Date,
+  uid: Number,
+  uid2: Number,
+  scheme: String,
+  pending: Boolean,
+  offer: Number,
+  maxOffer: Number,
+
+});
+
 GuideSchema = mongoose.Schema({
   guideNumber: Number,
   guideTitle: String,
@@ -447,6 +458,7 @@ Prize = mongoose.model('prize', PrizeSchema);
 Apl = mongoose.model('aplinfo', AplSchema);
 Payment = mongoose.model('payment', PaymentSchema);
 UserKyc = mongoose.model('userkyc', UserKycSchema);
+Scheme = mongoose.model('schemes', SchemeSchema);
 
 nextMatchFetchTime = new Date();
 router = express.Router();
