@@ -142,10 +142,10 @@ router.get('/signup/:uName/:uPassword/:uEmail', async function (req, res, next) 
 })
 
 
-router.get('/cricsignup/:uName/:uPassword/:uEmail/:mobileNumber', async function (req, res, next) {
+router.get('/cricsignup/:uName/:uPassword/:uEmail/:mobileNumber/:referalCode', async function (req, res, next) {
   // CricRes = res;
   setHeader(res);
-  var {uName, uPassword, uEmail, mobileNumber } = req.params;
+  var {uName, uPassword, uEmail, mobileNumber, referalCode } = req.params;
   var isValid = false;
   // if user name already used up
   var lname = getLoginName(uName);
@@ -157,6 +157,13 @@ router.get('/cricsignup/:uName/:uPassword/:uEmail/:mobileNumber', async function
   if (uuu) {senderr(res, 602, "User name already used."); return; }
   uuu = await User.findOne({ email: uEmail });
   if (uuu) {senderr(res, 603, "Email already used."); return; }
+  
+  let refRec;
+  if (referalCode !== "NA") {
+	  // validate referalCode
+	refRec = await User.findOne({_id: referalCode });
+	if (!refRec) return senderr(res, 604, "Invalid refereal Code.");
+  }
   
   uRec = await User.find().limit(1).sort({ "uid": -1 });
   var user1 = new User({
@@ -172,6 +179,17 @@ router.get('/cricsignup/:uName/:uPassword/:uEmail/:mobileNumber', async function
     });
   user1.save();
   akshuUpdUser(user1);
+  // add entry for referral code here
+  if (refRec) {
+    let schemaRec = new Schema();
+    schemaRec.date = new Date();
+    schemaRec.uid = refRec.uid;
+    schemaRec.uid2 = user1.uid;
+    schemaRec.scheme = "NEWUSER";
+    schemaRec.pending = true;
+    schemaRec.offer = 100;
+    schemaRec.maxOffer = 100;
+  }
   console.log(`user record for ${lname}`);
   // open user wallet with 0 balance
   let tmp = getMaster("JOINOFFER");
