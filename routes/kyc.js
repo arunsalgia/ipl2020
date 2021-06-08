@@ -53,7 +53,7 @@ router.get('/details/:userid', async function (req, res) {
 });	
 
 
-router.get('/updateid/:userid/:details', async function (req, res) {
+router.get('/idata/:userid/:details', async function (req, res) {
   setHeader(res);
   let { userid, details } = req.params;
 
@@ -71,7 +71,7 @@ router.get('/updateid/:userid/:details', async function (req, res) {
   sendok(res, myKyc);
 });	
 	
-router.get('/updatebank/:userid/:details', async function (req, res) {
+router.get('/bdata/:userid/:details', async function (req, res) {
   setHeader(res);
   let { userid, details } = req.params;
 
