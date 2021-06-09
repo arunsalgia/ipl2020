@@ -22,10 +22,10 @@ router.get('/data', async function (req, res, next) {
 }); 
 
 router.get('/getmaster/:key', async function (req, res, next) {
-  setHeader(res);
+  setHeader(res); 
   
   var {key} = req.params;
-  let myValue = await getMaster(key.toUpperCase());
+  let  myValue = await getMaster(key.toUpperCase());
   sendok(res, myValue);
 }); 
 
@@ -39,7 +39,8 @@ router.get('/setmaster/:key/:value', async function (req, res, next) {
 
 router.get('/getprizeportion', async function (req, res, next) {
   setHeader(res);
-  let myPortion = getMaster("PRIZEPORTION");
+  let myPortion = await getMaster("PRIZEPORTION");
+  console.log(myPortion);
   let amt = (myPortion !== "") ? parseInt(myPortion) : 100;
   sendok(res, {prizePortion: amt});
 }); 

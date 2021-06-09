@@ -310,7 +310,7 @@ async function getMaster(key) {
     retVal = await MasterData.findOne({msKey: key});
     if (retVal) arun_master.push(retVal);
   }
-  console.log(retVal);
+  console.log(retVal.msValue);
   return (retVal) ? retVal.msValue : "";
 }
 
