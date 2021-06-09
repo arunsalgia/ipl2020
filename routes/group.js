@@ -409,6 +409,9 @@ router.get('/setprize/:groupid/:prizecount', async function (req, res, next) {
 });
 
 
+
+
+
 router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
   
   setHeader(res);

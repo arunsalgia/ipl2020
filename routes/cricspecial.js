@@ -328,6 +328,49 @@ async function setMaster(key, value) {
   return
 }
 
+const FeeDetails = [
+  {amount: 500, bonusPercent: 0.05},
+  {amount: 400, bonusPercent: 0.05},
+  {amount: 300, bonusPercent: 0.05},
+  {amount: 200, bonusPercent: 0.05},
+  {amount: 100, bonusPercent: 0.05},
+  {amount: 0,   bonusPercent: 0}
+  ];
+  
+// break up of group fee from wallet and bonus
+function feeBreakup(memberfee) {
+  // console.log(memberfee);
+  let bonusAmount = 0;
+  for(let i=0; i<FeeDetails.length; ++i) {
+    if (memberfee >= FeeDetails[i].amount) {
+      bonusAmount = Math.floor(memberfee * FeeDetails[i].bonusPercent);
+      break;
+    } 
+  }
+  // console.log(bonusAmount);
+  return {walletAmount: (memberfee-bonusAmount), bonusAmount: bonusAmount};
+}
+
+async function getUserBalance(userid) {
+  let tmp = {wallet: 0, bonus: 0};
+  let myUid = Number(userid);
+
+  let xxx = await Wallet.aggregate([
+    {$match: {uid: myUid, isWallet: true}},
+    {$group : {_id : "$uid", balance : {$sum : "$amount"}}}
+  ]);
+  if (xxx.length === 1) tmp.wallet = xxx[0].balance;
+
+  xxx = await Wallet.aggregate([
+    {$match: {uid: myUid, isWallet: false}},
+    {$group : {_id : "$uid", balance : {$sum : "$amount"}}}
+  ]);
+  if (xxx.length === 1) tmp.bonus = xxx[0].balance;
+
+  return tmp;
+}
+
+
 module.exports = {
     getLoginName, getDisplayName,
     encrypt, decrypt, dbencrypt, dbdecrypt,
@@ -338,16 +381,13 @@ module.exports = {
     getMaster, setMaster,
     // get
     akshuGetUser,
-    akshuGetGroup,
-    akshuGetGroupMembers,
-	  akshuGetGroupUsers,
+    akshuGetGroup, akshuGetGroupMembers, akshuGetGroupUsers,
     akshuGetAuction,
-    akshuGetTournament,
-    getTournamentType,
+    akshuGetTournament, getTournamentType,
     // update
 	  akshuUpdUser,
-    akshuUpdGroup,
-    akshuUpdGroupMember,
+    akshuUpdGroup, akshuUpdGroupMember,
     // delete
     akshuDelGroup,
+    feeBreakup, getUserBalance,
   }; 

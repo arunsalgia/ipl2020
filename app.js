@@ -287,6 +287,7 @@ TournamentSchema = mongoose.Schema({
 })
 
 WalletSchema = mongoose.Schema({
+  isWallet: Boolean,
   transNumber: Number,
   transDate: String,
   transType: String,
@@ -686,6 +687,31 @@ userAlive = async function (uRec) {
   return sts;
 }
 
+// TRIAL user is to be conisered as normal user
+userAlive = async function (uRec) {
+  let sts = false;
+  if (uRec) {
+    switch (uRec.userPlan) {
+      case USERTYPE.SUPERUSER:
+        sts = true;
+      break;
+      case  USERTYPE.TRIAL:
+      case  USERTYPE.PAID:
+        sts = true;
+      break;
+      // case  USERTYPE.TRIAL:
+      //   let expiryDate = getMaster("EXPIRYDATE");
+      //   if (expiryDate === "") expiryDate = "2021-04-30"
+
+      //   let cTime = new Date();
+      //   let tTime = new Date(expiryDate);
+      //   sts =  (tTime.getTime() > cTime.getTime());
+      // break;
+    }
+  }
+  return sts;
+}
+
 refundGroupFee = async function(groupid, amount) {
   let allMembers = await GroupMember.find({gid: groupid});
   for(gm of allMembers) {
@@ -1039,6 +1065,7 @@ discarded_sendEmailToUser = async function(userEmailId, userSubject, userText) {
 
 createWalletTransaction = function () {
   myTrans = new Wallet();
+  myTrans.isWallet = true;
   currTime = new Date();
   // Tue Dec 08 2020 14:22:21 GMT+0530 (India Standard Time)"
   myTrans.transNumber = currTime.getTime();
@@ -1058,11 +1085,13 @@ createWalletTransaction = function () {
 
 WalletAccountOpen = async function (userid, openamount) {
   // console.log(`Account open for user ${userid} for amount ${openamount}`)
+  
   let myTrans = createWalletTransaction();
+  myTrans.isWallet = false;
   myTrans.transType = WalletTransType.accountOpen;
   myTrans.uid = userid;
   myTrans.amount = openamount;
-  await myTrans.save();
+  if (openamount !== 0) await myTrans.save();
   // console.log(myTrans);
   return myTrans;
 }
@@ -1074,13 +1103,14 @@ WalletFeeChange = async function (userid, groupid, amount) {
   myTrans.uid = userid;
   myTrans.gid = groupid;
   myTrans.amount = amount;
-  await myTrans.save();
+  if (amount !== 0) await myTrans.save();
   // console.log(myTrans);
   return myTrans;
 }
 
 WalletAccountOffer = async function (userid, offeramount) {
   let myTrans = createWalletTransaction();
+  myTrans.isWallet = false;
   myTrans.transType = WalletTransType.offer;
   myTrans.uid = userid;
   myTrans.amount = offeramount;
@@ -1140,23 +1170,6 @@ WalletAccountGroupCancel = async function (groupid, userid, groupfee) {
   return myTrans;
 }
 
-WalletBalance = async function (userid) {
-  let tmp = 0;
-  // let allRec = await Wallet.find({uid: userid});
-  // if (allRec.length > 0)
-  //   tmp = _.sumBy(allRec, x => x.amount);
-  // db.articles.aggregate( [
-  //   { $match: { $or: [ { score: { $gt: 70, $lt: 90 } }, { views: { $gte: 1000 } } ] } },
-  //   { $group: { _id: null, count: { $sum: 1 } } }
-  // ] );
-  // iuserid = ;
-  let xxx = await Wallet.aggregate([
-    {$match: {uid: parseInt(userid)}},
-    {$group : {_id : "$uid", balance : {$sum : "$amount"}}}
-  ]);
-  if (xxx.length === 1) tmp = xxx[0].balance;
-  return tmp;
-}
 
 
 getPrizeTable = async function (count, amount) {

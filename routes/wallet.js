@@ -1,6 +1,7 @@
 const Instamojo = require("instamojo-payment-nodejs");
 const { akshuGetUser, GroupMemberCount,
    dbdecrypt, svrToDbText, 
+   getUserBalance, feeBreakup,
 } = require('./cricspecial'); 
 var router = express.Router();
 
@@ -33,6 +34,8 @@ router.use('/', function(req, res, next) {
   next('route');
 });
 
+
+// given by instamojo on successfull payment
 router.post('/webhook', async function (req, res) {
   setHeader(res);
   console.log("In WEBHOOK");
@@ -73,7 +76,7 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
   return sendok(res, "done");
 });	
 	
-
+// create intamojo payment request when add waller selected by user with amount
 router.get('/generatepaymentrequest/:userid/:amount', async function (req, res, next) {
   setHeader(res);
     let { userid, amount } = req.params;
@@ -168,7 +171,6 @@ router.get('/details/:userid', async function (req, res, next) {
 }); 
 
 
-
 router.get('/accountopen/:userid', async function (req, res, next) {
   // WalletRes = res;
   setHeader(res);
@@ -203,14 +205,20 @@ router.get('/membercount/:groupid', async function (req, res, next) {
   sendok(res, {memberCount: tmp});
 }); 
  
+router.get('/feebreakup/:memberfee', async function (req, res, next) {
+  var { memberfee } = req.params; 
+  sendok(res, feeBreakup(Number(memberfee)));
+});
+
+
 router.get('/balance/:userid', async function (req, res, next) {
   // WalletRes = res;
   setHeader(res);
 
   var { userid } = req.params;
-  var tmp = await WalletBalance(userid);
+  var tmp = await getUserBalance(userid);
   // console.log(tmp);  
-  sendok(res, {balance: tmp});
+  sendok(res, tmp);
 }); 
 
 router.get('/allopen', async function (req, res, next) {
@@ -225,15 +233,36 @@ router.get('/allopen', async function (req, res, next) {
   sendok(res, "ok");
 }); 
 
+// WalletTransType = {
+//   accountOpen: "accountOpen",
+//   refill: "refill",
+//   withdrawl: "withdrawal",
+//   offer: "offer",
+//   bonus: "bonus",
+//   prize: "prize",
+//   groupJoin: "groupJoin",
+//   groupCancel: "groupCancel",
+//   feeChange: "feeChange",
+//   pending: "pending",			// refund pending
+//   refundDone: "refundOk",
+// };
 router.get('/alloffer', async function (req, res, next) {
   // WalletRes = res;
   setHeader(res);
-
-  // var { userid } = req.params;
-  let alluserRec = await User.find({});
-  for(i=0; i<alluserRec.length; ++i) {
-    await WalletAccountOffer(alluserRec[i].uid, 0);
-  };
+  let allTrans = await Wallet.find({});
+  for(let i=0; i<allTrans.length; ++i) {
+    switch(allTrans[i].transType) {
+      //case "offer":
+      case "bonus":
+      case "accountOpen": 
+        allTrans[i].isWallet = false;
+      break;
+      default:
+        allTrans[i].isWallet = true;
+      break;
+    }
+    allTrans[i].save();
+  }
   sendok(res, "ok");
 }); 
 
