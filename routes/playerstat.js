@@ -2453,7 +2453,7 @@ cron.schedule('*/1 * * * * *', async () => {
         await update_cricapi_data_r1(false);
         await updateTournamentBrief();
         //console.log(runningScoreArray);
-        await checkallover();  ---- Confirm this is done when match ends
+        //await checkallover();  ---- Confirm this is done when match ends
       }
     }
 
