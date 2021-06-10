@@ -1560,19 +1560,19 @@ async function update_cricapi_data_r1(logToResponse)
         
       // now fetch fresh match details from cricapi
       var matchesFromCricapi = await fetchMatchesFromCricapi();
-      if (matchesFromCricapi.matches == undefined) {
-        //console.log(matchesFromCricapi);
+      if (matchesFromCricapi.matches === undefined) {
         var errmsg = "Could not fetch Match details from CricAPI"
         if (logToResponse)  senderr(res, CRICFETCHERR, errmsg)
         else                console.log(errmsg);
         return; 
       }
+	  //console.log(matchesFromCricapi);
 
       // get all tournamnet and their teams
-      var allTournament = await Tournament.find({enable: true, over: false});
-      var allTeams = await Team.find({tournament: {$in: tournamentList} });
+      var allTournament = await Tournament.find({enabled: true, over: false});
       var tournamentList = _.map(allTournament, 'name'); 
-
+	  var allTeams = await Team.find({tournament: {$in: tournamentList} });
+	  //console.log(allTeams);
 
       // process each match found in cricapy
       // matchesFromCricapi.matches.forEach(x => {
@@ -1584,6 +1584,7 @@ async function update_cricapi_data_r1(logToResponse)
         x.type = get_cricApiMatchType(myTeam1, myTeam2, x.type);
         let mytype = x.type;
         //console.log(`${myTeam1} ${myTeam2}`);
+		
 
         if (x.unique_id === '') continue;
         if ((myTeam1 === "TBA") || (myTeam2 === "TBA")) continue;
@@ -1595,12 +1596,15 @@ async function update_cricapi_data_r1(logToResponse)
         //allTournament.forEach(t => {
         let ankitIdx = 0;
         let matchTournament = '';
-        for(ankitIdx=0; arunIdx < allTournament.length; ++arunIdx) {
+		//console.log(allTeams.length);
+        for(ankitIdx=0; ankitIdx < allTournament.length; ++ankitIdx) {
           t = allTournament[ankitIdx];
+		  //console.log(t); 
           if (t.type !== mytype) continue;
-          //console.log(`Two teams are ${myTeam1} and ${myTeam2}`);
-          var myteams = _.filter(allTeams, tm => tm.tournament == t.name); 
-          //console.log(myteams);
+          //console.log(`${t.name} Two teams are ${myTeam1} and ${myTeam2}`);
+
+          var myteams = _.filter(allTeams, tm => tm.tournament === t.name); 
+		  //if (myteams.length > 0) console.log("Team details", myteams);
 
           // find team 1  is part of this tournament
           myindex = _.findIndex(myteams, (x) => { return x.name === myTeam1});
@@ -1615,13 +1619,18 @@ async function update_cricapi_data_r1(logToResponse)
           // both the teams belong to this tournament. 
           //console.log(`Team: ${myTeam1} and ${myTeam2} are part of tournament ${t.name}`);
           matchTournament = t.name;
+		  break;
+		  //console.log("here", matchTournament);
+		  //break;
           // how to break. Not sure
         };    
+		//if (matchTournament.length > 0) console.log(matchTournament);
         if (matchTournament === '') continue;
-        // console.log(`Tournament: ${matchTournament} Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
+        //console.log(`Tournament: ${matchTournament} Match Team1: ${myTeam1}  Team2: ${myTeam2}`)
 
-        // var mymatch = _.find(existingmatches, m => m.mid == );
+        // var m/ymatch = _.find(existingmatches, m => m.mid == );
         let mymatch = await CricapiMatch.findOne({mid: cricMatchId});
+		//console.log(mymatch, cricMatchId);
         if (!mymatch) {
           mymatch = new CricapiMatch();
           // console.log(`dating match of ${x.unique_id}`)
@@ -2443,8 +2452,8 @@ cron.schedule('*/1 * * * * *', async () => {
         cricTimer = 0;
         await update_cricapi_data_r1(false);
         await updateTournamentBrief();
-        console.log(runningScoreArray);
-        // await checkallover();  ---- Confirm this is done when match ends
+        //console.log(runningScoreArray);
+        await checkallover();  ---- Confirm this is done when match ends
       }
     }
 
