@@ -1,5 +1,5 @@
 const Instamojo = require("instamojo-payment-nodejs");
-const { akshuGetUser, GroupMemberCount,
+const { akshuGetUser, GroupMemberCount, akshuGetGroup,
    dbdecrypt, svrToDbText, 
    getUserBalance, feeBreakup,
 } = require('./cricspecial'); 
@@ -208,6 +208,16 @@ router.get('/membercount/:groupid', async function (req, res, next) {
 router.get('/feebreakup/:memberfee', async function (req, res, next) {
   var { memberfee } = req.params; 
   sendok(res, feeBreakup(Number(memberfee)));
+});
+
+router.get('/groupfeebreakup/:groupId', async function (req, res, next) {
+  var { groupId } = req.params; 
+  let myGroup = await IPLGroup.findOne({_id: groupId});
+  if (!myGroup) return senderr(res, 611, "Invalid Group code");
+
+  let myFees = feeBreakup(myGroup.memberFee)
+  myFees["name"] = myGroup.name;
+  sendok(res, myFees);
 });
 
 

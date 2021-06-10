@@ -409,16 +409,31 @@ router.get('/setprize/:groupid/:prizecount', async function (req, res, next) {
 });
 
 
+router.get('/regex/:groupName', async function (req, res, next) {
+  
+  setHeader(res);
+  var { groupName } = req.params;
+  //groupName = "dummy3";
+  //let text = { 'name' : /^$dummy3$/i };
+  //console.log(text);
+  let tmp = await IPLGroup.find({ 'name' : new RegExp('^' + groupName + '$', 'i') });
+  sendok(res, tmp);
+});
 
 
-
-router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memberfee', async function (req, res, next) {
+router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:walletFee/:bonusFee', async function (req, res, next) {
   
   setHeader(res);
 
-  var { groupName, ownerid, maxbid, mytournament, membercount, memberfee} = req.params;
-  var tmp = await IPLGroup.find({});
-  var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
+  var { groupName, ownerid, maxbid, mytournament, membercount, walletFee, bonusFee} = req.params;
+  walletFee = Number(walletFee);
+  bonusFee = Number(bonusFee);
+  let memberfee = walletFee + bonusFee;
+  mytournament = mytournament.toUpperCase();
+
+  //var tmp = await IPLGroup.find({});
+  //var tmp = _.filter(tmp, x => x.name.toUpperCase() === groupName.toUpperCase());
+  let tmp = await IPLGroup.find({ 'name' : new RegExp('^' + groupName + '$', 'i') });
   if (tmp.length > 0) { senderr(res,601, `Duplicate Group name ${groupName}`); return; }
 
   //if (isNaN(maxbid)) { senderr(res,602, `Invalid max bid amount ${maxbid}`); return; }
@@ -427,12 +442,13 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
   var ownerRec = await User.findOne({uid: ownerid});
   if (!ownerRec) { senderr(res,603, `Invalid owner ${ownerid}`); return; }
 
-  mytournament = mytournament.toUpperCase()
-  var tournamentRec = await Tournament.findOne({ name: mytournament })
-  if (!tournamentRec) { senderr(res,604, `Invalid tournament ${mytournament}`); return; }
+  
+  //var tournamentRec = await Tournament.findOne({ name: mytournament })
+  //if (!tournamentRec) { senderr(res,604, `Invalid tournament ${mytournament}`); return; }
 
-  let myBal = await WalletBalance(ownerid);
-  if (myBal < memberfee) { senderr(res,605, `Insufficient Balance`); return; }
+  // ****Balance will now be checked by client itself
+  //let myBal = await WalletBalance(ownerid);
+  //if (myBal < memberfee) { senderr(res,605, `Insufficient Balance`); return; }
 
   // ALl seems to be create. Assign gid for this group
   //Goods.find({}).sort({ price: 1 }).limit(1).then(goods => goods[0].price);
@@ -458,7 +474,7 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
   myRec.name = groupName;
   myRec.owner = ownerRec.uid;
   myRec.maxBidAmount = imaxbid;
-  myRec.tournament = tournamentRec.name;
+  myRec.tournament = mytournament;
   myRec.auctionStatus = "PENDING";
   myRec.auctionPlayer = 0;
   myRec.auctionBid = 0;
@@ -474,7 +490,7 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
 
   // console.log(myRec._id);
 
-  await WalletAccountGroupJoin(myRec.gid, myRec.owner, memberfee);
+  await WalletAccountGroupJoin(myRec.gid, myRec.owner, walletFee, bonusFee);
   
   // Also add owner as group member
   // gid: Number,
@@ -498,6 +514,8 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:memb
   myGroupMemberRec.score = 0;
   myGroupMemberRec.rank = 0;
   myGroupMemberRec.prize = 0;
+  myGroupMemberRec.wallet = walletFee;
+  myGroupMemberRec.bonus = bonusFee;
   myGroupMemberRec.save();
 
   ownerRec.defaultGroup = myRec.gid;
@@ -636,19 +654,22 @@ router.get('/updatewithfee/:groupId/:ownerId/:maxbid/:mytournament/:membercount/
 }); // end of get
 
 
-router.get('/join/:groupCode/:userid', async function (req, res, next) {
+router.get('/join/:groupCode/:userid/:walletFee/:bonusFee', async function (req, res, next) {
   
   setHeader(res);
 
-  var { groupCode, userid } = req.params;
+  var { groupCode, userid, walletFee, bonusFee} = req.params;
+  walletFee = Number(walletFee);
+  bonusFee = Number(bonusFee);
+  //let memberFee = walletFee + bonusFee;
 
   /*
   Validation list
   1) validate correct group id
   2) validate correct user id
-  3) validate user has sufficeint balance
+  3) validate user has sufficeint balance  -- not req. Will be done by client
   4) validate current member count is less than configured by group owner
-  5) validate tournament has not yet started
+  5) validate tournament has not yet started -- not req. will be done by client
   6) validate user is not member of this group
   */
  let groupRec;
@@ -664,8 +685,10 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
 
   let userRec = await User.findOne({uid: userid});
   if (!userRec) { senderr(res,613, `Invalid user ${userid}`); return; }
-  let userBalance = await WalletBalance(userRec.uid);
-  if (userBalance < groupRec.memberFee) { senderr(res,615, `Insufficient User Balance`); return; }
+
+  // let userBalance = await WalletBalance(userRec.uid);
+  // if (userBalance < groupRec.memberFee) { senderr(res,615, `Insufficient User Balance`); return; }
+
   if (GroupMemberCount(groupRec.gid) >= groupRec.membercount) { senderr(res,616, `Member count exceed limit`); return; }
 
   let gmRec = await GroupMember.findOne({gid: groupRec.gid, uid: userRec.uid})
@@ -681,7 +704,7 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
   // prize: Number,
   // enable: Boolean
 
-  await WalletAccountGroupJoin(groupRec.gid, userRec.uid, groupRec.memberFee);
+  await WalletAccountGroupJoin(groupRec.gid, userRec.uid, walletFee, bonusFee);
 
   let myGroupMemberRec = new GroupMember();
   myGroupMemberRec.gid = groupRec.gid;
@@ -692,7 +715,9 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
   myGroupMemberRec.enable = true;
   myGroupMemberRec.score = 0;
   myGroupMemberRec.rank = 0;
-  myGroupMemberRec.prize = 0;  
+  myGroupMemberRec.prize = 0;
+  myGroupMemberRec.walletFee = walletFee;
+  myGroupMemberRec.bonusFee = bonusFee;
   myGroupMemberRec.save();
   
   userRec.defaultGroup = groupRec.gid;
@@ -700,7 +725,7 @@ router.get('/join/:groupCode/:userid', async function (req, res, next) {
   akshuUpdUser(userRec);
 
   // now save okay to user
-  sendok(res,groupRec);
+  sendok(res, groupRec);
 }); 
 
 

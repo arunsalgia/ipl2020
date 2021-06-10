@@ -260,7 +260,10 @@ GroupMemberSchema = mongoose.Schema({
   score: Number,
   rank: Number,
   prize: Number,
-  enable: Boolean
+  enable: Boolean,
+  // breakup of fees paid by user
+  walletFee: Number,
+  bonusFee: Number
 });
 
 CaptainSchema = mongoose.Schema({
@@ -715,7 +718,7 @@ userAlive = async function (uRec) {
 refundGroupFee = async function(groupid, amount) {
   let allMembers = await GroupMember.find({gid: groupid});
   for(gm of allMembers) {
-    await WalletAccountGroupCancel(gm.gid, gm.uid, amount)
+    await WalletAccountGroupCancel(gm.gid, gm.uid, gm.walletFee, gm.bonusFee)
   };
 }
 
@@ -1150,23 +1153,56 @@ WalletAccountWithdrawl = async function (userid, amount) {
 }
 
 
-WalletAccountGroupJoin = async function (groupid, userid, groupfee) {
-  let myTrans = createWalletTransaction();
-  myTrans.transType = WalletTransType.groupJoin;
-  myTrans.gid = groupid;
-  myTrans.uid = userid;
-  myTrans.amount = -groupfee;
-  await myTrans.save();
+WalletAccountGroupJoin = async function (groupid, userid, walletFee, bonusFee) {
+  let myTrans;
+  
+  if (walletFee > 0) {
+    myTrans = createWalletTransaction();
+    myTrans.isWallet = true;
+    myTrans.transType = WalletTransType.groupJoin;
+    myTrans.gid = groupid;
+    myTrans.uid = userid;
+    myTrans.amount = -walletFee;
+    await myTrans.save();
+  }
+
+  if (bonusFee > 0) {
+    myTrans = createWalletTransaction();
+    myTrans.isWallet = false;
+    myTrans.transType = WalletTransType.groupJoin;
+    myTrans.gid = groupid;
+    myTrans.uid = userid;
+    myTrans.amount = -bonusFee;
+    await myTrans.save();
+  }
+
   return myTrans;
 }
 
-WalletAccountGroupCancel = async function (groupid, userid, groupfee) {
-  let myTrans = createWalletTransaction();
-  myTrans.transType = WalletTransType.groupCancel;
-  myTrans.uid = userid;
-  myTrans.gid = groupid;
-  myTrans.amount = groupfee;
-  await myTrans.save();
+WalletAccountGroupCancel = async function (groupid, userid, walletFee, bonusFee) {
+
+  let myTrans;
+
+  if (walletFee > 0) {
+    myTrans = createWalletTransaction();
+    myTrans.isWallet = true;
+    myTrans.transType = WalletTransType.groupCancel;
+    myTrans.uid = userid;
+    myTrans.gid = groupid;
+    myTrans.amount = walletFee;
+    await myTrans.save();
+  }
+
+  if (bonusFee > 0) {
+    myTrans = createWalletTransaction();
+    myTrans.isWallet = false;
+    myTrans.transType = WalletTransType.groupCancel;
+    myTrans.uid = userid;
+    myTrans.gid = groupid;
+    myTrans.amount = bonusFee;
+    await myTrans.save();
+  }
+
   return myTrans;
 }
 
