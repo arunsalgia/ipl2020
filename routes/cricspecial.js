@@ -2,6 +2,24 @@ const algorithm = 'aes-256-ctr';
 const akshusecretKey = 'TihomHahs@UhskaHahs#19941995Bona';
 const ankitsecretKey = 'Tikna@Itark#1989#1993Bonaventure';
 const iv = '05bd9fbf50b124cd2bad8f31ca1e9ca4';           //crypto.randomBytes(16);
+const FeeDetails = [
+  {amount: 500, bonusPercent: 5},
+  {amount: 400, bonusPercent: 5},
+  {amount: 300, bonusPercent: 5},
+  {amount: 200, bonusPercent: 5},
+  {amount: 100, bonusPercent: 5},
+  {amount: 0,   bonusPercent: 0}
+];
+  
+const BonusDetails = [
+  {amount: 500, bonusPercent: 5},
+  {amount: 400, bonusPercent: 5},
+  {amount: 300, bonusPercent: 5},
+  {amount: 200, bonusPercent: 5},
+  {amount: 100, bonusPercent: 5},
+  {amount: 0,   bonusPercent: 0}
+];
+
 //zTvzr3p67VC61jmV54rIYu1545x4TlY
 let debugTest = true;
 // for sending email
@@ -328,22 +346,27 @@ async function setMaster(key, value) {
   return
 }
 
-const FeeDetails = [
-  {amount: 500, bonusPercent: 0.05},
-  {amount: 400, bonusPercent: 0.05},
-  {amount: 300, bonusPercent: 0.05},
-  {amount: 200, bonusPercent: 0.05},
-  {amount: 100, bonusPercent: 0.05},
-  {amount: 0,   bonusPercent: 0}
-  ];
+
   
+function calculateBonus(refillAmount) {
+  let bonusAmount = 0;
+  for(let i=0; i<BonusDetails.length; ++i) {
+    if (refillAmount >= BonusDetails[i].amount) {
+      bonusAmount = Math.floor(refillAmount * BonusDetails[i].bonusPercent/100.0);
+      break;
+    } 
+  }
+  // console.log(bonusAmount);
+  return bonusAmount;
+}
+
 // break up of group fee from wallet and bonus
 function feeBreakup(memberfee) {
   // console.log(memberfee);
   let bonusAmount = 0;
   for(let i=0; i<FeeDetails.length; ++i) {
     if (memberfee >= FeeDetails[i].amount) {
-      bonusAmount = Math.floor(memberfee * FeeDetails[i].bonusPercent);
+      bonusAmount = Math.floor(memberfee * FeeDetails[i].bonusPercent/100.0);
       break;
     } 
   }
@@ -372,22 +395,23 @@ async function getUserBalance(userid) {
 
 
 module.exports = {
-    getLoginName, getDisplayName,
-    encrypt, decrypt, dbencrypt, dbdecrypt,
-  	dbToSvrText, svrToDbText,
-    GroupMemberCount,
-	  sendCricMail,
-    // master 
-    getMaster, setMaster,
-    // get
-    akshuGetUser,
-    akshuGetGroup, akshuGetGroupMembers, akshuGetGroupUsers,
-    akshuGetAuction,
-    akshuGetTournament, getTournamentType,
-    // update
-	  akshuUpdUser,
-    akshuUpdGroup, akshuUpdGroupMember,
-    // delete
-    akshuDelGroup,
-    feeBreakup, getUserBalance,
-  }; 
+  getLoginName, getDisplayName,
+  encrypt, decrypt, dbencrypt, dbdecrypt,
+  dbToSvrText, svrToDbText,
+  GroupMemberCount,
+  sendCricMail,
+  // master
+  getMaster, setMaster,
+  // get
+  akshuGetUser,
+  akshuGetGroup, akshuGetGroupMembers, akshuGetGroupUsers,
+  akshuGetAuction,
+  akshuGetTournament, getTournamentType,
+  // update
+  akshuUpdUser,
+  akshuUpdGroup, akshuUpdGroupMember,
+  // delete
+  akshuDelGroup,
+  feeBreakup, getUserBalance,
+  calculateBonus,
+}; 

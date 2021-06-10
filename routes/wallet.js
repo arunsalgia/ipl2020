@@ -2,6 +2,7 @@ const Instamojo = require("instamojo-payment-nodejs");
 const { akshuGetUser, GroupMemberCount, akshuGetGroup,
    dbdecrypt, svrToDbText, 
    getUserBalance, feeBreakup,
+   calculateBonus,
 } = require('./cricspecial'); 
 var router = express.Router();
 
@@ -58,7 +59,10 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
 }
   ***/
 
-  console.log(req.body.payment_request_id);
+  console.log(req.body.payment_request_id,
+    req.body.status
+    );
+  
   let myPayment = await Payment.findOne({requestId: req.body.payment_request_id});
   myPayment.paymentId = req.body.payment_id;
   myPayment.paymentTime = new Date();
@@ -66,11 +70,26 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
   myPayment.fee = parseFloat(req.body.fees);
   await myPayment.save();
   
+  if (req.body.status.toUpperCase() !== "CREDIT")
+    return sendok(res, "failed");
+
+
   let myTrans = createWalletTransaction();
+  myTrans.isWallet = true;
   myTrans.uid = myPayment.uid;
   myTrans.transType = WalletTransType.refill;
   myTrans.transSubType = myPayment.paymentId;
   myTrans.amount = myPayment.amount;
+  await myTrans.save();
+  
+  let bonusAmount = calculateBonus(myPayment.amount);
+  
+  let myTrans = createWalletTransaction();
+  myTrans.isWallet = false;
+  myTrans.uid = myPayment.uid;
+  myTrans.transType = WalletTransType.refill;
+  myTrans.transSubType = myPayment.paymentId;
+  myTrans.amount = bonusAmount;
   await myTrans.save();
   
   return sendok(res, "done");
