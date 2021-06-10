@@ -159,6 +159,7 @@ router.get('/details/:userid', async function (req, res, next) {
       if (tRec.amount != 0) {
         let tDate = new Date(tRec.transNumber);
         userTrans.push({
+		  isWallet: tRec.isWallet,
           date: getDate(tDate),			//cricDate(tDate), 
           amount: tRec.amount,
           type: tRec.transType,
