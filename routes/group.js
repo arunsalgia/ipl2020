@@ -428,6 +428,8 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:wall
   var { groupName, ownerid, maxbid, mytournament, membercount, walletFee, bonusFee} = req.params;
   walletFee = Number(walletFee);
   bonusFee = Number(bonusFee);
+  console.log(walletFee, bonusFee);
+
   let memberfee = walletFee + bonusFee;
   mytournament = mytournament.toUpperCase();
 
@@ -514,8 +516,8 @@ router.get('/create/:groupName/:ownerid/:maxbid/:mytournament/:membercount/:wall
   myGroupMemberRec.score = 0;
   myGroupMemberRec.rank = 0;
   myGroupMemberRec.prize = 0;
-  myGroupMemberRec.wallet = walletFee;
-  myGroupMemberRec.bonus = bonusFee;
+  myGroupMemberRec.walletFee = walletFee;
+  myGroupMemberRec.bonusFee = bonusFee;
   myGroupMemberRec.save();
 
   ownerRec.defaultGroup = myRec.gid;
