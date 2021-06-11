@@ -74,7 +74,7 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
     return sendok(res, "failed");
 
 
-  myTrans = createWalletTransaction();
+  let myTrans = createWalletTransaction();
   myTrans.isWallet = true;
   myTrans.uid = myPayment.uid;
   myTrans.transType = WalletTransType.refill;
@@ -84,7 +84,7 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
   
   let bonusAmount = calculateBonus(myPayment.amount);
   
-  let myTrans = createWalletTransaction();
+  myTrans = createWalletTransaction();
   myTrans.isWallet = false;
   myTrans.uid = myPayment.uid;
   myTrans.transType = WalletTransType.refill;
