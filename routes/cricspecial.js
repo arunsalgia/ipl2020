@@ -371,7 +371,7 @@ function feeBreakup(memberfee) {
     } 
   }
   // console.log(bonusAmount);
-  return {walletAmount: (memberfee-bonusAmount), bonusAmount: bonusAmount};
+  return {wallet: (memberfee-bonusAmount), bonus: bonusAmount};
 }
 
 async function getUserBalance(userid) {

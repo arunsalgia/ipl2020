@@ -14,7 +14,7 @@ const { akshuDelGroup,
   getMaster, setMaster,
 } = require('./routes/cricspecial'); 
 
-PRODUCTION=true;  
+PRODUCTION=false;  
 PRIZEPORTION=1.0
 
 //
@@ -515,6 +515,20 @@ WalletTransType = {
   feeChange: "feeChange",
   pending: "pending",			// refund pending
   refundDone: "refundOk",
+};
+
+BonusTransType = {
+  accountOpen: "registerBonus",
+  refill: "refillBonus",
+  //withdrawl: "withdrawal",
+  offer: "offerBonus",
+  bonus: "bonus",
+  //prize: "prize",
+  groupJoin: "groupJoinBonus",
+  groupCancel: "groupCancelBonus",
+  //feeChange: "feeChange",
+  //pending: "pending",			// refund pending
+  //refundDone: "refundOk",
 };
 
 // match id for record which has bonus score for  Maximum Run and Maximum Wicket
@@ -1091,7 +1105,7 @@ WalletAccountOpen = async function (userid, openamount) {
   
   let myTrans = createWalletTransaction();
   myTrans.isWallet = false;
-  myTrans.transType = WalletTransType.accountOpen;
+  myTrans.transType = BonusTransType.accountOpen;
   myTrans.uid = userid;
   myTrans.amount = openamount;
   if (openamount !== 0) await myTrans.save();
@@ -1169,7 +1183,7 @@ WalletAccountGroupJoin = async function (groupid, userid, walletFee, bonusFee) {
   if (bonusFee > 0) {
     myTrans = createWalletTransaction();
     myTrans.isWallet = false;
-    myTrans.transType = WalletTransType.groupJoin;
+    myTrans.transType = BonusTransType.groupJoin;
     myTrans.gid = groupid;
     myTrans.uid = userid;
     myTrans.amount = -bonusFee;
@@ -1196,7 +1210,7 @@ WalletAccountGroupCancel = async function (groupid, userid, walletFee, bonusFee)
   if (bonusFee > 0) {
     myTrans = createWalletTransaction();
     myTrans.isWallet = false;
-    myTrans.transType = WalletTransType.groupCancel;
+    myTrans.transType = BonusTransType.groupCancel;
     myTrans.uid = userid;
     myTrans.gid = groupid;
     myTrans.amount = bonusFee;

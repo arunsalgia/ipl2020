@@ -41,6 +41,7 @@ router.post('/webhook', async function (req, res) {
   setHeader(res);
   console.log("In WEBHOOK");
   console.log(req.body);
+  
   /***
 {
 payment_id: 'MOJO1531F05N07589845',
@@ -59,10 +60,7 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
 }
   ***/
 
-  console.log(req.body.payment_request_id,
-    req.body.status
-    );
-  
+ 
   let myPayment = await Payment.findOne({requestId: req.body.payment_request_id});
   myPayment.paymentId = req.body.payment_id;
   myPayment.paymentTime = new Date();
@@ -87,7 +85,7 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
   myTrans = createWalletTransaction();
   myTrans.isWallet = false;
   myTrans.uid = myPayment.uid;
-  myTrans.transType = WalletTransType.refill;
+  myTrans.transType = BonusTransType.refill;
   myTrans.transSubType = myPayment.paymentId;
   myTrans.amount = bonusAmount;
   await myTrans.save();
