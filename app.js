@@ -14,7 +14,7 @@ const { akshuDelGroup,
   getMaster, setMaster,
 } = require('./routes/cricspecial'); 
 
-PRODUCTION=false;  
+PRODUCTION=true;  
 PRIZEPORTION=1.0
 
 //
