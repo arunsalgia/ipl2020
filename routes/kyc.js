@@ -1,5 +1,5 @@
 const {  akshuGetUser, GroupMemberCount,  
-  decrypt, dbencrypt, dbToSvrText, svrToDbText, dbdecrypt,
+  encrypt, decrypt, dbencrypt, dbToSvrText, svrToDbText, dbdecrypt,
 } = require('./cricspecial'); 
 var router = express.Router();
 const KYCSTATUS = {
@@ -50,7 +50,7 @@ router.get('/details/:userid', async function (req, res) {
   if (tmp2 === NODATA) tmp2 = "";
   if (tmp3 === NODATA) tmp3 = "";
 
-  sendok(res, {idata: encrypyt(tmp1), bdata: encrypyt(tmp2), udata: encrypyt(tmp3), use: myKyc.useUpi});
+  sendok(res, {idata: encrypt(tmp1), bdata: encrypt(tmp2), udata: encrypt(tmp3), use: myKyc.useUpi});
 });	
 
 
@@ -63,6 +63,7 @@ router.get('/idata/:userid/:details', async function (req, res) {
   // if first time
   if (!myKyc) 
     myKyc = getBlankKyc(userid);
+  
   
   myKyc.idDetails = svrToDbText(details);
   // update status for ID
@@ -83,6 +84,7 @@ router.get('/bdata/:userid/:details', async function (req, res) {
     myKyc = getBlankKyc(userid);
 
   myKyc.bankDetails = svrToDbText(details);
+  myKyc.useUpi = false;
 // update status for Bank
 
   await myKyc.save();
