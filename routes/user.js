@@ -51,16 +51,7 @@ router.get('/suencrypt/:text', async function (req, res, next) {
   sendok(res, encrypt(text));
 });
 
-router.get('/dbdecrypt/:text', async function (req, res, next) {
-  // CricRes = res;
-  setHeader(res);
-  var { text } = req.params;
-  let tmp = dbdecrypt(text);
-  console.log(tmp);
-  //tmp = decrypt(tmp);
-  //console.log(tmp);
-  sendok(res, tmp);
-});
+
 
 // get users belonging to group "mygroup"
 router.get('/group/:mygroup', async function (req, res, next) {
@@ -92,6 +83,25 @@ router.get('/decrypt/:text', function (req, res, next) {
 
 });
 
+router.get('/dbencrypt/:text', function (req, res, next) {
+  // CricRes = res;
+  setHeader(res);
+  let { text } = req.params;
+  const hash = dbencrypt(text);
+  console.log(hash);
+  sendok(res, hash);
+
+});
+
+router.get('/dbdecrypt/:text', function (req, res, next) {
+  // CricRes = res;
+  setHeader(res);
+  let { text } = req.params;
+  const hash = dbdecrypt(text);
+  console.log(hash);
+  sendok(res, hash);
+
+});
 
 //=============== SIGNUP
 
