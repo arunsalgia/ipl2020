@@ -1,5 +1,5 @@
 const {  akshuGetUser, GroupMemberCount,  
-  decrypt, dbencrypt, dbToSvrText, svrToDbText,
+  decrypt, dbencrypt, dbToSvrText, svrToDbText, dbdecrypt,
 } = require('./cricspecial'); 
 var router = express.Router();
 const KYCSTATUS = {
@@ -9,23 +9,19 @@ const KYCSTATUS = {
   approved: "Approved",
   invalid: "Invalid",
 }
+const NODATA = "--";
 
 function getBlankKyc(userId) {
   let tmp = new UserKyc({
     uid: parseInt(userId),
-    // kyc compeletd or not
-    idKycComplete: false,
-    bankKycComplete: false,
-    // kyc status  PENDING, SUBMITTED, APPROVED etc.
-    idKycStatus: KYCSTATUS.pending,
-    bankKycStatus: KYCSTATUS.pending,
-    // id of documents uploaded
-    idDocRef: "",
-    bankDocRef: "",
     // ID details;
-    idDetails: dbencrypt(""),
+    idDetails: dbencrypt(NODATA),
     // bank details
-    bankDetails: dbencrypt("--"),
+    bankDetails: dbencrypt(NODATA),
+    // UPI details
+    upiDetails: dbencrypt(NODATA),
+    // use bank details
+    useUpi: false,    
   })
   return tmp;
 }
@@ -46,10 +42,15 @@ router.get('/details/:userid', async function (req, res) {
   if (!myKyc) 
     myKyc = getBlankKyc(userid);
 
-  let tmp1 = dbToSvrText(myKyc.bankDetails)
-  let tmp2 = dbToSvrText(myKyc.idDetails);
+  let tmp1 = dbdecrypt(myKyc.idDetails)
+  let tmp2 = dbdecrypt(myKyc.bankDetails);
+  let tmp3 = dbdecrypt(myKyc.upiDetails);
 
-  sendok(res, {id: tmp2, bank: tmp1});
+  if (tmp1 === NODATA) tmp1 = "";
+  if (tmp2 === NODATA) tmp2 = "";
+  if (tmp3 === NODATA) tmp3 = "";
+
+  sendok(res, {idata: encrypyt(tmp1), bdata: encrypyt(tmp2), udata: encrypyt(tmp3), use: myKyc.useUpi});
 });	
 
 
@@ -89,6 +90,25 @@ router.get('/bdata/:userid/:details', async function (req, res) {
   sendok(res, "OK");
 });	
 	
+router.get('/udata/:userid/:details', async function (req, res) {
+  setHeader(res);
+  let { userid, details } = req.params;
+
+  let myKyc = await UserKyc.findOne({uid: userid});
+
+  // if first time
+  if (!myKyc) 
+    myKyc = getBlankKyc(userid);
+
+  // update data for upi
+  myKyc.upiDetails = svrToDbText(details);
+  myKyc.useUpi = true;
+
+  await myKyc.save();  
+
+  sendok(res, "OK");
+});	
+
 
 function getDate(x) {
 	let y = ("0" + x.getDate()).slice(-2) + "/" +

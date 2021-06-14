@@ -176,19 +176,15 @@ UserSchema = mongoose.Schema({
 
 UserKycSchema = mongoose.Schema({
   uid: Number,
-  // kyc compeletd or not
-  idKycComplete: Boolean,
-  bankKycComplete: Boolean,
-  // kyc status  PENDING, SUBMITTED, APPROVED etc.
-  idKycStatus: String,
-  bankKycStatus: String,
-  // id of documents uploaded
-  idDocRef: String,
-  bankDocRef: String,
   // ID details;
   idDetails: String,   // id proof as encrypted
   // bank details
-  bankDetails: String    // will store <username>-<account number>-<ifsc>  (encrypted)
+  bankDetails: String,    // will store <username>-<account number>-<ifsc>  (encrypted)
+  // UPI details
+  upiDetails: String,    // will store <username>-<account number>-<ifsc>  (encrypted)
+  // use kyc
+  useUpi: Boolean,
+  
 });
 
 SchemeSchema = mongoose.Schema({

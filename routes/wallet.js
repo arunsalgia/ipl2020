@@ -84,6 +84,7 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
   
   myTrans = createWalletTransaction();
   myTrans.isWallet = false;
+
   myTrans.uid = myPayment.uid;
   myTrans.transType = BonusTransType.refill;
   myTrans.transSubType = myPayment.paymentId;
