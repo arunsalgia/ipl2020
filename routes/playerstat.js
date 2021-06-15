@@ -969,6 +969,7 @@ async function statRank (igroup, iwhichUser, doSendWhat) {
       userName: curruserName, 
       displayName: currdisplayName,
       grandScore: totscore, 
+	  prize: gm.prize,
       rank: 0});
   })
   userRank = _.sortBy(userRank, 'grandScore').reverse();
@@ -1164,6 +1165,7 @@ async function statCalculation (igroup) {
   //console.log("GM start");
   g_gmembers.forEach( gm => {
     userPid = gm.uid; 
+	//console.log("prize: ", gm.prize);
     var urec = _.filter(g_allusers, u => u.uid === userPid);
 	//console.log(`${urec[0].userName}`);
     var myplayers = _.filter(g_auctionList, a => a.uid === userPid); 
@@ -1238,6 +1240,7 @@ async function statCalculation (igroup) {
       userName: urec[0].displayName,   //  curruserName, `
       displayName: gm.displayName,    //  currdisplayName,
       grandScore: totscore, 
+	  prize: gm.prize,
       rank: 0});
 
   var tmpRun = _.maxBy(userMaxList, x => x.totalRun);
@@ -1307,7 +1310,7 @@ async function statCalculation (igroup) {
   //var totDur = calcEnd.getTime() - calStart.getTime();
   // var duration2 = beforeStat.getTime() - beforeAwait.getTime();
   // var duration3 = dataRead.getTime() - beforeStat.getTime();
-  // var duration4 = calcEnd.getTime() - dataRead.getTime();
+  // var duration4 = calcEnd.getTime() - dataRead.getTime();w
   // var totDur = calcEnd.getTime() - calStart.getTime();
 
   // console.log(`Start calc: ${calStart}`);
@@ -1317,6 +1320,7 @@ async function statCalculation (igroup) {
   // console.log(`End   calc: ${calcEnd}  Duration: ${duration4}`);
   //console.log(`Total Time: ${totDur}`) 
 
+  //console.log(userRank);
   return({rank: userRank, maxRun: userMaxRunList, maxWicket: userMaxWicketList});
 }
 
@@ -2320,6 +2324,7 @@ async function processConnection(i) {
         io.to(connectionArray[i].socketId).emit('maxRun', myData.dbData.maxRun);
         io.to(connectionArray[i].socketId).emit('maxWicket', myData.dbData.maxWicket);
         io.to(connectionArray[i].socketId).emit('rank', myData.dbData.rank);
+		//console.log(myData.dbData.rank);
         io.to(connectionArray[i].socketId).emit('score', score[myTournament]);
         let myOvers = _.find(runningScoreArray, x => x.tournament === myData.tournament)
         if (!myOvers) { myOvers = {tournament: ""}; }
