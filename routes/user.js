@@ -562,7 +562,7 @@ router.get('/cricemailreset/:mailid', async function (req, res, next) {
   if (!uRec) {senderr(res, 602, "Invalid email id"); return  }
   
 	let T1 = new Date();
-	T1.setMinutess(T1.getMinutess()+PASSWORDLINKVALIDTIME);
+	T1.setMinutes(T1.getMinutes()+PASSWORDLINKVALIDTIME);
 	let myCode = encrypt( uRec._id + "/" + T1.getTime() );
 	//console.log(myCode);
 	
