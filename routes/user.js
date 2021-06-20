@@ -319,9 +319,10 @@ router.get('/cricresetpassword/:userCode/:newPwd', async function (req, res, nex
   var {userCode, newPwd } = req.params;
   var isValid = false;
   let uRec;
+	let x = decrypt(userCode).split("/");
 	
 	try {
-		uRec = await User.findOne({ _id:  userCode });
+		uRec = await User.findOne({ _id:  x[0] });
 		if (uRec) isValid = true;
 			//return senderr(res, 601, "Invalid User name or password");
 	} catch (e) {
