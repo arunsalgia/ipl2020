@@ -14,14 +14,19 @@ const { akshuDelGroup,
   getMaster, setMaster,
 } = require('./routes/cricspecial'); 
 
+PASSWORDLINKVALIDTIME=600			// Password link valid time in seconds
 PRODUCTION=true;  
 PRIZEPORTION=1.0
 
 //
-if (PRODUCTION)
+if (PRODUCTION) {
   PORT = process.env.PORT || 80;
-else
+  BASELINK='https://happy-home-ipl-2020.herokuapp.com';
+  
+} else {
   PORT = process.env.PORT || 4000;
+  BASELINK='http://localhost:3000';
+}
 
 http = require('http');
 httpServer = http.createServer(app);

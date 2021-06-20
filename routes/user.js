@@ -8,14 +8,13 @@ const { encrypt, decrypt, dbencrypt, dbdecrypt, dbToSvrText,
   getMaster, setMaster,
 } = require('./cricspecial'); 
 
-// const allUSER = 99999999;
+
 const is_Captain = true;
 const is_ViceCaptain = false;
 const WITH_CVC  = 1;
 const WITHOUT_CVC = 2;
-// let CricRes;
+
 var _group;
-// var _tournament;
  
 
 /* GET all users listing. */
@@ -288,7 +287,7 @@ router.get('/criclogin/:uName/:uPassword', async function (req, res, next) {
 });
 
 
-router.get('/cricreset/:userId/:oldPwd/:newPwd', async function (req, res, next) {
+router.get('/cricchangepassword/:userId/:oldPwd/:newPwd', async function (req, res, next) {
   // CricRes = res;
   setHeader(res);
   console.log("in crioc reset");
@@ -311,6 +310,31 @@ router.get('/cricreset/:userId/:oldPwd/:newPwd', async function (req, res, next)
   uRec.save();
   
   sendok(res, uRec);
+});
+
+
+router.get('/cricresetpassword/:userCode/:newPwd', async function (req, res, next) {
+  setHeader(res);
+  console.log("in crioc reset");
+  var {userCode, newPwd } = req.params;
+  var isValid = false;
+  let uRec;
+	
+	try {
+		uRec = await User.findOne({ _id:  userCode });
+		if (uRec) isValid = true;
+			//return senderr(res, 601, "Invalid User name or password");
+	} catch (e) {
+		cosole.log(e);
+	}
+	
+	if (isValid) {		
+		uRec.password = svrToDbText(newPwd);
+		await uRec.save();
+		sendok(res, uRec);
+	} else
+		senderr(res, 601, "Invalid User name or password");
+	
 });
 
 
@@ -528,6 +552,77 @@ router.get('/cricemailpassword/:mailid', async function (req, res, next) {
   }
 }); 
 
+/* send reset link by email */
+router.get('/cricemailreset/:mailid', async function (req, res, next) {
+  setHeader(res);
+  var {mailid} = req.params;
+  mailid = mailid.toLowerCase();
+	
+  let uRec = await User.findOne({ email: svrToDbText(mailid) });
+  if (!uRec) {senderr(res, 602, "Invalid email id"); return  }
+  
+	let T1 = new Date();
+	T1.setSeconds(T1.getSeconds()+PASSWORDLINKVALIDTIME);
+	let myCode = encrypt( uRec._id + "/" + T1.getTime() );
+	//console.log(myCode);
+	
+  myLink = `${BASELINK}/apl/resetpasswordconfirm/${myCode}`;
+  
+  let text = `Dear User,
+  
+	Greetings from Auction Permier League.
+
+	Reset your password using the link given below.
+
+	${myLink} 
+
+	Kindly note that this link is valid only for 10 minutes.
+	
+	Best Regards,
+	for Auction Permier League`
+
+	let xxx = decrypt(mailid);
+	console.log(`Send message to ${xxx}`);
+	let resp = await sendCricMail(xxx, 'User info from Auction Premier League', text);
+	if (resp.status) {
+    console.log('Email sent: ' + resp.error);
+    sendok(res, `Email sent to ${resp.error}`);
+  } else {
+    console.log(`errror sending email to ${xxx}`);
+    console.log(resp.error);
+    senderr(res, 603, resp.error);
+  }
+}); 
+
+
+/* send reset link by email */
+router.get('/cricverifycode/:userCode', async function (req, res, next) {
+  setHeader(res);
+  var {userCode} = req.params;
+	let errorCode = 1001;
+	
+	userCode = decrypt(userCode);
+	let x = userCode.split("/");
+	console.log(x);
+	
+	if (x.length === 2) {
+		//console.log(x[1]);
+		var currTime = new Date();
+		var validTime = new Date(Number(x[1]));
+		console.log('Valid Till ', validTime.toString());
+		if (currTime.getTime() <= validTime.getTime()) {
+			try {
+				await User.findOne({ _id: x[0]});
+				errorCode = 0;
+			} catch (e) {
+				console.log(e);
+			}
+		} else
+			errorCode = 1002;
+	}
+	sendok(res, {status: errorCode});
+}); 
+
 router.get('/emailwelcome/:mailid', async function (req, res, next) {
   // CricRes = res;
   setHeader(res);
@@ -703,10 +798,9 @@ router.get('/cricemailwelcome/:mailid', async function (req, res, next) {
 
 // select caption for the user (currently only group 1 supported by default)
 router.get('/captain/:myGroup/:myUser/:myPlayer', async function (req, res, next) {
-  // CricRes = res;
   setHeader(res);
   var {myGroup,  myUser, myPlayer } = req.params;
-  // igroup = _group;
+
 
   var myMsg = await ipl_started(myGroup);
   if (myMsg != "") {
