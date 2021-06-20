@@ -325,7 +325,7 @@ router.get('/cricresetpassword/:userCode/:newPwd', async function (req, res, nex
 		if (uRec) isValid = true;
 			//return senderr(res, 601, "Invalid User name or password");
 	} catch (e) {
-		cosole.log(e);
+		console.log(e);
 	}
 	
 	if (isValid) {		
@@ -562,7 +562,7 @@ router.get('/cricemailreset/:mailid', async function (req, res, next) {
   if (!uRec) {senderr(res, 602, "Invalid email id"); return  }
   
 	let T1 = new Date();
-	T1.setSeconds(T1.getSeconds()+PASSWORDLINKVALIDTIME);
+	T1.setMinutess(T1.getMinutess()+PASSWORDLINKVALIDTIME);
 	let myCode = encrypt( uRec._id + "/" + T1.getTime() );
 	//console.log(myCode);
 	
@@ -576,7 +576,7 @@ router.get('/cricemailreset/:mailid', async function (req, res, next) {
 
 	${myLink} 
 
-	Kindly note that this link is valid only for 10 minutes.
+	Kindly note that this link is valid only for ${PASSWORDLINKVALIDTIME} minutes.
 	
 	Best Regards,
 	for Auction Permier League`
