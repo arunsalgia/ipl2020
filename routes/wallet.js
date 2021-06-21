@@ -23,7 +23,7 @@ var instaOptions = {
   send_sms: false,
   allow_repeated_payments: false,
   webhook: "https://ankitipl.herokuapp.com/wallet/webhook/",
-  redirect_url: "https://happy-home-ipl-2020.herokuapp.com/apl/walletdetails",
+  // redirect_url: "https://happy-home-ipl-2020.herokuapp.com/apl/walletdetails",
 };
 
 
@@ -39,9 +39,9 @@ router.use('/', function(req, res, next) {
 // given by instamojo on successfull payment
 router.post('/webhook', async function (req, res) {
   setHeader(res);
-  console.log("In WEBHOOK");
+  console.log("In WEBHOOK ----------------------------------------");
   console.log(req.body);
-  
+  return sendok(res, "Done");
   /***
 {
 payment_id: 'MOJO1531F05N07589845',
@@ -98,7 +98,7 @@ mac: 'ec891618e4e2b2a23377647065168e5458ca39b4'
 router.get('/generatepaymentrequest/:userid/:amount', async function (req, res, next) {
   setHeader(res);
     let { userid, amount } = req.params;
-    let PAYMENT_REQUEST_ID = '';
+    let PAYMENT_REQUEST_URL = '';
 	
 	let userRec = await akshuGetUser(userid);
 	instaOptions.amount = amount;
@@ -112,21 +112,21 @@ router.get('/generatepaymentrequest/:userid/:amount', async function (req, res, 
 	try {
 		const response = await Instamojo.createNewPaymentRequest(paymentData);
 		console.log(response);
-		PAYMENT_REQUEST_ID = response.payment_request.id;
+		PAYMENT_REQUEST_URL = response.payment_request.id;
 		
 		let myPayment = new Payment();
 		myPayment.uid = userRec.uid;
 		myPayment.email = userRec.email;
 		myPayment.amount = parseFloat(amount);
 		myPayment.status = "PENDING";
-		myPayment.requestId = PAYMENT_REQUEST_ID;
+		myPayment.requestId = response.payment_request.id;
 		myPayment.requestTime = new Date();
 		await myPayment.save();
 	} catch (e) {
 		console.log(e);
 	}
-	console.log(PAYMENT_REQUEST_ID);
-	sendok(res, PAYMENT_REQUEST_ID);
+	console.log(PAYMENT_REQUEST_URL);
+	sendok(res, PAYMENT_REQUEST_URL);
 }); 
 
 router.get('/getpaymentdetails/:requestId', async function (req, res, next) {
@@ -158,7 +158,57 @@ router.get('/getpaymentdetails/:requestId', async function (req, res, next) {
 }); 
 
 
+// given by instamojo on successfull payment
+router.get('/paymentok/:paymentRequest/:paymentId', async function (req, res) {
+  setHeader(res);
+  console.log("In success payment");
+  var {paymentRequest, paymentId } = req.params;
+	
+  let myPayment = await Payment.findOne({requestId: paymentRequest});
+  myPayment.paymentId = paymentId;
+  myPayment.paymentTime = new Date();
+  myPayment.status = "CREDIT";			//req.body.status.toUpperCase();
+  myPayment.fee = 0;   //parseFloat(req.body.fees);
+  await myPayment.save();
+  
+  let myTrans = createWalletTransaction();
+  myTrans.isWallet = true;
+  myTrans.uid = myPayment.uid;
+  myTrans.transType = WalletTransType.refill;
+  myTrans.transSubType = myPayment.paymentId;
+  myTrans.amount = myPayment.amount;
+  await myTrans.save();
+  
+  let bonusAmount = calculateBonus(myPayment.amount);
+  
+  myTrans = createWalletTransaction();
+  myTrans.isWallet = false;
 
+  myTrans.uid = myPayment.uid;
+  myTrans.transType = BonusTransType.refill;
+  myTrans.transSubType = myPayment.paymentId;
+  myTrans.amount = bonusAmount;
+  await myTrans.save();
+  
+  return sendok(res, "done");
+});	
+	
+	
+router.get('/paymentfail/:paymentRequest', async function (req, res) {
+  setHeader(res);
+	var {paymentRequest} = req.params;
+	console.log("In failed payment");
+	
+  let myPayment = await Payment.findOne({requestId: paymentRequest});
+  myPayment.paymentId = "";
+  myPayment.paymentTime = new Date();
+  myPayment.status = "FAILED";			//req.body.status.toUpperCase();
+  myPayment.fee = 0;   //parseFloat(req.body.fees);
+  await myPayment.save();
+  
+  return sendok(res, "done");
+});	
+	
 function getDate(x) {
 	let y = ("0" + x.getDate()).slice(-2) + "/" +
 		("0" + (x.getMonth()+1)).slice(-2) + "/" +

@@ -275,13 +275,15 @@ router.get('/criclogin/:uName/:uPassword', async function (req, res, next) {
   var isValid = false;
   let uRec = await User.findOne({ userName:  getLoginName(uName)});
   console.log(uRec)
-  uPassword = decrypt(uPassword);
-  //console.log(uPassword);
-  uPassword = dbencrypt(uPassword);
-  //console.log(uPassword);
-  isValid = (uPassword === uRec.password);
-  //console.log(isValid);
-  
+	if (uRec) {
+		uPassword = decrypt(uPassword);
+		//console.log(uPassword);
+		uPassword = dbencrypt(uPassword);
+		//console.log(uPassword);
+		isValid = (uPassword === uRec.password);
+		//console.log(isValid);
+  }
+	
   if (isValid) sendok(res, uRec);
   else         senderr(res, 602, "Invalid User name or password");
 });
